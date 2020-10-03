@@ -9,7 +9,6 @@ double *mean_axises(double *m, size_t nb_axis, size_t nb_points)
 {
     size_t i, j;
     double *r;
-    std::cerr << "Mean computation" << std::endl;
     if (!(r = (double *)calloc(nb_axis, sizeof(double))))
         errx(2, "alloc error !");
     for (i = 0; i < nb_axis; ++i)

@@ -8,6 +8,7 @@
 #include <iomanip>
 
 #include "libCSV/csv.hpp"
+#include "libalg/alg.hpp"
 #include "libalg/mean.hpp"
 
 int main(int argc, char *argv[])
@@ -22,7 +23,7 @@ int main(int argc, char *argv[])
     std::ifstream file2(argv[2]);
     double *m = readCSV(file1, f1Header, &nbaxis, &nbpoints);
 
-    std::cerr << nbaxis << " " << nbpoints << std::endl;
+    std::cerr << "nbaxis: " << nbaxis << " nbpoints: " << nbpoints << std::endl;
     double *mean = mean_axises(m, nbaxis, nbpoints);
     std::cout << "Mean:" << std::endl;
     for (size_t i = 0; i < nbaxis; ++i)
@@ -30,6 +31,19 @@ int main(int argc, char *argv[])
         std::cout << mean[i] << '\t';
     }
     std::cout << std::endl;
+
+    std::cout << std::endl
+              << "Centered:" << std::endl;
+    element_wise_op(&m, m, mean, nbaxis, nbpoints, nbaxis, 1, substract);
+    for (size_t j = 0; j < nbpoints; ++j)
+    {
+        for (size_t i = 0; i < nbaxis; ++i)
+        {
+            std::cout << m[i * nbpoints + j] << '\t';
+        }
+        std::cout << std::endl;
+    }
+
     free(mean);
     free(m);
     return EXIT_SUCCESS;
