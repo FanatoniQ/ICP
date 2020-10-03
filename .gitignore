@@ -12,7 +12,7 @@ CMakeFiles/
 CMakeCache.txt
 CMakeDoxyfile.in
 *.bin
-#Makefile
+Makefile
 
 # C++
 ## Prerequisites
@@ -56,3 +56,4 @@ CMakeDoxyfile.in
 
 # doxygen
 documentation/
+build/
