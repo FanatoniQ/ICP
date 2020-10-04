@@ -17,7 +17,7 @@ add_library(CSV ${LIBCSVSOURCES})
 
 include_directories(include)
 file(GLOB LIBALGSOURCES "src/libalg/*.cpp")
-add_compile_options(-Wall -Wextra -pedantic -Werror -g)
+add_compile_options(-Wall -Wextra -pedantic -Werror -g -lm)
 add_library(alg ${LIBALGSOURCES})
 
 ###########

@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     std::cout << std::endl
               << "Centered:" << std::endl;
     element_wise_op(&m, m, mean, nbaxis, nbpoints, nbaxis, 1, substract);
-    for (size_t j = 0; j < nbpoints; ++j)
+    for (size_t j = 0; j < nbpoints; ++j) // transposed printing, strided access
     {
         for (size_t i = 0; i < nbaxis; ++i)
         {
@@ -43,8 +43,33 @@ int main(int argc, char *argv[])
         }
         std::cout << std::endl;
     }
+    std::cout << std::endl
+              << "Transposed:" << std::endl;
+    double *m_T = transpose(m, nbaxis, nbpoints);
+    for (size_t i = 0; i < nbpoints; ++i) // normal aligned access printing
+    {
+        for (size_t j = 0; j < nbaxis; ++j)
+        {
+            std::cout << m_T[i * nbaxis + j] << '\t';
+        }
+        std::cout << std::endl;
+    }
+    std::cout << "(|[0,0,0] - P[:, 1]|_2)^2 = \t";
+    double fakePoint = 0;
+    double r = element_wise_reduce(&fakePoint, m_T + 3,
+                                   1, 1, 1, nbaxis,
+                                   squared_norm_2,
+                                   add,
+                                   add);
+    std::cout << r << std::endl;
+
+    std::cout << "P[:,1].dot(P[:,0].T) = " << std::endl;
+    double *P1dotP0_T;
+    dot_product(&P1dotP0_T, m_T + nbaxis, m_T, 1, nbaxis, nbaxis, 1);
+    std::cout << *P1dotP0_T << std::endl;
 
     free(mean);
     free(m);
+    free(m_T);
     return EXIT_SUCCESS;
 }
