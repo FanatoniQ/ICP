@@ -53,7 +53,7 @@ double *readCSV(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoint
     size_t i, j = 0;
     auto f1M = __readCSV<double>(f, h);
 
-    std::cout << h << std::endl;
+    std::cerr << h << std::endl;
     *nbaxis = f1M.at(0).size();
     *nbpoints = f1M.size();
     if (!(m = (double *)calloc(*nbaxis * *nbpoints, sizeof(double))))
@@ -64,10 +64,10 @@ double *readCSV(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoint
         for (const auto &f1V : f1line)
         {
             m[i * (*nbpoints) + j] = f1V; // non linear access
-            std::cout << f1V << "\t";
+            //std::cerr << f1V << "\t";
             ++i;
         }
-        std::cout << std::endl;
+        //std::cerr << std::endl;
         ++j; // j is line index
     }
     return m;

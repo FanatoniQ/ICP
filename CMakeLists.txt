@@ -20,6 +20,21 @@ file(GLOB LIBALGSOURCES "src/libalg/*.cpp")
 add_compile_options(-Wall -Wextra -pedantic -Werror -g -lm)
 add_library(alg ${LIBALGSOURCES})
 
+##############
+# TESTLIBALG #
+##############
+
+include_directories(include)
+file(GLOB TESTLIBALGSOURCES "src/testlibalg/*.cpp")
+add_compile_options(-Wall -Wextra -pedantic -Werror -g)
+
+foreach(file_path ${TESTLIBALGSOURCES})
+ string(REPLACE ".cpp" "" bin_path_name ${file_path} )
+ get_filename_component(bin_name ${bin_path_name} NAME)
+ add_executable(${bin_name} ${file_path})
+ target_link_libraries(${bin_name} CSV alg)
+endforeach()
+
 ###########
 #   CPU   #
 ###########

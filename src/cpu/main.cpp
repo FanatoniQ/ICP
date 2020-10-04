@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     {
         for (size_t j = 0; j < nbaxis; ++j)
         {
-            std::cout << m_T[i * nbaxis + j] << '\t';
+            std::cout << m_T[i * nbaxis + j] << ',';
         }
         std::cout << std::endl;
     }
