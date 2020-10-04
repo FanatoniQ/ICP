@@ -63,10 +63,12 @@ int main(int argc, char *argv[])
                                    add);
     std::cout << r << std::endl;
 
-    std::cout << "P[:,1].dot(P[:,0].T) = " << std::endl;
-    double *P1dotP0_T;
-    dot_product(&P1dotP0_T, m_T + nbaxis, m_T, 1, nbaxis, nbaxis, 1);
-    std::cout << *P1dotP0_T << std::endl;
+    std::cout << "P[:,1].dot(P[:,0].T) = ";
+    double P1dotP0_T;
+    double *P1dotP0_T_ptr = &P1dotP0_T; //(double *)calloc(1, sizeof(double));
+    dot_product(&P1dotP0_T_ptr, m_T + nbaxis, m_T, 1, nbaxis, nbaxis, 1);
+    std::cout << P1dotP0_T << std::endl;
+    //free(P1dotP0_T);
 
     free(mean);
     free(m);
