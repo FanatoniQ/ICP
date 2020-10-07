@@ -17,6 +17,22 @@ int main(int argc, char *argv[])
         errx(1, "Usage: ./CPUICP file1 file2");
     std::cout << std::setprecision(15); //DBL_MANT_DIG);
 
+    std::string f1Header{};
+    size_t nblines, nbcols;
+    //___readCSV(f, f1Header);
+    double *r = readCSV(argv[1], f1Header, nblines, nbcols);
+    std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
+    for (size_t i = 0; i < nblines; ++i)
+    {
+        for (size_t j = 0; j < nbcols; ++j)
+        {
+            std::cerr << r[i * nbcols + j] << "\t";
+        }
+        std::cerr << std::endl;
+    }
+    free(r);
+
+    /**
     size_t nbaxis, nbpoints;
     std::string f1Header{}, f2Header{};
     std::ifstream file1(argv[1]);
@@ -73,5 +89,6 @@ int main(int argc, char *argv[])
     free(mean);
     free(m);
     free(m_T);
+    **/
     return EXIT_SUCCESS;
 }
