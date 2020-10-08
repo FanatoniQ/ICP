@@ -6,6 +6,9 @@ from io import StringIO
 import subprocess
 import multiprocessing
 import time
+import glob
+
+success = 0
 
 HEADER = '\033[95m'
 OKBLUE = '\033[94m'
@@ -22,7 +25,7 @@ def print_test(TEST):
     print(" /                   \\")
     print("       " + TEST )
     print(" \\                   /")
-    print("  ===================" + ENDC)
+    print("  ===================\n" + ENDC)
 
 def end_print(total, success, fails):
     """Pretty print for testsuite results"""
@@ -45,11 +48,7 @@ def dotproduct(P, Q):
     return P.dot(Q)
 
 def exec(fn, *args):
-    print_test('TESTSUITE')
-
-    nbtests = 0
-    success = 0
-
+    global success
     print(*args)
     expected = globals()[fn](*args)
     executable = "./testlibalg{}".format(fn)
@@ -59,16 +58,30 @@ def exec(fn, *args):
     #input(R)
     #input(expected)
     assert(np.allclose(expected, R))
-    print("Success !")
-    success += 1; nbtests += 1
-    end_print(1, success, nbtests - success)
+    print(OKGREEN + "Success !\n" + ENDC)
+    success += 1
 
 if __name__ == "__main__":
-    fn = sys.argv[-1]
-    if not fn in globals():
-        exit(1)
-    execargs = [sys.argv[1]]
-    if (len(sys.argv) == 4):
-        execargs.append(sys.argv[2])
-    print(execargs)
-    exec(fn, *execargs)
+    print_test('TESTSUITE')
+    nb_tests = 0
+
+    fileList = glob.glob('../data/*.txt')
+    params_1fn = [
+        "mean"
+    ]
+    params_2fn = [
+        "dotproduct"
+    ]
+    for fn in params_1fn:
+        for file in fileList:
+            print(OKBLUE + "Mean" + ENDC)
+            exec(fn, file)
+            nb_tests += 1
+    for fn in params_2fn:
+        for i in range(len(fileList)):
+            for j in range(i, len(fileList)):
+                print(OKBLUE + "Dot product" + ENDC)
+                exec(fn, fileList[i],fileList[j])
+                nb_tests += 1
+
+    end_print(1, success, nb_tests - success)
