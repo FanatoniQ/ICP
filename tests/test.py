@@ -49,17 +49,39 @@ def dotproduct(P, Q):
 
 def exec(fn, *args):
     global success
-    print(*args)
-    expected = globals()[fn](*args)
+    print(OKBLUE + fn + str(args) + ENDC)
+    ret = True
+    try:
+        expected = globals()[fn](*args)
+    except Exception:
+        ret = False
     executable = "./testlibalg{}".format(fn)
     myprocess = subprocess.Popen([executable, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout = myprocess.communicate()[0].decode('utf-8')
-    R = np.array(pd.read_csv(StringIO(stdout), sep=",", header=None))
-    #input(R)
-    #input(expected)
-    assert(np.allclose(expected, R))
-    print(OKGREEN + "Success !\n" + ENDC)
-    success += 1
+    myprocess.communicate()
+
+    pret = bool(myprocess.returncode == 0)
+    if (pret != ret):
+        print(myprocess.returncode)
+        print(ret)
+        print(FAIL + "Fail return code !\n" + ENDC)
+        return
+    
+    if ret:
+        stdout = myprocess.communicate()[0].decode('utf-8')
+        R = np.array(pd.read_csv(StringIO(stdout), sep=",", header=None))
+        try:
+            if (np.allclose(expected, R)):
+                print(OKGREEN + "Success !\n" + ENDC)
+                success += 1
+            else:
+                print(FAIL + "Fail (not equal) !\n" + ENDC)
+        except Exception as e:
+            print(FAIL + "Fail (different shape) !")
+            print(e)
+            print(ENDC)
+    else:
+        print(OKGREEN + "Success (invalid operation in both cases) !\n" + ENDC)
+        success += 1
 
 if __name__ == "__main__":
     print_test('TESTSUITE')
@@ -74,14 +96,12 @@ if __name__ == "__main__":
     ]
     for fn in params_1fn:
         for file in fileList:
-            print(OKBLUE + "Mean" + ENDC)
             exec(fn, file)
             nb_tests += 1
     for fn in params_2fn:
         for i in range(len(fileList)):
             for j in range(i, len(fileList)):
-                print(OKBLUE + "Dot product" + ENDC)
                 exec(fn, fileList[i],fileList[j])
                 nb_tests += 1
 
-    end_print(1, success, nb_tests - success)
+    end_print(nb_tests, success, nb_tests - success)
