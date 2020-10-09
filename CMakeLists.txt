@@ -25,7 +25,7 @@ add_library(alg ${LIBALGSOURCES})
 ##############
 
 include_directories(include)
-file(GLOB TESTLIBALGSOURCES "src/testlibalg/*.cpp")
+file(GLOB TESTLIBALGSOURCES "src/testlibalg/testlibalg.cpp")
 add_compile_options(-Wall -Wextra -pedantic -Werror -g)
 
 foreach(file_path ${TESTLIBALGSOURCES})

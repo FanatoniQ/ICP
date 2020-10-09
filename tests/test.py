@@ -55,8 +55,8 @@ def exec(fn, *args):
         expected = globals()[fn](*args)
     except Exception:
         ret = False
-    executable = "./testlibalg{}".format(fn)
-    myprocess = subprocess.Popen([executable, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    executable = "./testlibalg"
+    myprocess = subprocess.Popen([executable, *args, fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     myprocess.communicate()
 
     pret = bool(myprocess.returncode == 0)
