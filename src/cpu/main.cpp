@@ -10,6 +10,7 @@
 #include "libCSV/csv.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/mean.hpp"
+#include "cpu/icp.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -18,9 +19,13 @@ int main(int argc, char *argv[])
     std::cout << std::setprecision(15); //DBL_MANT_DIG);
 
     std::string f1Header{};
-    size_t nblines, nbcols;
+    size_t Qlines, Qcols, Plines, Pcols;
     //___readCSV(f, f1Header);
-    double *r = readCSV(argv[1], f1Header, nblines, nbcols);
+    double *P = readCSV(argv[1], f1Header, Plines, Pcols);
+    double *Q = readCSV(argv[2], f1Header, Qlines, Qcols);
+    
+    auto res = get_correspondence_indices(P, Q, Plines, Pcols, Qlines, Qcols);
+    /*
     std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
     for (size_t i = 0; i < nblines; ++i)
     {
@@ -30,7 +35,10 @@ int main(int argc, char *argv[])
         }
         std::cerr << std::endl;
     }
-    free(r);
+    */
+   
+    free(P);
+    free(Q);
 
     /**
     size_t nbaxis, nbpoints;

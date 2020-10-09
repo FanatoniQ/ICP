@@ -1,15 +1,12 @@
 #include <err.h>
 
-#include <float.h>
 #include <stdlib.h>
 
 #include <iostream>
 #include <fstream>
-#include <iomanip>
 
 #include "libCSV/csv.hpp"
 #include "libalg/alg.hpp"
-#include "libalg/mean.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -20,7 +17,6 @@ int main(int argc, char *argv[])
     std::ifstream file1(argv[1]);
     double *m = readCSV(file1, f1Header, &nbaxis, &nbpoints);
 
-    // std::cout << std::setprecision(15);
     std::cerr << "nbaxis: " << nbaxis << " nbpoints: " << nbpoints << std::endl;
     for (size_t i = 0; i < nbpoints / nbaxis; ++i)
     {
