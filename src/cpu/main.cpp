@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
     double *Q = readCSV(argv[2], f1Header, Qlines, Qcols);
     
     auto res = get_correspondence_indices(P, Q, Plines, Pcols, Qlines, Qcols);
+    //std::cout << std::get<0>(res.at(2)) << " and "<< std::get<1>(res.at(2));
     /*
     std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
     for (size_t i = 0; i < nblines; ++i)
