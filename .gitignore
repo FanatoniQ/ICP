@@ -53,6 +53,7 @@ Makefile
 
 # idea
 .idea/
+cmake-build-debug/
 
 # doxygen
 documentation/
