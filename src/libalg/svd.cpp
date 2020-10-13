@@ -10,9 +10,10 @@ namespace lapack
 {
     extern "C"
     {
-        extern void dgesvd_(char *jobu, char *jobvt, int *m, int *n, double *a,
-                            int *lda, double *s, double *u, int *ldu, double *vt, int *ldvt,
-                            double *work, int *lwork, int *info);
+#define dgesvd dgesvd_
+        extern void dgesvd(char *jobu, char *jobvt, int *m, int *n, double *a,
+                           int *lda, double *s, double *u, int *ldu, double *vt, int *ldvt,
+                           double *work, int *lwork, int *info);
     }
 } // namespace lapack
 
@@ -39,12 +40,12 @@ void svd(double *a, double **u, double **sigma, double **vt, int m, int n)
         if ((*vt = (double *)malloc(ldvt * n * sizeof(double))) == nullptr)
             errx(1, "Alloc Error (u) !");
     }
-    lapack::dgesvd_(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, &wkopt, &lwork, &info);
+    lapack::dgesvd(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, &wkopt, &lwork, &info);
     std::cerr << "Query DONE !" << std::endl;
     lwork = (int)wkopt;
     if ((work = (double *)malloc(lwork * sizeof(double))) == nullptr)
         errx(1, "Alloc Error (work) !");
-    lapack::dgesvd_(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, work, &lwork, &info);
+    lapack::dgesvd(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, work, &lwork, &info);
     free(work);
     if (info > 0)
     {
