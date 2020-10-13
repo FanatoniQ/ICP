@@ -1,4 +1,5 @@
 #include <err.h>
+#include <cassert>
 
 #include <float.h>
 #include <stdlib.h>
@@ -10,6 +11,7 @@
 
 #include "libCSV/csv.hpp"
 #include "libalg/print.hpp"
+#include "libalg/svd.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/mean.hpp"
 
@@ -17,6 +19,7 @@
 
 int test_svd(char *argv[])
 {
+    /**
     UNUSED(argv);
     double a[] = {1.0, 2.0, 3.0};
     double b[] = {4.0, 5.0, 6.0};
@@ -25,6 +28,35 @@ int test_svd(char *argv[])
     print_matrix(std::cout, a, 3, 1);
     print_matrix(std::cout, b, 3, 1);
     print_matrix(std::cout, c, 3, 1);
+    **/
+    size_t nbaxis, nbpoints;
+    std::string f1Header{};
+    std::ifstream file1(argv[1]);
+
+    double *a = readCSV(file1, f1Header, &nbaxis, &nbpoints);
+    //int n = MAX(nbaxis, nbpoints), m = MIN(nbaxis, nbpoints);
+    int n = nbpoints, m = nbaxis;
+    if (n < m)
+        SWAP(n, m);
+    //assert(nbaxis < nbpoints); // just checking
+    double *a_T = transpose(a, nbaxis, nbpoints);
+    free(a);
+    double *u = NULL, *sigma = NULL, *vt = NULL;
+    svd(a_T, &u, &sigma, &vt, m, n);
+
+    /** Full matrices exemple: **/
+    print_matrix(std::cout, u, m, m, m);     // shape is: m,n (doc says m,m...)
+    print_matrix(std::cout, sigma, m, 1, m); // shape is: n,
+    print_matrix(std::cout, vt, n, n, n);    // shape is: n,n
+    /**
+    print_matrix(std::cout, u, m, m, m);
+    print_matrix(std::cout, sigma, m, 1, m);
+    print_matrix(std::cout, vt, n, m, n); // not full matrices
+    **/
+    free(u);
+    free(sigma);
+    free(vt);
+    free(a_T);
     return EXIT_SUCCESS;
 }
 

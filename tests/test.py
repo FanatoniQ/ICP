@@ -51,7 +51,7 @@ def svd_no_ref(u, s, vh):
     u, s, vh = StringIO(u), StringIO(s), StringIO(vh)
     u, s, vh = pd.read_csv(u, sep=",", header=None), pd.read_csv(s, sep=",", header=None), pd.read_csv(vh, sep=",", header=None)
     u, s, vh = np.array(u), np.array(s), np.array(vh)
-    return np.dot(u * s, vh).T
+    return np.dot(u * s, vh)
 
 """
 mean axis computation
@@ -80,7 +80,7 @@ def exec_no_ref(fn, *args):
     global success
     print(OKBLUE + fn + str(args) + ENDC)
     R = np.array(pd.read_csv(args[0], sep=","))
-    executable = "./testlibalg" if fn != "svd" else "./SVD"
+    executable = "./testlibalg" #if fn != "svd" else "./SVD"
     myprocess = subprocess.Popen([executable, *args, fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     myprocess.communicate()
     
@@ -117,7 +117,7 @@ def exec(fn, *args):
         expected = globals()[fn](*args)
     except Exception:
         ret = False
-    executable = "./testlibalg" if fn != "svd" else "./SVD"
+    executable = "./testlibalg" # if fn != "svd" else "./SVD"
     myprocess = subprocess.Popen([executable, *args, fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     myprocess.communicate()
 
@@ -170,13 +170,13 @@ if __name__ == "__main__":
     print_test('TESTSUITE')
     nb_tests = 0
 
-    fileList = glob.glob('../data/*.txt')
+    fileList = [ "../data/6x5.txt" ]#glob.glob('../data/*.txt')
     params_1fn = [
-        "mean",
+        #"mean",
         "svd"
     ]
     params_2fn = [
-        "dotproduct"
+        #"dotproduct"
     ]
     for fn in params_1fn:
         for file in fileList:
