@@ -12,6 +12,21 @@
 #include "libalg/alg.hpp"
 #include "libalg/mean.hpp"
 
+#define UNUSED(x) (void)x
+
+int test_svd(char *argv[])
+{
+    UNUSED(argv);
+    // TODO: use lapack for SVD computation
+    std::cout << "1,2,3" << std::endl
+              << std::endl;
+    std::cout << "4,5,6" << std::endl
+              << std::endl;
+    std::cout << "7,8,9" << std::endl
+              << std::endl;
+    return EXIT_SUCCESS;
+}
+
 int test_mean(char *argv[])
 {
     size_t nbaxis, nbpoints;
@@ -65,23 +80,32 @@ int test_dotproduct(char *argv[])
     return EXIT_SUCCESS;
 }
 
+void usage(void)
+{
+    std::cerr << "Usage:" << std::endl
+              << std::endl;
+    std::cerr << "./testlibalg file1 1paramfunction" << std::endl;
+    std::cerr << "./testlibalg file1 file2 2paramsfunction" << std::endl
+              << std::endl;
+    std::cerr << "1paramfunction = mean | svd" << std::endl;
+    std::cerr << "2paramsfunction = dotproduct" << std::endl;
+    exit(1);
+}
+
 int main(int argc, char *argv[])
 {
-    if (argc != 3 && argc != 4)
-        errx(1, "Usage: ./testlibalg file1 mean | ./testlibalg file1 file2 dotproduct");
-
     std::cout << std::setprecision(15); //DBL_MANT_DIG);
-
     if (argc == 3)
     {
-        if (strcmp(argv[2], "mean") != 0)
-            errx(1, "Usage: ./testlibalg file1 mean | ./testlibalg file1 file2 dotproduct");
-        return test_mean(argv);
+        if (strcmp(argv[2], "mean") == 0)
+            return test_mean(argv);
+        else if (strcmp(argv[2], "svd") == 0)
+            return test_svd(argv);
     }
     else if (argc == 4)
     {
-        if (strcmp(argv[3], "dotproduct") != 0)
-            errx(1, "Usage: ./testlibalg file1 mean | ./testlibalg file1 file2 dotproduct");
-        return test_dotproduct(argv);
+        if (strcmp(argv[3], "dotproduct") == 0)
+            return test_dotproduct(argv);
     }
+    usage();
 }

@@ -15,10 +15,13 @@ add_library(CSV ${LIBCSVSOURCES})
 #   LIBALG   #
 ##############
 
+find_package(LAPACK REQUIRED) # sudo apt install liblapack-dev
+
 include_directories(include)
 file(GLOB LIBALGSOURCES "src/libalg/*.cpp")
 add_compile_options(-Wall -Wextra -pedantic -Werror -g -lm)
 add_library(alg ${LIBALGSOURCES})
+target_link_libraries(alg lapack) # libalg uses lapack lib for SVD computation
 
 ##############
 # TESTLIBALG #
