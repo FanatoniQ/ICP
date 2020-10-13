@@ -11,7 +11,7 @@
  ** \param a the matrix
  ** \param m the number of columns
  ** \param n the number of lines
- ** \param lda the number of colmuns per line in memory, can be != than m
+ ** \param lda the number of columns per line in memory, can be != than m
  **/
 void print_matrix(std::ostream &s, double *a, int m, int n, int lda);
 

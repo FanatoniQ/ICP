@@ -51,6 +51,7 @@ def svd_no_ref(u, s, vh):
     u, s, vh = StringIO(u), StringIO(s), StringIO(vh)
     u, s, vh = pd.read_csv(u, sep=",", header=None), pd.read_csv(s, sep=",", header=None), pd.read_csv(vh, sep=",", header=None)
     u, s, vh = np.array(u), np.array(s), np.array(vh)
+    u, s, vh = np.squeeze(u),np.squeeze(s),np.squeeze(vh)
     return np.dot(u * s, vh)
 
 """
@@ -86,9 +87,13 @@ def exec_no_ref(fn, *args):
     
     array_delim = "\n\n"
     stdout = myprocess.communicate()[0].decode('utf-8').rstrip(array_delim).split(array_delim)
+    #print([ np.array(pd.read_csv(StringIO(e), sep=",", header=None)).shape for e in stdout ])
+    #[::-1]
     expected = globals()["{}_no_ref".format(fn)](*stdout)
     try:
         if not np.allclose(R, expected):
+            print(YELLOW, expected)
+            print(R, ENDC)
             print(FAIL,"Fail (not equal) !",ENDC)
             print()
         else:

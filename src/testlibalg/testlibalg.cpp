@@ -44,15 +44,12 @@ int test_svd(char *argv[])
     double *u = NULL, *sigma = NULL, *vt = NULL;
     svd(a_T, &u, &sigma, &vt, m, n);
 
-    /** Full matrices exemple: **/
     print_matrix(std::cout, u, m, m, m);     // shape is: m,n (doc says m,m...)
-    print_matrix(std::cout, sigma, m, 1, m); // shape is: n,
-    print_matrix(std::cout, vt, n, n, n);    // shape is: n,n
-    /**
-    print_matrix(std::cout, u, m, m, m);
-    print_matrix(std::cout, sigma, m, 1, m);
+    print_matrix(std::cout, sigma, m, 1, 1); // shape is: n,
+    /** Full matrices exemple: **/
+    //print_matrix(std::cout, vt, n, n, n); // shape is: n,n
+    /** Not full matrices **/
     print_matrix(std::cout, vt, n, m, n); // not full matrices
-    **/
     free(u);
     free(sigma);
     free(vt);
