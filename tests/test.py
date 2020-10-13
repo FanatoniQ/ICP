@@ -52,6 +52,7 @@ def svd_no_ref(u, s, vh):
     u, s, vh = pd.read_csv(u, sep=",", header=None), pd.read_csv(s, sep=",", header=None), pd.read_csv(vh, sep=",", header=None)
     u, s, vh = np.array(u), np.array(s), np.array(vh)
     u, s, vh = np.squeeze(u),np.squeeze(s),np.squeeze(vh)
+    print(u.shape, s.shape, vh.shape)
     return np.dot(u * s, vh)
 
 """
@@ -175,13 +176,13 @@ if __name__ == "__main__":
     print_test('TESTSUITE')
     nb_tests = 0
 
-    fileList = [ "../data/6x5.txt" ]#glob.glob('../data/*.txt')
+    fileList = glob.glob('../data/*.txt')
     params_1fn = [
-        #"mean",
+        "mean",
         "svd"
     ]
     params_2fn = [
-        #"dotproduct"
+        "dotproduct"
     ]
     for fn in params_1fn:
         for file in fileList:
