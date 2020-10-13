@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include "libCSV/csv.hpp"
+#include "libalg/print.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/mean.hpp"
 
@@ -17,13 +18,13 @@
 int test_svd(char *argv[])
 {
     UNUSED(argv);
+    double a[] = {1.0, 2.0, 3.0};
+    double b[] = {4.0, 5.0, 6.0};
+    double c[] = {7.0, 8.0, 9.0};
     // TODO: use lapack for SVD computation
-    std::cout << "1,2,3" << std::endl
-              << std::endl;
-    std::cout << "4,5,6" << std::endl
-              << std::endl;
-    std::cout << "7,8,9" << std::endl
-              << std::endl;
+    print_matrix(std::cout, a, 3, 1);
+    print_matrix(std::cout, b, 3, 1);
+    print_matrix(std::cout, c, 3, 1);
     return EXIT_SUCCESS;
 }
 
@@ -37,14 +38,7 @@ int test_mean(char *argv[])
     double *mean = mean_axises(m, nbaxis, nbpoints);
     std::cerr << "nbaxis: " << nbaxis << " nbpoints: " << nbpoints << std::endl;
     std::cerr << "Mean:" << std::endl;
-    for (size_t i = 0; i < nbaxis; ++i)
-    {
-        std::cout << mean[i];
-        if (i != nbaxis - 1)
-            std::cout << ',';
-    }
-    std::cout << std::endl;
-
+    print_matrix(std::cout, mean, nbaxis, 1);
     free(m);
     free(mean);
     return EXIT_SUCCESS;
@@ -61,18 +55,7 @@ int test_dotproduct(char *argv[])
     double *n = readCSV(file2, f2Header, &nbaxis, &nbpoints);
     double *r = NULL;
     dot_product(&r, m_T, n, nbpoints, nbaxis, nbaxis, nbpoints);
-
-    for (size_t i = 0; i < nbpoints; ++i)
-    {
-        for (size_t j = 0; j < nbpoints; ++j)
-        {
-            std::cout << r[i * nbpoints + j];
-            if (j != nbpoints - 1)
-                std::cout << ',';
-        }
-        std::cout << std::endl;
-    }
-
+    print_matrix(std::cout, r, nbpoints, nbpoints);
     free(m);
     free(r);
     free(n);
