@@ -11,6 +11,7 @@ EPITA SCIA 2021 major GPGPU course project, made by :
 ## Installation
 
 ```bash
+sudo apt install liblapack-dev
 mkdir build
 cd build
 cmake ..
@@ -30,7 +31,7 @@ make
 
 numpy + pandas testing for our linear algebra library
 
-Testing mean and dotproduct: (from the build folder)
+Testing mean, dotproduct and svd: (from the build folder)
 
 ```bash
 python3 ../tests/test.py
