@@ -16,8 +16,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install Lapack
-      run: sudo apt-get install liblapack-dev
+    - name: Install System dependencies (requirements.system)
+      run: cat ${{runner.workspace}}/requirements.system | xargs sudo apt-get install
+    - name: Install Python dependencies (requirements.txt)
+      run: pip3 install -r ${{runner.workspace}}/requirements.txt
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
       # We'll use this as our working directory for all subsequent commands
@@ -45,3 +47,6 @@ jobs:
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C $BUILD_TYPE
+    - name: Python Testsuite for libalg
+      working-directory: ${{runner.workspace}}/build
+      run: python3 ../tests/test.py
