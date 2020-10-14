@@ -11,9 +11,10 @@ EPITA SCIA 2021 major GPGPU course project, made by :
 ## Installation
 
 ```bash
-sudo apt install liblapack-dev
 mkdir build
 cd build
+cat ../requirements.system | xargs sudo apt-get install
+pip3 install -r ../requirements.txt
 cmake ..
 make
 ```

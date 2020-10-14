@@ -195,3 +195,4 @@ if __name__ == "__main__":
                 nb_tests += 1
 
     end_print(nb_tests, success, nb_tests - success)
+    exit(nb_tests - success)
