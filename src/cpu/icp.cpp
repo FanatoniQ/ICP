@@ -41,13 +41,13 @@ double default_kernel(double a)
         return 1;
 } 
 
-std::tuple<double**, std::vector<double>> compute_cross_variance(double *P, double *Q,
+std::tuple<double*, std::vector<double>> compute_cross_variance(double *P, double *Q,
     std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
     size_t Q_r, size_t Q_c, double (*kernel)(double a)) //set default function to lambda function??
 {
     if (kernel == nullptr)
         kernel = &default_kernel;
-    double **cov = (double**)calloc(4, sizeof(double));
+    double *cov = (double*)calloc(4, sizeof(double));
     std::vector<double> exclude_indices = {};
     for (auto tup : correspondences)
     {
@@ -63,9 +63,11 @@ std::tuple<double**, std::vector<double>> compute_cross_variance(double *P, doub
             exclude_indices.push_back(i);
         double **doted_points = nullptr;
         dot_product(doted_points, q_point, transpose(P, P_r, P_c), Q_r, Q_c, P_c, P_r); //dim of Q_r * P_r
+        free(doted_points);
         double **weighted_points = nullptr; //multiply by the weight 
         element_wise_op(weighted_points, &weight, *doted_points, 1, 1, Q_r, P_r, mult);
-        element_wise_op(cov, *cov, *weighted_points, 2, 2, Q_r, P_r, add);
+        free(weighted_points);
+        element_wise_op(&cov, cov, *weighted_points, 2, 2, Q_r, P_r, add);
     }
     return std::make_tuple(cov, exclude_indices);
 }
