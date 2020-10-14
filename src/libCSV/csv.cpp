@@ -1,10 +1,25 @@
 #include <err.h>
+#include <stdio.h>
+
+#include <cstring>
 
 #include <string>
 #include <vector>
+#include <charconv>
 
 #include "libCSV/csv.hpp"
 
+/**
+ ** \brief __readCSV vector method to return the non transposed double array parsed from
+ ** the given CSV file
+ **
+ ** \deprecated we should use strtod or std::from_chars instead of a stringstream
+ **
+ ** \param f csv input stream
+ ** \param h the header string or empty string if no header
+ **
+ ** \return res the parsed vector of vector
+ **/
 template <typename T>
 static inline std::vector<T> readCSVLine(std::istringstream &line)
 {
@@ -23,6 +38,19 @@ static inline std::vector<T> readCSVLine(std::istringstream &line)
     return res;
 }
 
+/**
+ ** \brief __readCSV vector method to return the non transposed double array parsed from
+ ** the given CSV file
+ **
+ ** \deprecated uses C++ std::vector, which is not consistent with our need for C-style
+ ** arrays, at least if we keep this for simplicity sake, do not use stringstream in
+ ** called function readCSVLine
+ **
+ ** \param f csv input stream
+ ** \param h the header string or empty string if no header
+ **
+ ** \return res the parsed vector of vector
+ **/
 template <typename T>
 static std::vector<std::vector<T>> __readCSV(std::istream &f, std::string &h)
 {
@@ -40,13 +68,6 @@ static std::vector<std::vector<T>> __readCSV(std::istream &f, std::string &h)
     return res;
 }
 
-// explicit instantiation of template for library export...
-//template std::vector<std::vector<double>> readCSV<double>(std::istream &, std::string &);
-
-/**
- *  returns the transposed csv file
- * (each line is constituted of nbaxis points)
- **/
 double *readCSV(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoints)
 {
     double *m;
@@ -71,4 +92,82 @@ double *readCSV(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoint
         ++j; // j is line index
     }
     return m;
+}
+
+double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcols)
+{
+    FILE *f = fopen(path, "r");
+    if (!f)
+        errx(1, "File %s could not be opened !", path);
+    ssize_t read;
+    size_t len = 0, cols_num;
+    char *line = NULL;
+    char *token, *end_tok;
+
+    size_t size = 10;
+    size_t count = 0;
+    double *r = (double *)malloc(size * sizeof(double));
+    if (!r)
+        errx(1, "Alloc error !");
+    nblines = 0;
+    nbcols = 0;
+    h = "";
+    while ((read = getline(&line, &len, f)) != -1)
+    {
+        if (h.empty())
+            h = std::string{line};
+        std::cerr << "Line " << nblines << " read: " << line << std::endl;
+        cols_num = 0;
+        token = strtok(line, ",");
+        while (token != NULL)
+        {
+            cols_num++;
+            // add token to the array
+            if (count == size)
+            {
+                size *= 2;
+                r = (double *)realloc(r, size * sizeof(double));
+                if (!r)
+                    errx(1, "Alloc error (realloc) !");
+            }
+            double v;
+            /**
+             ** this does not compile, it should in c++17...
+            auto [p, ec] = std::from_chars((const char *)token, (const char *)token + strlen(token), v);
+            if (p == token || ec == std::errc())
+                errx(2, "Not a valid double !");
+            **/
+            v = strtod(token, &end_tok);
+            if (end_tok == token)
+            {
+                if (nblines != 0)
+                    errx(2, "Not a valid double !");
+                // this is the header line
+            }
+            else
+            {
+                if (nblines == 0)
+                    h = "";
+                r[count] = v;
+                count++;
+            }
+            token = strtok(NULL, ",\n");
+        }
+        if (nblines == 0)
+            nbcols = cols_num;
+        nblines++;
+    }
+    if (!h.empty()) // header case
+        nblines--;
+    if (line)
+        free(line);
+    if (count < size) // removing extra memory
+    {
+        size = count;
+        r = (double *)realloc(r, size * sizeof(double));
+        if (!r)
+            errx(1, "Alloc error (realloc) !");
+    }
+    fclose(f);
+    return r;
 }

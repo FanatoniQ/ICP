@@ -10,6 +10,7 @@
 #include "libCSV/csv.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/mean.hpp"
+#include "cpu/icp.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -17,6 +18,40 @@ int main(int argc, char *argv[])
         errx(1, "Usage: ./CPUICP file1 file2");
     std::cout << std::setprecision(15); //DBL_MANT_DIG);
 
+    std::string f1Header{};
+    size_t Qlines, Qcols, Plines, Pcols;
+    //___readCSV(f, f1Header);
+    double *P = readCSV(argv[1], f1Header, Plines, Pcols);
+    double *Q = readCSV(argv[2], f1Header, Qlines, Qcols);
+    /*
+    if (!argv[1])
+        return 1;
+    Qlines = Qcols = Plines = Pcols = 2;
+    double P[4] = {-2, -1, 5, 5};
+    double Q[4] = {0, 1, 0, 1};
+    */
+
+    auto res = get_correspondence_indices(P, Q, Plines, Pcols, Qlines, Qcols);
+    std::cout << std::get<0>(res.at(1)) << " and "<< std::get<1>(res.at(1));
+    //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
+    //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
+
+    /*
+    std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
+    for (size_t i = 0; i < nblines; ++i)
+    {
+        for (size_t j = 0; j < nbcols; ++j)
+        {
+            std::cerr << r[i * nbcols + j] << "\t";
+        }
+        std::cerr << std::endl;
+    }
+    */
+   
+    free(P);
+    free(Q);
+
+    /**
     size_t nbaxis, nbpoints;
     std::string f1Header{}, f2Header{};
     std::ifstream file1(argv[1]);
@@ -73,5 +108,6 @@ int main(int argc, char *argv[])
     free(mean);
     free(m);
     free(m_T);
+    **/
     return EXIT_SUCCESS;
 }

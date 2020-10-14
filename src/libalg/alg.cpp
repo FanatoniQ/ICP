@@ -24,6 +24,11 @@ double substract(double a, double b)
     return a - b;
 }
 
+double mult(double a, double b)
+{
+    return a * b;
+}
+
 double element_wise_reduce(double *a, double *b,
                            size_t a_0, size_t a_1, size_t b_0, size_t b_1,
                            double (*op)(double a, double b),

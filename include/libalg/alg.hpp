@@ -19,6 +19,8 @@ double add(double a, double b);
 
 double squared_norm_2(double a, double b);
 
+double mult(double a, double b);
+
 // advanced array operations
 
 /**
