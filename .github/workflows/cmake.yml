@@ -49,4 +49,4 @@ jobs:
       run: ctest -C $BUILD_TYPE
     - name: Python Testsuite for libalg
       working-directory: ${{runner.workspace}}/build
-      run: python3 ../tests/test.py
+      run: python3 tests/test.py
