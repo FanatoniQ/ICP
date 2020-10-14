@@ -3,6 +3,14 @@
 #include <stddef.h>
 
 #define MAX(a, b) (a > b) ? a : b
+#define MIN(a, b) (a < b) ? a : b
+
+#define SWAP(a, b) \
+    {              \
+        int c = a; \
+        a = b;     \
+        b = c;     \
+    }
 
 // basic operations
 double substract(double a, double b);

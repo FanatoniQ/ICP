@@ -57,3 +57,6 @@ Makefile
 # doxygen
 documentation/
 build/
+
+# Python
+__pycache__/
