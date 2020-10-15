@@ -84,10 +84,10 @@ def exec_no_ref(fn, *args):
     R = np.array(pd.read_csv(args[0], sep=","))
     executable = "./testlibalg" #if fn != "svd" else "./SVD"
     myprocess = subprocess.Popen([executable, *args, fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    myprocess.communicate()
-    
+    stdout = myprocess.communicate()[0]
+
     array_delim = "\n\n"
-    stdout = myprocess.communicate()[0].decode('utf-8').rstrip(array_delim).split(array_delim)
+    stdout = stdout.decode('utf-8').rstrip(array_delim).split(array_delim)
     #print([ np.array(pd.read_csv(StringIO(e), sep=",", header=None)).shape for e in stdout ])
     #[::-1]
     expected = globals()["{}_no_ref".format(fn)](*stdout)
@@ -125,7 +125,7 @@ def exec(fn, *args):
         ret = False
     executable = "./testlibalg" # if fn != "svd" else "./SVD"
     myprocess = subprocess.Popen([executable, *args, fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    myprocess.communicate()
+    stdout = myprocess.communicate()[0]
 
     pret = bool(myprocess.returncode == 0)
     if (pret != ret):
@@ -136,7 +136,7 @@ def exec(fn, *args):
     
     if ret:
         array_delim = "\n\n"
-        stdout = myprocess.communicate()[0].decode('utf-8').rstrip(array_delim).split(array_delim)
+        stdout = stdout.decode('utf-8').rstrip(array_delim).split(array_delim)
         if not isinstance(expected, tuple):
             expected = [ expected ]
         if len(expected) != len(stdout):
