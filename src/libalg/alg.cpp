@@ -19,7 +19,7 @@ double add(double a, double b)
     return a + b;
 }
 
-double substract(double a, double b)
+double subtract(double a, double b)
 {
     return a - b;
 }

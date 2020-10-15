@@ -4,30 +4,28 @@
 #include <vector>
 
 class Matrix {
-private:
+protected:
     double* array;
     size_t dim0;
     size_t dim1;
-public:
     // Constructors
     Matrix();
-    Matrix(double *array, int dim0, int dim1);
+    Matrix(double *array, size_t dim0, size_t dim1);
     /**
-     * Initialize matrix of dim0*dim1 with init value
+     * Initialize matrix of dim0*dim1 with 0s
      * Throws std::bad_alloc on failed malloc
      * @param dim0
      * @param dim1
-     * @param init
      */
-    Matrix(size_t dim0, size_t dim1, double init);
+    Matrix(size_t dim0, size_t dim1);
 
+public:
     /**
      * Free the ressources
      */
-    virtual ~Matrix();
+    virtual ~Matrix() = default;
 
     // Getters and setters
-    // TODO remove
     double *getArray() const;
 
     /**
@@ -47,7 +45,7 @@ public:
     // Operations
     bool operator==(const Matrix &rhs) const;
     bool operator!=(const Matrix &rhs) const;
-    std::vector<double> mean_axis(size_t dim);
+    double *mean_axis(size_t dim);
 
     // Operator overloading, for "standard" mathematical matrix operations
     Matrix& operator=(const Matrix& rhs);
@@ -61,18 +59,8 @@ public:
     Matrix& operator*=(const Matrix& rhs);
     Matrix transpose();
 
-    // Matrix/scalar operations
-    Matrix operator+(const double& rhs);
-    Matrix operator-(const double& rhs);
-    Matrix operator*(const double& rhs);
-    Matrix operator/(const double& rhs);
-
-    // Matrix/vector operations
-    std::vector<double> operator*(const std::vector<double>& rhs);
-    std::vector<double> diag_vec();
 
     // Access the individual elements
     double& operator()(const unsigned& row, const unsigned& col);
     const double& operator()(const unsigned& row, const unsigned& col) const;
-
 };

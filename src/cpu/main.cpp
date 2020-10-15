@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
     std::cout << std::endl
               << "Centered:" << std::endl;
-    element_wise_op(&m, m, mean, nbaxis, nbpoints, nbaxis, 1, substract);
+    element_wise_op(&m, m, mean, nbaxis, nbpoints, nbaxis, 1, subtract);
     for (size_t j = 0; j < nbpoints; ++j) // transposed printing, strided access
     {
         for (size_t i = 0; i < nbaxis; ++i)
