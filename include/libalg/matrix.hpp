@@ -18,12 +18,13 @@ protected:
      * @param dim1
      */
     Matrix(size_t dim0, size_t dim1);
+    Matrix(Matrix const &mat);
 
 public:
     /**
      * Free the ressources
      */
-    virtual ~Matrix() = default;
+    virtual ~Matrix();
 
     // Getters and setters
     double *getArray() const;
@@ -45,7 +46,7 @@ public:
     // Operations
     bool operator==(const Matrix &rhs) const;
     bool operator!=(const Matrix &rhs) const;
-    double *mean_axis(size_t dim);
+    Matrix mean_axis(size_t dim);
 
     // Operator overloading, for "standard" mathematical matrix operations
     Matrix& operator=(const Matrix& rhs);

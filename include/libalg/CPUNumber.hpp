@@ -5,7 +5,9 @@
  * Matrix class of a single number
  */
 class CPUNumber : Matrix {
-    explicit CPUNumber(double *value);
+    double value;
+public:
+    explicit CPUNumber(double value);
     ~CPUNumber() override = default;
 };
 

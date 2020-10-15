@@ -14,25 +14,32 @@ Matrix::Matrix(size_t dim0, size_t dim1) {
     this->dim1 = dim1;
 }
 
-double *Matrix::mean_axis(size_t dim)
+
+Matrix::Matrix(const Matrix &mat){
+    this->array = mat.getArray();
+    this->dim0 = mat.getDim0();
+    this->dim1 = mat.getDim1();
+}
+
+Matrix::~Matrix() {
+    if (array != nullptr)
+        free(array);
+}
+
+Matrix Matrix::mean_axis(size_t dim)
 {
     size_t i, j;
-    double *r;
-    if (dim == 0)
-        r = (double *)calloc(dim1 , sizeof(double));
-    else
-        r = (double *)calloc(dim0 , sizeof(double));
-    if (r == nullptr)
-        throw std::bad_alloc();
+    size_t dimension = dim == 0 ? dim1 : dim0;
+    Matrix mat(1, dimension);
 
     if (dim == 0) {
         for (i = 0; i < dim1; ++i)
         {
             for (j = 0; j < dim0; ++j)
             {
-                r[i] += array[j * dim1 + i];
+                mat.array[i] += array[j * dim1 + i];
             }
-            r[i] /= dim0;
+            mat.array[i] /= dim0;
         }
     }
     else {
@@ -40,12 +47,12 @@ double *Matrix::mean_axis(size_t dim)
         {
             for (j = 0; j < dim1; ++j)
             {
-                r[i] += array[i * dim1 + j];
+                mat.array[i] += array[i * dim1 + j];
             }
-            r[i] /= dim1;
+            mat.array[i] /= dim1;
         }
     }
-    return r;
+    return mat;
 }
 
 bool Matrix::operator==(const Matrix &rhs) const {
@@ -105,7 +112,7 @@ Matrix &Matrix::operator=(const Matrix &rhs) {
     // Allocate before freeing in case of error
     auto *new_array = (double*)malloc(new_rows * new_cols * sizeof(double));
     if (new_array == nullptr) {
-        throw;
+        throw std::bad_alloc();
     }
 
     // Free old pointer
@@ -172,11 +179,10 @@ Matrix &Matrix::operator*=(const Matrix &rhs) {
 
 Matrix Matrix::transpose() {
     double *r = ::transpose(array, dim0, dim1);
-    double *tmp = this->setArray(r, dim1, dim0);
-    free(tmp);
-    return *this;
+    Matrix result;
+    result.setArray(r, dim1, dim0);
+    return result;
 }
-
 
 
 
