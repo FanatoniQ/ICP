@@ -1,6 +1,8 @@
 # ICP
 CPU (C++) &amp; GPU (CUDA) Iterative closest point implementation
 
+[![Build + Tests](https://github.com/FanatoniQ/ICP/workflows/cmake/badge.svg)](https://github.com/FanatoniQ/ICP/actions)
+
 ## Authors
 EPITA SCIA 2021 major GPGPU course project, made by :
 * geoffrey.bossut (geoffrey.bossut@epita.fr)
