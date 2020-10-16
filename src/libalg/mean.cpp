@@ -38,7 +38,7 @@ size_t get_id_reduce_flattened(size_t i, size_t j, size_t dim0, size_t dim1)
 
 double *mean_axises(double *m, size_t dim0, size_t dim1, int axis)
 {
-    double *r;
+    double *r = nullptr;
     size_t dimr;
     mean_axises(&r, m, dim0, dim1, dimr, axis);
     return r;
