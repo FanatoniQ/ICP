@@ -56,12 +56,26 @@ def svd_no_ref(u, s, vh):
     return np.dot(u * s, vh)
 
 """
-mean axis computation
+sum axis computation
 """
-def mean(P):
+def sum(P, axis):
+    axis = int(axis)
+    if axis == -1:
+        axis = None
     P = pd.read_csv(P)
     P = np.array(P)
-    return P.mean(axis=0)
+    return P.sum(axis=axis)
+
+"""
+mean axis computation
+"""
+def mean(P, axis):
+    axis = int(axis)
+    if axis == -1:
+        axis = None
+    P = pd.read_csv(P)
+    P = np.array(P)
+    return P.mean(axis=axis)
 
 """
 computes P.dot(Q)
@@ -80,10 +94,10 @@ TODO: we could generalize by giving postprocessing functions
 """
 def exec_no_ref(fn, *args):
     global success
-    print(OKBLUE + fn + str(args) + ENDC)
+    print(OKBLUE + fn + str([args]) + ENDC)
     R = np.array(pd.read_csv(args[0], sep=","))
     executable = "./testlibalg" #if fn != "svd" else "./SVD"
-    myprocess = subprocess.Popen([executable, *args, fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    myprocess = subprocess.Popen([executable, fn, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = myprocess.communicate()[0]
 
     array_delim = "\n\n"
@@ -121,10 +135,11 @@ def exec(fn, *args):
     ret = True
     try:
         expected = globals()[fn](*args)
-    except Exception:
+    except Exception as e:
+        print(YELLOW, e, ENDC)
         ret = False
     executable = "./testlibalg" # if fn != "svd" else "./SVD"
-    myprocess = subprocess.Popen([executable, *args, fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    myprocess = subprocess.Popen([executable, fn, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = myprocess.communicate()[0]
 
     pret = bool(myprocess.returncode == 0)
@@ -178,20 +193,25 @@ if __name__ == "__main__":
 
     fileList = glob.glob('../data/*.txt')
     params_1fn = [
-        "mean",
-        "svd"
+        ["mean", "-1"],
+        ["mean", "0"],
+        ["mean", "1"],
+        ["sum", "-1"],
+        ["sum", "0"],
+        ["sum", "1"],
+        ["svd"],
     ]
     params_2fn = [
-        "dotproduct"
+        ["dotproduct"],
     ]
     for fn in params_1fn:
         for file in fileList:
-            exec(fn, file)
+            exec(fn[0], file, *fn[1:])
             nb_tests += 1
     for fn in params_2fn:
         for i in range(len(fileList)):
             for j in range(i, len(fileList)):
-                exec(fn, fileList[i],fileList[j])
+                exec(fn[0], fileList[i], fileList[j], *fn[1:])
                 nb_tests += 1
 
     end_print(nb_tests, success, nb_tests - success)
