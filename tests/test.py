@@ -46,7 +46,9 @@ TODO: we could generalize by giving postprocessing functions
 def exec_no_ref(fn, *args):
     global success
     print(OKBLUE + fn + str([args]) + ENDC)
-    R = np.array(pd.read_csv(args[0], sep=","))
+    R = np.array(pd.read_csv(args[0], sep=","))#.dropna(how='all', axis=1))
+    if fn == "svd":
+        R = np.squeeze(R)
     executable = "./testlibalg" #if fn != "svd" else "./SVD"
     myprocess = subprocess.Popen([executable, fn, *args], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = myprocess.communicate()[0]
@@ -154,6 +156,7 @@ if __name__ == "__main__":
     ] # len(fileList) * len(params_1fn)
     params_2fn = [
         ["dotproduct"],
+        ["add"]
     ] # (len(fileList) * (len(fileList) + 1) / 2) * len(params_2fn)
     for fn in params_1fn:
         for file in fileList:

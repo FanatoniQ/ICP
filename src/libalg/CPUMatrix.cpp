@@ -148,16 +148,18 @@ CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
 
 CPUMatrix CPUMatrix::operator+(const CPUMatrix &rhs)
 {
-    CPUMatrix result(dim0, dim1);
+    //CPUMatrix result(dim0, dim1);
     // Add operation on both matrices
-    element_wise_op(&result.array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, add);
-    return result;
+    size_t Rdim0, Rdim1;
+    double *r = nullptr;
+    element_wise_op(&r, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, Rdim0, Rdim1, add);
+    return CPUMatrix(r, Rdim0, Rdim1);
 }
 
 CPUMatrix &CPUMatrix::operator+=(const CPUMatrix &rhs)
 {
     // Add in-place operation
-    element_wise_op(&this->array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, add);
+    element_wise_op(&this->array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, this->dim0, this->dim1, add);
     return *this;
 }
 
@@ -174,16 +176,18 @@ const double &CPUMatrix::operator()(const unsigned int &row, const unsigned int 
 
 CPUMatrix CPUMatrix::operator-(const CPUMatrix &rhs)
 {
-    CPUMatrix result(dim0, dim1);
+    //CPUMatrix result(dim0, dim1);
     // Subtract operation on both matrices
-    element_wise_op(&result.array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, subtract);
-    return result;
+    size_t Rdim0, Rdim1;
+    double *r = nullptr;
+    element_wise_op(&r, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, Rdim0, Rdim1, subtract);
+    return CPUMatrix(r, Rdim0, Rdim1);
 }
 
 CPUMatrix &CPUMatrix::operator-=(const CPUMatrix &rhs)
 {
     // Subtract in-place operation
-    element_wise_op(&this->array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, subtract);
+    element_wise_op(&this->array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, this->dim0, this->dim1, subtract);
     return *this;
 }
 
@@ -196,17 +200,23 @@ CPUMatrix CPUMatrix::dot(const CPUMatrix &rhs)
 
 CPUMatrix CPUMatrix::operator*(const CPUMatrix &rhs)
 {
-    CPUMatrix result(dim0, dim1);
+    //CPUMatrix result(dim0, dim1);
     // Multiply operation on both matrices
-    element_wise_op(&result.array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, mult);
-    return result;
+    size_t Rdim0, Rdim1;
+    double *r = nullptr;
+    element_wise_op(&r, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, Rdim0, Rdim1, mult);
+    return CPUMatrix(r, Rdim0, Rdim1);
 }
 
 CPUMatrix &CPUMatrix::operator*=(const CPUMatrix &rhs)
 {
+    /**
     CPUMatrix result = (*this) * rhs;
     // TODO something cleaner?
     (*this) = result;
+    return *this;
+    **/
+    element_wise_op(&this->array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, this->dim0, this->dim1, mult);
     return *this;
 }
 

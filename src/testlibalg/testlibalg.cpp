@@ -92,6 +92,24 @@ int test_mean(char *file, int axis)
     return EXIT_SUCCESS;
 }
 
+int test_add(char *file1, char *file2)
+{
+    size_t Pdim0, Pdim1;
+    size_t Qdim0, Qdim1;
+    size_t Rdim0, Rdim1;
+    std::string h{};
+    double *Parray = readCSV(file1, h, Pdim0, Pdim1);
+    double *Qarray = readCSV(file2, h, Qdim0, Qdim1);
+
+    double *r = nullptr;
+    element_wise_op(&r, Parray, Qarray, Pdim0, Pdim1, Qdim0, Qdim1, Rdim0, Rdim1, add);
+    print_matrix(std::cout, r, Rdim1, Rdim0);
+
+    free(Parray);
+    free(Qarray);
+    return EXIT_SUCCESS;
+}
+
 int test_dotproduct(char *file1, char *file2)
 {
     size_t Pdim0, Pdim1;
@@ -149,7 +167,9 @@ int main(int argc, char *argv[])
     }
     else if (argc == 4)
     {
-        if (strcmp(argv[1], "dotproduct") == 0)
+        if (strcmp(argv[1], "add") == 0)
+            return test_add(argv[2], argv[3]);
+        else if (strcmp(argv[1], "dotproduct") == 0)
             return test_dotproduct(argv[2], argv[3]);
         else if (strcmp(argv[1], "mean") == 0)
             return test_mean(argv[2], std::stoi(argv[3]));
