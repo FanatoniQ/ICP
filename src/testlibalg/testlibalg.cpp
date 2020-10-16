@@ -110,6 +110,18 @@ int test_op(char *file1, char *file2, double (*op)(double a, double b))
     return EXIT_SUCCESS;
 }
 
+int test_transpose(char *file1)
+{
+    size_t Pdim0, Pdim1;
+    std::string h{};
+    double *Parray = readCSV(file1, h, Pdim0, Pdim1);
+    double *P_Tarray = transpose(Parray, Pdim0, Pdim1);
+    print_matrix(std::cout, P_Tarray, Pdim0, Pdim1);
+    free(Parray);
+    free(P_Tarray);
+    return EXIT_SUCCESS;
+}
+
 int test_dotproduct(char *file1, char *file2)
 {
     size_t Pdim0, Pdim1;
@@ -149,9 +161,13 @@ void usage(void)
 {
     std::cerr << "Usage:" << std::endl
               << std::endl;
+    std::cerr << "./testlibalg add file1 file2" << std::endl;
+    std::cerr << "./testlibalg subtract file1 file2" << std::endl;
+    std::cerr << "./testlibalg mult file1 file2" << std::endl;
     std::cerr << "./testlibalg sum file1 axis=[-1,0,1]" << std::endl;
     std::cerr << "./testlibalg mean file1 axis=[-1,0,1]" << std::endl;
     std::cerr << "./testlibalg svd file1" << std::endl;
+    std::cerr << "./testlibalg transpose file1" << std::endl;
     std::cerr << "./testlibalg dotproduct file1 file2" << std::endl
               << std::endl;
     exit(1);
@@ -164,6 +180,8 @@ int main(int argc, char *argv[])
     {
         if (strcmp(argv[1], "svd") == 0)
             return test_svd(argv[2]);
+        else if (strcmp(argv[1], "transpose") == 0)
+            return test_transpose(argv[2]);
     }
     else if (argc == 4)
     {

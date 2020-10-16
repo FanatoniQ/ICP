@@ -37,6 +37,10 @@ def svd_no_ref(u, s, vh):
     print(u.shape, s.shape, vh.shape)
     return np.dot(u * s, vh)
 
+@onefileconvert
+def transpose(P):
+    return P.T
+
 """
 sum axis computation
 """
