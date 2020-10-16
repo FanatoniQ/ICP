@@ -14,6 +14,7 @@
 #include "libalg/svd.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/mean.hpp"
+#include "libalg/CPUMatrix.hpp"
 
 #define UNUSED(x) (void)x
 
@@ -75,6 +76,22 @@ int test_mean(char *argv[])
 
 int test_dotproduct(char *argv[])
 {
+    size_t Pdim0, Pdim1;
+    size_t Qdim0, Qdim1;
+    std::string h{};
+    double *Parray = readCSV(argv[1], h, Pdim0, Pdim1);
+    double *Qarray = readCSV(argv[2], h, Qdim0, Qdim1);
+
+    auto P = CPUMatrix(Parray, Pdim0, Pdim1);
+    auto Q = CPUMatrix(Qarray, Qdim0, Qdim1);
+    Q = Q.transpose();
+
+    auto R = P.dot(Q);
+    print_matrix(std::cout, R.getArray(), R.getDim1(), R.getDim0());
+
+    return EXIT_SUCCESS;
+
+    /**
     size_t nbaxis, nbpoints;
     std::string f1Header{}, f2Header{};
     std::ifstream file1(argv[1]);
@@ -89,7 +106,7 @@ int test_dotproduct(char *argv[])
     free(r);
     free(n);
     free(m_T);
-    return EXIT_SUCCESS;
+    return EXIT_SUCCESS; **/
 }
 
 void usage(void)
