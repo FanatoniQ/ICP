@@ -21,29 +21,12 @@ CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
     this->dim1 = dim1;
 }
 
+// move constructor
 CPUMatrix::CPUMatrix(CPUMatrix &&mat) : array(mat.array), dim0(mat.dim0), dim1(mat.dim1)
 {
     std::cerr << "Moved !" << std::endl;
     mat.array = nullptr;
 }
-
-/**
-// Double free, we shall use a CPUMatrixViewClass instead or something
-// all + - / * functions, basically functions returning a CPUMatrix by
-// copy uses this... we should fix this by smart pointers or
-// returning at the end the create matrix, meaning having to alloc
-// the array... :'(
-CPUMatrix::CPUMatrix(const CPUMatrix &mat)
-{
-    if (!mat.is_weak)
-        std::runtime_error("Copy constructor can only be called with weak array !");
-    this->array = mat.getArray();
-    this->dim0 = mat.getDim0();
-    this->dim1 = mat.getDim1();
-    this->is_weak = false;
-    // avoid double free (mat becomes a weak view of copy)
-    //mat.array = nullptr; // TODO: issue
-}**/
 
 CPUMatrix::~CPUMatrix()
 {
