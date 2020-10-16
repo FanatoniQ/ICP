@@ -146,6 +146,7 @@ size_t CPUMatrix::getDim1() const
     return dim1;
 }
 
+// TODO: this is bad kinda, why not weak ptr copy and not freeing ?
 CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
 {
     if (&rhs == this)
@@ -245,6 +246,7 @@ CPUMatrix &CPUMatrix::operator*=(const CPUMatrix &rhs)
 CPUMatrix CPUMatrix::transpose()
 {
     double *r = ::transpose(array, dim0, dim1);
+    /** Which constructor is called here ? **/
     CPUMatrix result;
     result.setArray(r, dim1, dim0);
     return result;

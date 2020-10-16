@@ -45,11 +45,11 @@ int main(int argc, char *argv[])
     size_t Qdim0, Qdim1;
     double *Qarray = readCSV(argv[2], h, Qdim0, Qdim1);
     auto Q = CPUMatrix{Qarray, Qdim0, Qdim1};
-    auto Q_T = Q.transpose(); // TODO: CPUMatrix should become CPUMat
+    Q = Q.transpose(); // TODO: kinda bad... allocates even if not necessary (operator=)
     std::cerr << "Q transposed :" << std::endl;
 
     std::cerr << "P.dot(Q)" << std::endl;
-    std::cerr << Pcopy.dot(Q_T) << std::endl;
+    std::cerr << Pcopy.dot(Q) << std::endl;
 
     std::cerr << Pcopy << std::endl;
 }
