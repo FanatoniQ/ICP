@@ -1,15 +1,16 @@
 #pragma once
-#include "matrix.hpp"
+
+#include "libalg/CPUMatrix.hpp"
 
 /**
- * Matrix class of a single number
+ * CPUMatrix class of a single number
  */
-class CPUNumber : public Matrix
+class CPUNumber : public CPUMatrix
 {
 private:
     double value;
 
 public:
     CPUNumber(double value);
-    ~CPUNumber() override;
+    ~CPUNumber();
 };

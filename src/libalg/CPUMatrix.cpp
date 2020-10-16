@@ -107,7 +107,7 @@ bool CPUMatrix::operator!=(const CPUMatrix &rhs) const
 std::ostream &operator<<(std::ostream &os, const CPUMatrix &matrix)
 {
     os << " dim0: " << matrix.dim0 << " dim1: " << matrix.dim1;
-    os << "array: " << std::endl;
+    os << " array: " << std::endl;
     //**
     for (unsigned i = 0; i < matrix.dim0; ++i)
     {

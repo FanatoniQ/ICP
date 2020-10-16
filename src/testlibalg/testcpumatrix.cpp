@@ -11,9 +11,8 @@
 
 #include "libCSV/csv.hpp"
 #include "libalg/print.hpp"
-#include "libalg/CPUMat.hpp"
+#include "libalg/CPUMatrix.hpp"
 #include "libalg/CPUNumber.hpp"
-#include "libalg/matrix.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -25,7 +24,7 @@ int main(int argc, char *argv[])
     double *array = readCSV(argv[1], h, Pdim0, Pdim1);
 
     print_matrix(std::cerr, array, Pdim1, Pdim0);
-    auto P = CPUMat{array, Pdim0, Pdim1};
+    auto P = CPUMatrix{array, Pdim0, Pdim1};
     std::cerr << P << std::endl;
 
     // Copy constructor is not allowed !!
@@ -45,8 +44,8 @@ int main(int argc, char *argv[])
 
     size_t Qdim0, Qdim1;
     double *Qarray = readCSV(argv[2], h, Qdim0, Qdim1);
-    auto Q = CPUMat{Qarray, Qdim0, Qdim1};
-    auto Q_T = Q.transpose(); // TODO: Matrix should become CPUMat
+    auto Q = CPUMatrix{Qarray, Qdim0, Qdim1};
+    auto Q_T = Q.transpose(); // TODO: CPUMatrix should become CPUMat
     std::cerr << "Q transposed :" << std::endl;
 
     std::cerr << "P.dot(Q)" << std::endl;
