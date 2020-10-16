@@ -156,7 +156,9 @@ if __name__ == "__main__":
     ] # len(fileList) * len(params_1fn)
     params_2fn = [
         ["dotproduct"],
-        ["add"]
+        ["subtract"],
+        ["add"],
+        ["mult"],
     ] # (len(fileList) * (len(fileList) + 1) / 2) * len(params_2fn)
     for fn in params_1fn:
         for file in fileList:

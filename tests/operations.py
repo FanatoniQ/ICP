@@ -65,6 +65,9 @@ def dotproduct(P, Q):
 def mult(P, Q):
     return P * Q
 
+"""
+Currently not implemented in libalg
+"""
 @twofileconvert
 def divide(P, Q):
     return P / Q
