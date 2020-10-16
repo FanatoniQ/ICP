@@ -69,16 +69,24 @@ double *transpose(const double *a, size_t a_0, size_t a_1)
 
 void element_wise_op(double **r, double *a, double *b,
                      size_t a_0, size_t a_1, size_t b_0, size_t b_1,
+                     size_t &r_0, size_t &r_1,
                      double (*op)(double a, double b))
 {
-    size_t i, j, r_0, r_1;
-    assert(get_broadcastable_size(a_0, a_1, b_0, b_1, &r_0, &r_1));
+    size_t i, j, expr_0, expr_1;
+    assert(get_broadcastable_size(a_0, a_1, b_0, b_1, &expr_0, &expr_1));
     if (*r == nullptr)
     {
-        *r = (double *)calloc(r_0 * r_1, sizeof(double));
+        *r = (double *)calloc(expr_0 * expr_1, sizeof(double));
         if (*r == nullptr)
             errx(1, "Alloc error !");
     }
+    else
+    {
+        if (r_0 != expr_0 || r_1 != expr_1)
+            errx(2, "Invalid size for operation !");
+    }
+    r_0 = expr_0;
+    r_1 = expr_1;
     for (i = 0; i < r_0; ++i)
     {
         for (j = 0; j < r_1; ++j)
