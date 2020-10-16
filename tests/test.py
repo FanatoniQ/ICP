@@ -146,6 +146,7 @@ if __name__ == "__main__":
 
     fileList = glob.glob('../data/*.txt')
     params_1fn = [
+        ["transpose"],
         ["mean", "-1"],
         ["mean", "0"],
         ["mean", "1"],
