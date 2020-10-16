@@ -8,7 +8,9 @@ set (CMAKE_CXX_STANDARD 17) # c++17
 
 include_directories(include)
 file(GLOB LIBCSVSOURCES "src/libCSV/*.cpp")
-add_compile_options(-Wall -Wextra -pedantic -Werror -g)
+if(CMAKE_COMPILER_IS_GNUCXX)
+ add_compile_options(-Wall -Wextra -pedantic -Werror -g)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 add_library(CSV ${LIBCSVSOURCES})
 
 ##############
@@ -19,7 +21,9 @@ find_package(LAPACK REQUIRED) # sudo apt install liblapack-dev
 
 include_directories(include)
 file(GLOB LIBALGSOURCES "src/libalg/*.cpp")
-add_compile_options(-Wall -Wextra -pedantic -Werror -g -lm)
+if(CMAKE_COMPILER_IS_GNUCXX)
+ add_compile_options(-Wall -Wextra -pedantic -Werror -g -lm)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 add_library(alg ${LIBALGSOURCES})
 target_link_libraries(alg lapack) # libalg uses lapack lib for SVD computation
 
@@ -28,8 +32,10 @@ target_link_libraries(alg lapack) # libalg uses lapack lib for SVD computation
 ##############
 
 include_directories(include)
-file(GLOB TESTLIBALGSOURCES "src/testlibalg/testlibalg.cpp")
+file(GLOB TESTLIBALGSOURCES "src/testlibalg/*.cpp")
+if(CMAKE_COMPILER_IS_GNUCXX)
 add_compile_options(-Wall -Wextra -pedantic -Werror -g)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
 foreach(file_path ${TESTLIBALGSOURCES})
  string(REPLACE ".cpp" "" bin_path_name ${file_path} )
@@ -44,6 +50,8 @@ endforeach()
 
 include_directories(include)
 file(GLOB CPUSOURCES "src/cpu/*.cpp")
-add_compile_options(-Wall -Wextra -pedantic -Werror -g)
+if(CMAKE_COMPILER_IS_GNUCXX)
+ add_compile_options(-Wall -Wextra -pedantic -Werror -g)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 add_executable(CPUICP ${CPUSOURCES})
 target_link_libraries(CPUICP CSV alg)

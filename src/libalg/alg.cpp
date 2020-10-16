@@ -1,8 +1,8 @@
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 #include <err.h>
 
-#include <math.h>
+#include <cmath>
 
 #include <iostream>
 
@@ -19,7 +19,7 @@ double add(double a, double b)
     return a + b;
 }
 
-double substract(double a, double b)
+double subtract(double a, double b)
 {
     return a - b;
 }
@@ -31,9 +31,9 @@ double mult(double a, double b)
 
 double element_wise_reduce(double *a, double *b,
                            size_t a_0, size_t a_1, size_t b_0, size_t b_1,
-                           double (*op)(double a, double b),
-                           double (*rop)(double a, double b),
-                           double (*lop)(double a, double b))
+                           double (*op)(double, double),
+                           double (*rop)(double, double),
+                           double (*lop)(double, double))
 {
     size_t i, j, r_0, r_1;
     double r, tmp;
@@ -51,7 +51,7 @@ double element_wise_reduce(double *a, double *b,
     return r;
 }
 
-double *transpose(double *a, size_t a_0, size_t a_1)
+double *transpose(const double *a, size_t a_0, size_t a_1)
 {
     size_t i, j;
     double *r;
@@ -73,10 +73,10 @@ void element_wise_op(double **r, double *a, double *b,
 {
     size_t i, j, r_0, r_1;
     assert(get_broadcastable_size(a_0, a_1, b_0, b_1, &r_0, &r_1));
-    if (*r == NULL)
+    if (*r == nullptr)
     {
         *r = (double *)calloc(r_0 * r_1, sizeof(double));
-        if (*r == NULL)
+        if (*r == nullptr)
             errx(1, "Alloc error !");
     }
     for (i = 0; i < r_0; ++i)
@@ -88,7 +88,7 @@ void element_wise_op(double **r, double *a, double *b,
     }
 }
 
-void dot_product(double **r, double *a, double *b,
+void dot_product(double **r, const double *a, const double *b,
                  size_t a_0, size_t a_1, size_t b_0, size_t b_1)
 {
     size_t i, j, r_0, r_1, m;
@@ -96,10 +96,10 @@ void dot_product(double **r, double *a, double *b,
     assert(a_1 == b_0);
     r_0 = a_0;
     r_1 = b_1;
-    if (*r == NULL)
+    if (*r == nullptr)
     {
         *r = (double *)calloc(r_0 * r_1, sizeof(double));
-        if (*r == NULL)
+        if (*r == nullptr)
             errx(1, "Alloc error !");
     }
     for (i = 0; i < r_0; ++i)
@@ -120,7 +120,7 @@ void dot_product(double **r, double *a, double *b,
  ** \deprecated use element_wise_op instead, but could be cool to have an optimized version
  **/
 void matrix_substract_array_axises(double *a, double *b, size_t a_0, size_t a_1, size_t b_0, size_t b_1,
-                                   double (*op)(double a, double b))
+                                   double (*op)(double, double))
 {
     size_t i, j;
     assert(a_0 == b_0 && b_1 == 1); // a has a_0 lines and a_1 columns

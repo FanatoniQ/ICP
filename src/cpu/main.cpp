@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     */
 
     auto res = get_correspondence_indices(P, Q, Plines, Pcols, Qlines, Qcols);
-    std::cout << std::get<0>(res.at(1)) << " and "<< std::get<1>(res.at(1));
+    std::cout << std::get<0>(res.at(1)) << " and " << std::get<1>(res.at(1));
     //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
     //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
 
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
         std::cerr << std::endl;
     }
     */
-   
+
     free(P);
     free(Q);
 
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
     std::cout << std::endl
               << "Centered:" << std::endl;
-    element_wise_op(&m, m, mean, nbaxis, nbpoints, nbaxis, 1, substract);
+    element_wise_op(&m, m, mean, nbaxis, nbpoints, nbaxis, 1, subtract);
     for (size_t j = 0; j < nbpoints; ++j) // transposed printing, strided access
     {
         for (size_t i = 0; i < nbaxis; ++i)

@@ -13,7 +13,7 @@
     }
 
 // basic operations
-double substract(double a, double b);
+double subtract(double a, double b);
 
 double add(double a, double b);
 
@@ -32,7 +32,7 @@ double mult(double a, double b);
  **
  ** \return r: the transposed a array of shape a_1,a_0
  **/
-double *transpose(double *a, size_t a_0, size_t a_1);
+double *transpose(const double *a, size_t a_0, size_t a_1);
 
 /**
  ** \brief element_wise_reduce apply the given operator element wise
@@ -93,5 +93,5 @@ void element_wise_op(double **r, double *a, double *b,
  ** \param b_0: number of lines in array b
  ** \param b_1: number of columns in array b
  **/
-void dot_product(double **r, double *a, double *b,
+void dot_product(double **r, const double *a, const double *b,
                  size_t a_0, size_t a_1, size_t b_0, size_t b_1);
