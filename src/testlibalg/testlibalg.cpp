@@ -92,7 +92,7 @@ int test_mean(char *file, int axis)
     return EXIT_SUCCESS;
 }
 
-int test_add(char *file1, char *file2)
+int test_op(char *file1, char *file2, double (*op)(double a, double b))
 {
     size_t Pdim0, Pdim1;
     size_t Qdim0, Qdim1;
@@ -102,7 +102,7 @@ int test_add(char *file1, char *file2)
     double *Qarray = readCSV(file2, h, Qdim0, Qdim1);
 
     double *r = nullptr;
-    element_wise_op(&r, Parray, Qarray, Pdim0, Pdim1, Qdim0, Qdim1, Rdim0, Rdim1, add);
+    element_wise_op(&r, Parray, Qarray, Pdim0, Pdim1, Qdim0, Qdim1, Rdim0, Rdim1, op);
     print_matrix(std::cout, r, Rdim1, Rdim0);
 
     free(Parray);
@@ -168,7 +168,11 @@ int main(int argc, char *argv[])
     else if (argc == 4)
     {
         if (strcmp(argv[1], "add") == 0)
-            return test_add(argv[2], argv[3]);
+            return test_op(argv[2], argv[3], add);
+        else if (strcmp(argv[1], "subtract") == 0)
+            return test_op(argv[2], argv[3], subtract);
+        else if (strcmp(argv[1], "mult") == 0)
+            return test_op(argv[2], argv[3], mult);
         else if (strcmp(argv[1], "dotproduct") == 0)
             return test_dotproduct(argv[2], argv[3]);
         else if (strcmp(argv[1], "mean") == 0)
