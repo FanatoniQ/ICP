@@ -8,6 +8,8 @@ import multiprocessing
 import time
 import glob
 
+from operations import *
+
 success = 0
 
 HEADER = '\033[95m'
@@ -35,57 +37,6 @@ def end_print(total, success, fails):
     print(FAIL + "Fails:" + ENDC , fails)
 
 #-------------------------------------------------
-
-"""
-svd function not used
-def svd(cov):
-    cov = pd.read_csv(cov)
-    U, S, V_T = np.linalg.svd(cov, full_matrices=False)
-    return V_T.T, S, U.T # dumb
-"""
-
-"""
-svd recomposition used for svd checking
-"""
-def svd_no_ref(u, s, vh):
-    u, s, vh = StringIO(u), StringIO(s), StringIO(vh)
-    u, s, vh = pd.read_csv(u, sep=",", header=None), pd.read_csv(s, sep=",", header=None), pd.read_csv(vh, sep=",", header=None)
-    u, s, vh = np.array(u), np.array(s), np.array(vh)
-    u, s, vh = np.squeeze(u),np.squeeze(s),np.squeeze(vh)
-    print(u.shape, s.shape, vh.shape)
-    return np.dot(u * s, vh)
-
-"""
-sum axis computation
-"""
-def sum(P, axis):
-    axis = int(axis)
-    if axis == -1:
-        axis = None
-    P = pd.read_csv(P)
-    P = np.array(P)
-    return P.sum(axis=axis)
-
-"""
-mean axis computation
-"""
-def mean(P, axis):
-    axis = int(axis)
-    if axis == -1:
-        axis = None
-    P = pd.read_csv(P)
-    P = np.array(P)
-    return P.mean(axis=axis)
-
-"""
-computes P.dot(Q)
-"""
-def dotproduct(P, Q):
-    P = pd.read_csv(P)
-    Q = pd.read_csv(Q)
-    P = np.array(P)
-    Q = np.array(Q).T
-    return P.dot(Q)
 
 """
 exec_no_ref executes a test, for which there is no ref from inputs but
@@ -200,10 +151,10 @@ if __name__ == "__main__":
         ["sum", "0"],
         ["sum", "1"],
         ["svd"],
-    ]
+    ] # len(fileList) * len(params_1fn)
     params_2fn = [
         ["dotproduct"],
-    ]
+    ] # (len(fileList) * (len(fileList) + 1) / 2) * len(params_2fn)
     for fn in params_1fn:
         for file in fileList:
             exec(fn[0], file, *fn[1:])
