@@ -60,15 +60,15 @@ int test_svd(char *argv[])
 
 int test_mean(char *argv[])
 {
-    size_t nbaxis, nbpoints;
+    size_t dim0, dim1;
     std::string f1Header{};
-    std::ifstream file1(argv[1]);
+    //std::ifstream file1(argv[1]);
 
-    double *m = readCSV(file1, f1Header, &nbaxis, &nbpoints);
-    double *mean = mean_axises(m, nbaxis, nbpoints);
-    std::cerr << "nbaxis: " << nbaxis << " nbpoints: " << nbpoints << std::endl;
+    double *m = readCSV(argv[1], f1Header, dim0, dim1);
+    double *mean = mean_axises(m, dim0, dim1);
+    std::cerr << "nbaxis: " << dim1 << " nbpoints: " << dim0 << std::endl;
     std::cerr << "Mean:" << std::endl;
-    print_matrix(std::cout, mean, nbaxis, 1);
+    print_matrix(std::cout, mean, dim1, 1);
     free(m);
     free(mean);
     return EXIT_SUCCESS;

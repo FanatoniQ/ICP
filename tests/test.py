@@ -60,8 +60,8 @@ mean axis computation
 """
 def mean(P):
     P = pd.read_csv(P)
-    P = np.array(P).T
-    return P.mean(axis=1)
+    P = np.array(P)
+    return P.mean(axis=0)
 
 """
 computes P.dot(Q)
