@@ -3,9 +3,10 @@
 #include <ostream>
 #include <vector>
 
-class Matrix {
+class Matrix
+{
 protected:
-    double* array;
+    double *array;
     size_t dim0;
     size_t dim1;
     // Constructors
@@ -18,7 +19,8 @@ protected:
      * @param dim1
      */
     Matrix(size_t dim0, size_t dim1);
-    Matrix(Matrix const &mat);
+    Matrix(Matrix const &mat) = delete; // avoid double free
+    Matrix(Matrix &&mat);               // move constructor
 
 public:
     /**
@@ -49,19 +51,20 @@ public:
     Matrix mean_axis(size_t dim);
 
     // Operator overloading, for "standard" mathematical matrix operations
-    Matrix& operator=(const Matrix& rhs);
+    Matrix &operator=(const Matrix &rhs);
 
     // Matrix mathematical operations
-    Matrix operator+(const Matrix& rhs);
-    Matrix& operator+=(const Matrix& rhs);
-    Matrix operator-(const Matrix& rhs);
-    Matrix& operator-=(const Matrix& rhs);
-    Matrix operator*(const Matrix& rhs);
-    Matrix& operator*=(const Matrix& rhs);
+    Matrix operator+(const Matrix &rhs);
+    Matrix &operator+=(const Matrix &rhs);
+    Matrix operator-(const Matrix &rhs);
+    Matrix &operator-=(const Matrix &rhs);
+    Matrix operator*(const Matrix &rhs);
+    Matrix &operator*=(const Matrix &rhs);
     Matrix transpose();
 
+    Matrix dot(const Matrix &rhs);
 
     // Access the individual elements
-    double& operator()(const unsigned& row, const unsigned& col);
-    const double& operator()(const unsigned& row, const unsigned& col) const;
+    double &operator()(const unsigned &row, const unsigned &col);
+    const double &operator()(const unsigned &row, const unsigned &col) const;
 };

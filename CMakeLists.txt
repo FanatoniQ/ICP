@@ -32,7 +32,7 @@ target_link_libraries(alg lapack) # libalg uses lapack lib for SVD computation
 ##############
 
 include_directories(include)
-file(GLOB TESTLIBALGSOURCES "src/testlibalg/testlibalg.cpp")
+file(GLOB TESTLIBALGSOURCES "src/testlibalg/*.cpp")
 if(CMAKE_COMPILER_IS_GNUCXX)
 add_compile_options(-Wall -Wextra -pedantic -Werror -g)
 endif(CMAKE_COMPILER_IS_GNUCXX)

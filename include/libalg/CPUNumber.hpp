@@ -4,10 +4,12 @@
 /**
  * Matrix class of a single number
  */
-class CPUNumber : Matrix {
+class CPUNumber : public Matrix
+{
+private:
     double value;
-public:
-    explicit CPUNumber(double value);
-    ~CPUNumber() override = default;
-};
 
+public:
+    CPUNumber(double value);
+    ~CPUNumber() override;
+};
