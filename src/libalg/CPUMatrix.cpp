@@ -35,46 +35,20 @@ CPUMatrix::~CPUMatrix()
         free(array);
 }
 
-CPUMatrix CPUMatrix::mean_axis(int axis)
+CPUMatrix CPUMatrix::sum(int axis)
 {
-    /**
-    double *r;
-    size_t dimension = dim == 0 ? dim1 : dim0;
-    r = ::mean_axises(array, dim0, dim1, dim == 0);
-    return CPUMatrix(r, 1, dimension);
-    **/
+    size_t dimr;
+    double *r = NULL;
+    ::sum_axises(&r, array, dim0, dim1, dimr, axis);
+    return CPUMatrix(r, 1, dimr);
+}
+
+CPUMatrix CPUMatrix::mean(int axis)
+{
     size_t dimr;
     double *r = NULL;
     ::mean_axises(&r, array, dim0, dim1, dimr, axis);
     return CPUMatrix(r, 1, dimr);
-    //double *r = ::mean_axises(array, dim0, dim1, (dim == 0));
-    //return CPUMatrix(r, 1, dimension);
-
-    // TODO: all this should be in low level API
-    /**
-    if (dim == 0)
-    {
-        for (i = 0; i < dim1; ++i)
-        {
-            for (j = 0; j < dim0; ++j)
-            {
-                mat.array[i] += array[j * dim1 + i];
-            }
-            mat.array[i] /= dim0;
-        }
-    }
-    else
-    {
-        for (i = 0; i < dim0; ++i)
-        {
-            for (j = 0; j < dim1; ++j)
-            {
-                mat.array[i] += array[i * dim1 + j];
-            }
-            mat.array[i] /= dim1;
-        }
-    }
-    return mat;**/
 }
 
 bool CPUMatrix::operator==(const CPUMatrix &rhs) const

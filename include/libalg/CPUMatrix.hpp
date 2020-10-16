@@ -45,7 +45,8 @@ public:
     // Operations
     bool operator==(const CPUMatrix &rhs) const;
     bool operator!=(const CPUMatrix &rhs) const;
-    CPUMatrix mean_axis(int axis);
+    CPUMatrix sum(int axis);
+    CPUMatrix mean(int axis);
 
     // Operator overloading, for "standard" mathematical matrix operations
     CPUMatrix &operator=(const CPUMatrix &rhs);

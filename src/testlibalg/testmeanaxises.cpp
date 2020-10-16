@@ -31,8 +31,12 @@ int main(int argc, char *argv[])
     //print_matrix(std::cerr, array, Pdim1, Pdim0);
 
     std::cerr << P << std::endl;
-    std::cerr << P.mean_axis(-1) << std::endl;
-    std::cerr << P.mean_axis(0) << std::endl;
-    std::cerr << P.mean_axis(1) << std::endl;
+    std::cerr << P.mean(-1) << std::endl;
+    std::cerr << P.mean(0) << std::endl;
+    std::cerr << P.mean(1) << std::endl;
+
+    std::cerr << P.sum(-1) << std::endl;
+    std::cerr << P.sum(0) << std::endl;
+    std::cerr << P.sum(1) << std::endl;
     return EXIT_SUCCESS;
 }

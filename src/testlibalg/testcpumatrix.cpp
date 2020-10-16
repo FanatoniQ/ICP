@@ -34,13 +34,13 @@ int main(int argc, char *argv[])
     std::cerr << "End Transposing ..." << std::endl;
     std::cerr << P_T << std::endl;
 
-    auto meanP = Pcopy.mean_axis(0);
+    auto meanP = Pcopy.mean(0);
     std::cerr << meanP << std::endl;
-    std::cerr << Pcopy.mean_axis(1) << std::endl;
+    std::cerr << Pcopy.mean(1) << std::endl;
 
     std::cerr << "*=5" << std::endl;
     std::cerr << meanP * CPUNumber(5) << std::endl;
-    std::cerr << (Pcopy * CPUNumber(5)).mean_axis(0) << std::endl;
+    std::cerr << (Pcopy * CPUNumber(5)).mean(0) << std::endl;
 
     size_t Qdim0, Qdim1;
     double *Qarray = readCSV(argv[2], h, Qdim0, Qdim1);
