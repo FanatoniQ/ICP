@@ -18,7 +18,7 @@
 
 #define UNUSED(x) (void)x
 
-int test_svd(char *argv[])
+int test_svd(char *file)
 {
     /**
     UNUSED(argv);
@@ -32,7 +32,7 @@ int test_svd(char *argv[])
     **/
     size_t nbaxis, nbpoints;
     std::string f1Header{};
-    std::ifstream file1(argv[1]);
+    std::ifstream file1(file);
 
     double *a = readCSV(file1, f1Header, &nbaxis, &nbpoints);
     //int n = MAX(nbaxis, nbpoints), m = MIN(nbaxis, nbpoints);
@@ -58,29 +58,47 @@ int test_svd(char *argv[])
     return EXIT_SUCCESS;
 }
 
-int test_mean(char *argv[])
+int test_sum(char *file, int axis)
 {
     size_t dim0, dim1;
     std::string f1Header{};
-    //std::ifstream file1(argv[1]);
 
-    double *m = readCSV(argv[1], f1Header, dim0, dim1);
-    double *mean = mean_axises(m, dim0, dim1);
+    double *m = readCSV(file, f1Header, dim0, dim1);
+    double *mean = nullptr;
+    size_t dimr;
+    sum_axises(&mean, m, dim0, dim1, dimr, axis);
     std::cerr << "nbaxis: " << dim1 << " nbpoints: " << dim0 << std::endl;
     std::cerr << "Mean:" << std::endl;
-    print_matrix(std::cout, mean, dim1, 1);
+    print_matrix(std::cout, mean, dimr, 1);
     free(m);
     free(mean);
     return EXIT_SUCCESS;
 }
 
-int test_dotproduct(char *argv[])
+int test_mean(char *file, int axis)
+{
+    size_t dim0, dim1;
+    std::string f1Header{};
+
+    double *m = readCSV(file, f1Header, dim0, dim1);
+    double *mean = nullptr;
+    size_t dimr;
+    mean_axises(&mean, m, dim0, dim1, dimr, axis);
+    std::cerr << "nbaxis: " << dim1 << " nbpoints: " << dim0 << std::endl;
+    std::cerr << "Mean:" << std::endl;
+    print_matrix(std::cout, mean, dimr, 1);
+    free(m);
+    free(mean);
+    return EXIT_SUCCESS;
+}
+
+int test_dotproduct(char *file1, char *file2)
 {
     size_t Pdim0, Pdim1;
     size_t Qdim0, Qdim1;
     std::string h{};
-    double *Parray = readCSV(argv[1], h, Pdim0, Pdim1);
-    double *Qarray = readCSV(argv[2], h, Qdim0, Qdim1);
+    double *Parray = readCSV(file1, h, Pdim0, Pdim1);
+    double *Qarray = readCSV(file2, h, Qdim0, Qdim1);
 
     auto P = CPUMatrix(Parray, Pdim0, Pdim1);
     auto Q = CPUMatrix(Qarray, Qdim0, Qdim1);
@@ -113,11 +131,11 @@ void usage(void)
 {
     std::cerr << "Usage:" << std::endl
               << std::endl;
-    std::cerr << "./testlibalg file1 1paramfunction" << std::endl;
-    std::cerr << "./testlibalg file1 file2 2paramsfunction" << std::endl
+    std::cerr << "./testlibalg sum file1 axis=[-1,0,1]" << std::endl;
+    std::cerr << "./testlibalg mean file1 axis=[-1,0,1]" << std::endl;
+    std::cerr << "./testlibalg svd file1" << std::endl;
+    std::cerr << "./testlibalg dotproduct file1 file2" << std::endl
               << std::endl;
-    std::cerr << "1paramfunction = mean | svd" << std::endl;
-    std::cerr << "2paramsfunction = dotproduct" << std::endl;
     exit(1);
 }
 
@@ -126,15 +144,17 @@ int main(int argc, char *argv[])
     std::cout << std::setprecision(15); //DBL_MANT_DIG);
     if (argc == 3)
     {
-        if (strcmp(argv[2], "mean") == 0)
-            return test_mean(argv);
-        else if (strcmp(argv[2], "svd") == 0)
-            return test_svd(argv);
+        if (strcmp(argv[1], "svd") == 0)
+            return test_svd(argv[2]);
     }
     else if (argc == 4)
     {
-        if (strcmp(argv[3], "dotproduct") == 0)
-            return test_dotproduct(argv);
+        if (strcmp(argv[1], "dotproduct") == 0)
+            return test_dotproduct(argv[2], argv[3]);
+        else if (strcmp(argv[1], "mean") == 0)
+            return test_mean(argv[2], std::stoi(argv[3]));
+        else if (strcmp(argv[1], "sum") == 0)
+            return test_sum(argv[2], std::stoi(argv[3]));
     }
     usage();
 }
