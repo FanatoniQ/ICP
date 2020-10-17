@@ -7,6 +7,7 @@
 
 #include "libCSV/csv.hpp"
 #include "libalg/alg.hpp"
+#include "libalg/print.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -14,22 +15,10 @@ int main(int argc, char *argv[])
         errx(1, "Usage: ./testlibalgcsvprint file1");
     size_t nbaxis, nbpoints;
     std::string f1Header{};
-    std::ifstream file1(argv[1]);
-    double *m = readCSV(file1, f1Header, &nbaxis, &nbpoints);
+    double *m = readCSV(argv[1], f1Header, nbpoints, nbaxis);
 
     std::cerr << "nbaxis: " << nbaxis << " nbpoints: " << nbpoints << std::endl;
-    for (size_t i = 0; i < nbpoints / nbaxis; ++i)
-    {
-        for (size_t j = 0; j < nbaxis; ++j)
-        {
-            std::cout << m[i*nbaxis + j];
-            if (j != nbaxis - 1)
-                std::cout << ',';
-            else
-                std::cout << std::endl;
-            
-        }
-    }
+    print_matrix(std::cout, m, nbaxis, nbpoints);
 
     free(m);
     return 0;

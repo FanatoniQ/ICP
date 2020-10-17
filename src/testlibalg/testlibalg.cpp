@@ -31,19 +31,15 @@ int test_svd(char *file)
     print_matrix(std::cout, c, 3, 1);
     **/
     size_t nbaxis, nbpoints;
-    std::string f1Header{};
-    std::ifstream file1(file);
-
-    double *a = readCSV(file1, f1Header, &nbaxis, &nbpoints);
+    std::string h{};
+    double *a = readCSV(file, h, nbpoints, nbaxis);
     //int n = MAX(nbaxis, nbpoints), m = MIN(nbaxis, nbpoints);
     int n = nbpoints, m = nbaxis;
     //if (n < m)
     //    SWAP(n, m);
     //assert(nbaxis < nbpoints); // just checking
-    double *a_T = transpose(a, nbaxis, nbpoints);
-    free(a);
     double *u = NULL, *sigma = NULL, *vt = NULL;
-    svd(a_T, &u, &sigma, &vt, m, n);
+    svd(a, &u, &sigma, &vt, m, n);
 
     /** Full matrices exemple: **/
     //print_matrix(std::cout, vt, n, n, n); // shape is: n,n
@@ -54,7 +50,7 @@ int test_svd(char *file)
     free(u);
     free(sigma);
     free(vt);
-    free(a_T);
+    free(a);
     return EXIT_SUCCESS;
 }
 

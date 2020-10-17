@@ -68,7 +68,7 @@ static std::vector<std::vector<T>> __readCSV(std::istream &f, std::string &h)
     return res;
 }
 
-double *readCSV(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoints)
+double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoints)
 {
     double *m;
     size_t i, j = 0;
