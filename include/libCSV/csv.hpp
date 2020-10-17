@@ -17,7 +17,7 @@
  **
  ** \return res the parsed converted to C-style array transposed vector of vector
  **/
-double *readCSV(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoints);
+double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoints);
 
 /**
  ** \brief readCSV C method to return the non transposed double array parsed from
