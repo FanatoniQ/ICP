@@ -1,8 +1,8 @@
-#include <err.h>
 #include <cstdlib>
 
 #include <iostream>
 
+#include "error.hpp"
 #include "libalg/svd.hpp"
 
 /* DGESVD prototype from LAPACK library */
@@ -27,28 +27,31 @@ void svd(double *a, double **u, double **sigma, double **vt, int m, int n)
     double *work;
     if (*u == nullptr) // shape: m,m
     {
-        if ((*u = (double *)malloc(ldu * m * sizeof(double))) == nullptr)
-            errx(1, "Alloc Error (u) !");
+        *u = (double *)malloc(ldu * m * sizeof(double));
+        runtime_assert(*u != nullptr, "Alloc Error (u) !");
     }
     if (*sigma == nullptr) // shape: n
     {
-        if ((*sigma = (double *)malloc(n * sizeof(double))) == nullptr)
-            errx(1, "Alloc Error (sigma) !");
+        *sigma = (double *)malloc(n * sizeof(double));
+        runtime_assert(*sigma != nullptr, "Alloc Error (sigma) !");
     }
     if (*vt == nullptr) // shape: n,n
     {
-        if ((*vt = (double *)malloc(ldvt * n * sizeof(double))) == nullptr)
-            errx(1, "Alloc Error (u) !");
+        *vt = (double *)malloc(ldvt * n * sizeof(double));
+        runtime_assert(*vt != nullptr, "Alloc Error (u) !");
     }
     lapack::dgesvd(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, &wkopt, &lwork, &info);
     std::cerr << "Query DONE !" << std::endl;
     lwork = (int)wkopt;
-    if ((work = (double *)malloc(lwork * sizeof(double))) == nullptr)
-        errx(1, "Alloc Error (work) !");
+    work = (double *)malloc(lwork * sizeof(double));
+    runtime_assert(work != nullptr, "Alloc Error (work) !");
     lapack::dgesvd(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, work, &lwork, &info);
     free(work);
+    /**
     if (info > 0)
     {
         errx(5, "Conversion error: %d !\n", info);
     }
+    **/
+    runtime_assert(info <= 0, "Conversion error !");
 }

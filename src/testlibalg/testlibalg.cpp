@@ -1,6 +1,3 @@
-#include <err.h>
-#include <cassert>
-
 #include <float.h>
 #include <stdlib.h>
 
@@ -10,6 +7,7 @@
 #include <cstring>
 
 #include "libCSV/csv.hpp"
+#include "error.hpp"
 #include "libalg/print.hpp"
 #include "libalg/svd.hpp"
 #include "libalg/alg.hpp"
@@ -37,7 +35,7 @@ int test_svd(char *file)
     int n = nbpoints, m = nbaxis;
     //if (n < m)
     //    SWAP(n, m);
-    //assert(nbaxis < nbpoints); // just checking
+    //runtime_assert(nbaxis < nbpoints); // just checking
     double *u = NULL, *sigma = NULL, *vt = NULL;
     svd(a, &u, &sigma, &vt, m, n);
 

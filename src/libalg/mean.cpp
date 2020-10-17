@@ -1,10 +1,8 @@
-#include <err.h> // errx
-#include <assert.h>
-
 #include <math.h>
 
 #include <iostream>
 
+#include "error.hpp"
 #include "libalg/mean.hpp"
 
 #define UNUSED(x) (void)x
@@ -64,10 +62,14 @@ void sum_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, i
         get_id_reduce = get_id_reduce_second_axis;
     }
     else
-        errx(3, "Invalid dimension !");
+        runtime_failure("Invalid dimension !");
     if (*r == nullptr)
-        if ((*r = (double *)calloc(dimr, sizeof(double))) == nullptr)
-            errx(2, "alloc error !");
+    {
+        //if ((*r = (double *)calloc(dimr, sizeof(double))) == nullptr)
+        //    errx(2, "alloc error !");
+        *r = (double *)calloc(dimr, sizeof(double));
+        runtime_assert(*r != nullptr, "Alloc error !");
+    }
     for (i = 0; i < dim0; ++i)
     {
         for (j = 0; j < dim1; ++j)
@@ -89,7 +91,7 @@ void mean_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, 
     else if (axis == 1)
         denom = dim1;
     else
-        errx(3, "Invalid dimension !");
+        runtime_failure("Invalid dimension !");
     for (i = 0; i < dimr; ++i)
     {
         (*r)[i] /= denom;
