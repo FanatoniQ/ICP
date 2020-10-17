@@ -65,8 +65,6 @@ void sum_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, i
         runtime_failure("Invalid dimension !");
     if (*r == nullptr)
     {
-        //if ((*r = (double *)calloc(dimr, sizeof(double))) == nullptr)
-        //    errx(2, "alloc error !");
         *r = (double *)calloc(dimr, sizeof(double));
         runtime_assert(*r != nullptr, "Alloc error !");
     }

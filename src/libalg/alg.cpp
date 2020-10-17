@@ -54,10 +54,8 @@ double element_wise_reduce(double *a, double *b,
 double *transpose(const double *a, size_t a_0, size_t a_1)
 {
     size_t i, j;
-    double *r;
-    //if (!(r = (double *)calloc(a_0 * a_1, sizeof(double))))
-    //    errx(1, "Alloc error !");
-    runtime_assert((r = (double *)calloc(a_0 * a_1, sizeof(double))) != nullptr, "Alloc error !");
+    double *r = (double *)calloc(a_0 * a_1, sizeof(double));
+    runtime_assert(r != nullptr, "Alloc error !");
     for (i = 0; i < a_0; ++i)
     {
         for (j = 0; j < a_1; ++j)
@@ -78,14 +76,10 @@ void element_wise_op(double **r, double *a, double *b,
     if (*r == nullptr)
     {
         *r = (double *)calloc(expr_0 * expr_1, sizeof(double));
-        //if (*r == nullptr)
-        //    errx(1, "Alloc error !");
         runtime_assert(*r != nullptr, "Alloc error !");
     }
     else
     {
-        //if (r_0 != expr_0 || r_1 != expr_1)
-        //    errx(2, "Invalid size for operation !");
         runtime_assert(r_0 == expr_0 && r_1 == expr_1, "Invalid size for operation !");
     }
     r_0 = expr_0;
@@ -110,8 +104,6 @@ void dot_product(double **r, const double *a, const double *b,
     if (*r == nullptr)
     {
         *r = (double *)calloc(r_0 * r_1, sizeof(double));
-        //if (*r == nullptr)
-        //    errx(1, "Alloc error !");
         runtime_assert(*r != nullptr, "Alloc error !");
     }
     for (i = 0; i < r_0; ++i)

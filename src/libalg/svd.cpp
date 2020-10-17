@@ -47,11 +47,5 @@ void svd(double *a, double **u, double **sigma, double **vt, int m, int n)
     runtime_assert(work != nullptr, "Alloc Error (work) !");
     lapack::dgesvd(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, work, &lwork, &info);
     free(work);
-    /**
-    if (info > 0)
-    {
-        errx(5, "Conversion error: %d !\n", info);
-    }
-    **/
     runtime_assert(info <= 0, "Conversion error !");
 }

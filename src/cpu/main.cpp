@@ -13,8 +13,6 @@
 
 int main(int argc, char *argv[])
 {
-    //if (argc != 3)
-    //    errx(1, "Usage: ./CPUICP file1 file2");
     runtime_assert(argc == 3, "Usage: ./CPUICP file1 file2");
     std::cout << std::setprecision(15); //DBL_MANT_DIG);
 
