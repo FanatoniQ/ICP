@@ -10,8 +10,6 @@
 
 int main(int argc, char *argv[])
 {
-    //if (argc != 2)
-    //    errx(1, "Usage: ./testlibalgcsvprint file1");
     runtime_assert(argc == 2, "Usage: ./testlibalgcsvprint file1");
     size_t nbaxis, nbpoints;
     std::string f1Header{};
