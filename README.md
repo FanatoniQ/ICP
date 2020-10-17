@@ -17,7 +17,7 @@ mkdir build
 cd build
 cat ../requirements.system | xargs sudo apt-get install
 pip3 install -r ../requirements.txt
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 make
 ```
 

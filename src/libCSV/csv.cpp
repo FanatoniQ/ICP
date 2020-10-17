@@ -1,4 +1,3 @@
-#include <err.h>
 #include <stdio.h>
 
 #include <cstring>
@@ -7,6 +6,7 @@
 #include <vector>
 //#include <charconv>
 
+#include "error.hpp"
 #include "libCSV/csv.hpp"
 
 /**
@@ -77,8 +77,10 @@ double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoin
     std::cerr << h << std::endl;
     *nbaxis = f1M.at(0).size();
     *nbpoints = f1M.size();
-    if (!(m = (double *)calloc(*nbaxis * *nbpoints, sizeof(double))))
-        errx(2, "alloc error !");
+    //if (!(m = (double *)calloc(*nbaxis * *nbpoints, sizeof(double))))
+    //    errx(2, "alloc error !");
+    m = (double *)calloc(*nbaxis * *nbpoints, sizeof(double));
+    runtime_assert(m != nullptr, "Alloc error !");
     for (const auto &f1line : f1M)
     {
         i = 0; // i is axis
@@ -97,8 +99,9 @@ double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoin
 double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcols)
 {
     FILE *f = fopen(path, "r");
-    if (!f)
-        errx(1, "File %s could not be opened !", path);
+    //if (!f)
+    //    errx(1, "File %s could not be opened !", path);
+    runtime_assert(f != nullptr, "File could not be opened !");
     ssize_t read;
     size_t len = 0, cols_num;
     char *line = NULL;
@@ -107,8 +110,9 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
     size_t size = 10;
     size_t count = 0;
     double *r = (double *)malloc(size * sizeof(double));
-    if (!r)
-        errx(1, "Alloc error !");
+    //if (!r)
+    //    errx(1, "Alloc error !");
+    runtime_assert(r != nullptr, "Alloc error !");
     nblines = 0;
     nbcols = 0;
     h = "";
@@ -127,8 +131,9 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
             {
                 size *= 2;
                 r = (double *)realloc(r, size * sizeof(double));
-                if (!r)
-                    errx(1, "Alloc error (realloc) !");
+                //if (!r)
+                //    errx(1, "Alloc error (realloc) !");
+                runtime_assert(r != nullptr, "Alloc error (realloc) !");
             }
             double v;
             /**
@@ -140,8 +145,9 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
             v = strtod(token, &end_tok);
             if (end_tok == token)
             {
-                if (nblines != 0)
-                    errx(2, "Not a valid double !");
+                //if (nblines != 0)
+                //errx(2, "Not a valid double !");
+                runtime_assert(nblines == 0, "Not a valid double !");
                 // this is the header line
             }
             else
@@ -165,8 +171,9 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
     {
         size = count;
         r = (double *)realloc(r, size * sizeof(double));
-        if (!r)
-            errx(1, "Alloc error (realloc) !");
+        //if (!r)
+        //    errx(1, "Alloc error (realloc) !");
+        runtime_assert(r != nullptr, "Alloc error (realloc) !");
     }
     fclose(f);
     return r;

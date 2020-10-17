@@ -1,6 +1,3 @@
-#include <err.h>
-#include <cassert>
-
 #include <float.h>
 #include <stdlib.h>
 
