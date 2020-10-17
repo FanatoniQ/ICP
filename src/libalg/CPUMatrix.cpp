@@ -1,9 +1,15 @@
+#include <cstring>
+
 #include <stdexcept>
 
+#include "error.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/mean.hpp"
 #include "libalg/print.hpp"
+#include "libalg/basic_operations.hpp"
 #include "libalg/CPUMatrix.hpp"
+#include "libalg/CPUView.hpp"
+#include "libalg/CPUNumber.hpp"
 
 // no need to free for user
 CPUMatrix::CPUMatrix() : array(nullptr), dim0(0), dim1(0) {}
@@ -115,7 +121,7 @@ size_t CPUMatrix::getDim1() const
 }
 
 // TODO: this is bad kinda, why not weak ptr copy and not freeing ?
-CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
+/**CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
 {
     if (&rhs == this)
         return *this;
@@ -143,6 +149,26 @@ CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
             (*this)(i, j) = rhs(i, j);
         }
     }
+    return *this;
+}**/
+
+CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
+{
+    if (&rhs == this)
+        return *this;
+    bool noalloc = ((dim0 * dim1) == (rhs.getDim0() * rhs.getDim1()));
+    dim0 = rhs.getDim0();
+    dim1 = rhs.getDim1();
+
+    if (!noalloc)
+    {
+        if (array != nullptr)
+            free(array);
+        this->array = (double *)malloc(dim0 * dim1 * sizeof(double));
+        if (array == nullptr)
+            throw std::bad_alloc();
+    }
+    memcpy(array, rhs.array, dim0 * dim1 * sizeof(double));
     return *this;
 }
 
@@ -220,6 +246,64 @@ CPUMatrix &CPUMatrix::operator*=(const CPUMatrix &rhs)
     return *this;
 }
 
+CPUMatrix CPUMatrix::operator/(const CPUMatrix &rhs)
+{
+    size_t Rdim0, Rdim1;
+    double *r = nullptr;
+    element_wise_op(&r, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, Rdim0, Rdim1, divide);
+    return CPUMatrix(r, Rdim0, Rdim1);
+}
+
+CPUMatrix &CPUMatrix::operator/=(const CPUMatrix &rhs)
+{
+    element_wise_op(&this->array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, this->dim0, this->dim1, divide);
+    return *this;
+}
+
+CPUMatrix CPUMatrix::operator+(const double &rhs)
+{
+    return *this + CPUNumber(rhs);
+}
+
+CPUMatrix CPUMatrix::operator-(const double &rhs)
+{
+    return *this - CPUNumber(rhs);
+}
+
+CPUMatrix CPUMatrix::operator*(const double &rhs)
+{
+    return *this * CPUNumber(rhs);
+}
+
+CPUMatrix CPUMatrix::operator/(const double &rhs)
+{
+    return *this / CPUNumber(rhs);
+}
+
+CPUMatrix &CPUMatrix::operator+=(const double &rhs)
+{
+    *this += CPUNumber(rhs);
+    return *this;
+}
+
+CPUMatrix &CPUMatrix::operator-=(const double &rhs)
+{
+    *this -= CPUNumber(rhs);
+    return *this;
+}
+
+CPUMatrix &CPUMatrix::operator*=(const double &rhs)
+{
+    *this *= CPUNumber(rhs);
+    return *this;
+}
+
+CPUMatrix &CPUMatrix::operator/=(const double &rhs)
+{
+    *this /= CPUNumber(rhs);
+    return *this;
+}
+
 // TODO: FIX the low level transpose function
 CPUMatrix CPUMatrix::transpose()
 {
@@ -228,4 +312,17 @@ CPUMatrix CPUMatrix::transpose()
     CPUMatrix result;
     result.setArray(r, dim1, dim0);
     return result;
+}
+
+CPUView CPUMatrix::getLine(unsigned linenum)
+{
+    runtime_assert(linenum < dim0, "Invalid line number !");
+    return CPUView(array + dim1 * linenum, dim1);
+}
+
+CPUMatrix CPUMatrix::copyLine(unsigned linenum)
+{
+    auto r = CPUMatrix(1, dim1);
+    memcpy(r.array, array + dim1 * linenum, dim1 * sizeof(double));
+    return r;
 }

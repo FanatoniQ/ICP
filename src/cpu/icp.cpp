@@ -3,6 +3,7 @@
 #include <tuple>
 #include <iostream>
 
+#include "libalg/basic_operations.hpp"
 #include "libalg/alg.hpp"
 #include "cpu/icp.hpp"
 

@@ -3,6 +3,8 @@
 #include <ostream>
 #include <vector>
 
+class CPUView;
+
 class CPUMatrix
 {
 protected:
@@ -45,8 +47,8 @@ public:
     // Operations
     bool operator==(const CPUMatrix &rhs) const;
     bool operator!=(const CPUMatrix &rhs) const;
-    CPUMatrix sum(int axis);
-    CPUMatrix mean(int axis);
+    CPUMatrix sum(int axis = 0);
+    CPUMatrix mean(int axis = 0);
 
     // Operator overloading, for "standard" mathematical matrix operations
     CPUMatrix &operator=(const CPUMatrix &rhs);
@@ -58,9 +60,25 @@ public:
     CPUMatrix &operator-=(const CPUMatrix &rhs);
     CPUMatrix operator*(const CPUMatrix &rhs);
     CPUMatrix &operator*=(const CPUMatrix &rhs);
+    CPUMatrix operator/(const CPUMatrix &rhs);
+    CPUMatrix &operator/=(const CPUMatrix &rhs);
+
+    CPUMatrix operator+(const double &rhs);
+    CPUMatrix &operator+=(const double &rhs);
+    CPUMatrix operator-(const double &rhs);
+    CPUMatrix &operator-=(const double &rhs);
+    CPUMatrix operator*(const double &rhs);
+    CPUMatrix &operator*=(const double &rhs);
+    CPUMatrix operator/(const double &rhs);
+    CPUMatrix &operator/=(const double &rhs);
+
     CPUMatrix transpose();
 
     CPUMatrix dot(const CPUMatrix &rhs);
+
+    CPUView getLine(unsigned linenum);
+
+    CPUMatrix copyLine(unsigned linenum);
 
     // Access the individual elements
     double &operator()(const unsigned &row, const unsigned &col);
