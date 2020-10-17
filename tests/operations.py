@@ -83,3 +83,7 @@ def add(P, Q):
 @twofileconvert
 def subtract(P, Q):
     return P - Q
+
+@twofileconvert
+def norm(P, Q):
+    return np.linalg.norm(P - Q)

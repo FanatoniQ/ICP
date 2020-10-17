@@ -160,6 +160,7 @@ if __name__ == "__main__":
         ["subtract"],
         ["add"],
         ["mult"],
+        ["norm"],
     ] # (len(fileList) * (len(fileList) + 1) / 2) * len(params_2fn)
     for fn in params_1fn:
         for file in fileList:

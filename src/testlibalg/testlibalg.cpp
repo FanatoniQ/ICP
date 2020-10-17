@@ -1,6 +1,8 @@
 #include <float.h>
 #include <stdlib.h>
 
+#include <math.h>
+
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -15,6 +17,20 @@
 #include "libalg/CPUMatrix.hpp"
 
 #define UNUSED(x) (void)x
+
+int test_norm(char *file1, char *file2)
+{
+    size_t Pdim0, Pdim1;
+    size_t Qdim0, Qdim1;
+    std::string h{};
+    double *Parray = readCSV(file1, h, Pdim0, Pdim1);
+    double *Qarray = readCSV(file2, h, Qdim0, Qdim1);
+    double dist = element_wise_reduce(Parray, Qarray, Pdim0, Pdim1, Qdim0, Qdim1, squared_norm_2, add, add);
+    std::cout << sqrt(dist) << std::endl;
+    free(Parray);
+    free(Qarray);
+    return EXIT_SUCCESS;
+}
 
 int test_svd(char *file)
 {
@@ -101,6 +117,7 @@ int test_op(char *file1, char *file2, double (*op)(double a, double b))
 
     free(Parray);
     free(Qarray);
+    free(r);
     return EXIT_SUCCESS;
 }
 
@@ -191,6 +208,8 @@ int main(int argc, char *argv[])
             return test_mean(argv[2], std::stoi(argv[3]));
         else if (strcmp(argv[1], "sum") == 0)
             return test_sum(argv[2], std::stoi(argv[3]));
+        else if (strcmp(argv[1], "norm") == 0)
+            return test_norm(argv[2], argv[3]);
     }
     usage();
 }
