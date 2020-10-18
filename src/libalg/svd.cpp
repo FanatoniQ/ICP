@@ -5,6 +5,9 @@
 #include "error.hpp"
 #include "libalg/svd.hpp"
 
+#define MIN(a, b) a < b ? a : b
+#define MAX(a, b) a < b ? b : a
+
 /* DGESVD prototype from LAPACK library */
 namespace lapack
 {
@@ -30,14 +33,20 @@ double *linearize(double *a, int n, int m, int lda)
     return r;
 }
 
-void svd(double *a, double **u, double **sigma, double **vt, int m, int n)
+//void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int &ldvt, int &ldu);
+void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int *size_s)
 {
     char jobu[] = {"All"}, jobvt[] = {"All"};
     // a is of size lda,n; default is lda = m
-    int ldu = m, ldvt = n, lda = m;
+    int lda = m, ldu = m, ldvt = n;
+    *size_s = MIN(m, n);
     int lwork = -1, info;
     double wkopt;
     double *work;
+    // a should be n * lda shape
+    runtime_assert(lda >= (MAX(1, m)), "lda >= MAX(1,M)");
+    runtime_assert(ldu >= m, "ldu >= m");
+    runtime_assert(ldvt >= n, "ldvt >= n");
     if (*u == nullptr) // shape: m,m
     {
         *u = (double *)malloc(ldu * m * sizeof(double));
@@ -45,7 +54,7 @@ void svd(double *a, double **u, double **sigma, double **vt, int m, int n)
     }
     if (*sigma == nullptr) // shape: n
     {
-        *sigma = (double *)malloc(n * sizeof(double));
+        *sigma = (double *)malloc(*size_s * sizeof(double));
         runtime_assert(*sigma != nullptr, "Alloc Error (sigma) !");
     }
     if (*vt == nullptr) // shape: n,n
@@ -60,5 +69,6 @@ void svd(double *a, double **u, double **sigma, double **vt, int m, int n)
     runtime_assert(work != nullptr, "Alloc Error (work) !");
     lapack::dgesvd(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, work, &lwork, &info);
     free(work);
-    runtime_assert(info <= 0, "Conversion error !");
+    runtime_assert(info >= 0, "Conversion error !");
+    std::cerr << "lds: " << lda << "," << ldu << "," << ldvt << std::endl;
 }

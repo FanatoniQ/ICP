@@ -33,6 +33,8 @@ def svd_no_ref(u, s, vh):
     u, s, vh = StringIO(u), StringIO(s), StringIO(vh)
     u, s, vh = pd.read_csv(u, sep=",", header=None), pd.read_csv(s, sep=",", header=None), pd.read_csv(vh, sep=",", header=None)
     u, s, vh = np.array(u), np.array(s), np.array(vh)
+    #u = u[:, :s.shape[1]] # s.shape[1] first columns if full output
+    #vh = vh[:u.shape[0]] # u.shape[0] first lines if full output
     u, s, vh = np.squeeze(u),np.squeeze(s),np.squeeze(vh)
     print(u.shape, s.shape, vh.shape)
     return np.dot(u * s, vh)

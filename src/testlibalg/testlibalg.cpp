@@ -53,14 +53,25 @@ int test_svd(char *file)
     //    SWAP(n, m);
     //runtime_assert(nbaxis < nbpoints); // just checking
     double *u = NULL, *sigma = NULL, *vt = NULL;
-    svd(a, &u, &sigma, &vt, m, n);
+    int sizes;
+    svd(a, &u, &sigma, &vt, m, n, &sizes);
+
+    //print_matrix(std::cout, vt, n, n, n); // shape is: n,n
+    //m - 1 + (n - 1) * (m),
+    //n - 1,
+    //n - 1 + (n - 1) * (n),
 
     /** Full matrices exemple: **/
-    //print_matrix(std::cout, vt, n, n, n); // shape is: n,n
-    /** Not full matrices **/
-    print_matrix(std::cout, vt, n, n, n);    // not full matrices
-    print_matrix(std::cout, sigma, n, 1, 1); // shape is: n,
-    print_matrix(std::cout, u, m, n, m);     // shape is: m,n (doc says m,m...)
+    //print_matrix(std::cout, vt, n, n, n);        // n,n full matrices
+    //print_matrix(std::cout, sigma, sizes, 1, 1); // 1,min(n,m)
+    //print_matrix(std::cout, u, m, m, m);         // m,m full matrices
+
+    /** Not Full Matrices **/
+    print_matrix(std::cout, vt, sizes, n, n);    // n,sizes not full matrices
+    print_matrix(std::cout, sigma, sizes, 1, 1); // 1,sizes
+    print_matrix(std::cout, u, m, sizes, m);     // m,m full matrices
+
+    //print_matrix(std::cout, u, m, n);
     free(u);
     free(sigma);
     free(vt);

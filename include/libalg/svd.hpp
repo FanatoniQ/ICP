@@ -14,8 +14,9 @@
  ** \param vt the, transposed right singular vector of a
  ** \param m the number of columns in a
  ** \param n the number of lines in a 
+ ** \param size_s the shape of sigma (min(n,m))
  **/
-void svd(double *a, double **u, double **sigma, double **vt, int m, int n);
+void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int *size_s);
 
 /**
  ** \brief linearize the array a (in case of padding: lda != m)
