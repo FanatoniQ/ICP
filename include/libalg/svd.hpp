@@ -23,7 +23,7 @@ void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int *
  **
  ** \param a the matrix to linearize
  ** \param n the number of lines in a
- ** \param n the number of columns in a
+ ** \param m the number of columns in a
  ** \param lda the number of columns in memory for a matrix
  **
  ** \return r the resulting no padding matrix

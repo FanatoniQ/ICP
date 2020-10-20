@@ -335,24 +335,29 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
     double *u = nullptr, *sigma = nullptr, *vt = nullptr;
     int sizes;
     ::svd(array, &u, &sigma, &vt, m, n, &sizes);
+    /**
+    // ldu = m and we take m cols, ne need to linearize
     if (sizes == n)
     {
         // Linearize U
-        double *U = ::linearize(u, nbaxis, nbpoints, nbaxis);
-        free(u);
-        u = U;
+        // nbcols=m, nblines=sizes, ld=m
+        //double *U = ::linearize(u, sizes, nbaxis, nbaxis); // u = shape(m,m)
+        ///free(u);
+        //u = U;
     }
-    else if (sizes == m)
+    else **/
+    if (sizes == m)
     {
-        // Linearize vt FIXME
-        double *VT = ::linearize(vt, nbpoints, nbaxis, nbpoints);
+        // Linearize vt
+        // vt nbols=sizes, nblines=n, ld=n
+        double *VT = ::linearize(vt, nbpoints, sizes, nbpoints); // vt = shape(n,n)
         free(vt);
         vt = VT;
     }
-    else
+    else if (sizes != n)
         runtime_failure("invalid sizes");
     std::cerr << "shapes: " << n << "," << n << "  " << n << ",  " << n << "," << m << std::endl;
-    //print_matrix(std::cout, vt, sizes, n, n);    // n,sizes not full matrices
+    //print_matrix(std::cout, vt, sizes, n, n); // n,sizes not full matrices
     //print_matrix(std::cout, sigma, sizes, 1, 1); // 1,sizes
     //print_matrix(std::cout, u, m, sizes, m);     // m,m full matrices
 
