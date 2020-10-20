@@ -25,7 +25,7 @@ public:
      */
     CPUMatrix(size_t dim0, size_t dim1);
     CPUMatrix(CPUMatrix const &mat) = delete; // avoid double free
-    CPUMatrix(CPUMatrix &&mat);               // move constructor
+    CPUMatrix(CPUMatrix &&mat) noexcept ;               // move constructor
     ~CPUMatrix();
 
     // Getters and setters

@@ -139,7 +139,7 @@ std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, doub
     return std::make_tuple(cov, exclude_indices);
 }
 
-std::tuple<std::vector<CPUMatrix>, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix P, CPUMatrix Q, unsigned iterations){
+std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix P, CPUMatrix Q, unsigned iterations){
     // Center data P and Q
     auto Q_center = Q.mean(1).transpose();
     Q -= Q_center;
@@ -150,9 +150,7 @@ std::tuple<std::vector<CPUMatrix>, std::vector<double>, std::vector<std::tuple<s
 //    corresp_values = []
     std::vector<std::tuple<size_t, int>> correps_values;
     std::vector<double> norm_values(iterations);
-    auto P_copy = P + CPUMatrix();
-    std::vector<CPUMatrix> P_values(iterations + 1);
-    P_values.push_back(P_copy);
+    CPUMatrix P_copy = P + CPUMatrix();
 //    exclude_indices = []
 //    for i in range(iterations):
 //        center_of_P, P_centered = center_data(P_copy, exclude_indices=exclude_indices)
@@ -179,10 +177,9 @@ std::tuple<std::vector<CPUMatrix>, std::vector<double>, std::vector<std::tuple<s
         auto R = U.dot(V_T);
         auto t = Q_center - R.dot(P_center);
         P_copy = R.dot(P_copy) + t;
-        P_values.push_back(P_copy);
     }
 //    corresp_values.append(corresp_values[-1]) // FIXME wtf?
     correps_values.push_back(correps_values.back());
-    return { P_values, norm_values, correps_values };
+    return std::make_tuple(std::move(P_copy), norm_values, correps_values);
 //    return P_values, norm_values, corresp_values
 }

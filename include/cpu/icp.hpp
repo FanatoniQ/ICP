@@ -23,4 +23,4 @@ std::tuple<double*, std::vector<double>> compute_cross_variance(double *P, doubl
     std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
     size_t Q_r, size_t Q_c, double (*kernel)(double a));
 
-std::tuple<std::vector<CPUMatrix>, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix P, CPUMatrix Q, unsigned iterations);
+std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix P, CPUMatrix Q, unsigned iterations);

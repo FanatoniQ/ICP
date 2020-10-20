@@ -31,7 +31,7 @@ CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
 }
 
 // move constructor
-CPUMatrix::CPUMatrix(CPUMatrix &&mat) : array(mat.array), dim0(mat.dim0), dim1(mat.dim1)
+CPUMatrix::CPUMatrix(CPUMatrix &&mat)  noexcept : array(mat.array), dim0(mat.dim0), dim1(mat.dim1)
 {
     std::cerr << "Moved !" << std::endl;
     mat.array = nullptr;
@@ -154,7 +154,6 @@ size_t CPUMatrix::getDim1() const
     return *this;
 }**/
 
-/*
 CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
 {
     if (&rhs == this)
@@ -174,7 +173,6 @@ CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
     memcpy(array, rhs.array, dim0 * dim1 * sizeof(double));
     return *this;
 }
- */
 
 CPUMatrix CPUMatrix::operator+(const CPUMatrix &rhs)
 {
