@@ -2,10 +2,15 @@
 #include <limits>
 #include <tuple>
 #include <iostream>
+#include <cmath>
 
 #include "libalg/basic_operations.hpp"
 #include "libalg/alg.hpp"
+#include "libalg/CPUMatrix.hpp"
 #include "cpu/icp.hpp"
+#include "libalg/CPUView.hpp"
+
+#define UNUSED(x) (void)x
 
 std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
                                                                 size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
@@ -34,12 +39,65 @@ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, doubl
     return correspondances;
 }
 
+double three_dim_norm(CPUMatrix A)
+{
+    if (A.getDim1() != 3)
+        throw std::invalid_argument("Matrix not of dim 3");
+    return std::pow(A(0, 0) + A(0, 1) + A(0, 2), 2);
+}
+
+std::vector<std::tuple<size_t, int>> get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q)
+{
+    std::vector<std::tuple<size_t, int>> correspondances = {};
+    for (size_t i = 0; i < P.getDim0(); i++)
+    {
+        auto p_point = P.getLine(i);
+        double min_dist = std::numeric_limits<double>::max();
+        int chosen_idx = -1;
+        for (size_t j = 0; j < Q.getDim0(); j++)
+        {
+            auto q_point = Q.getLine(j);
+            double dist = std::sqrt(three_dim_norm(p_point - q_point)); //norm 2 between 2 vectors
+            if (dist < min_dist)
+            {
+                min_dist = dist;
+                chosen_idx = j;
+            }
+        }
+        correspondances.push_back(std::make_tuple(i, chosen_idx));
+    }
+    return correspondances;
+}
+
 double default_kernel(double a)
 {
-    if (a == 1) //fucking W_error
-        return 1;
-    else
-        return 1;
+    UNUSED(a);
+    return 1;
+}
+
+std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, CPUMatrix &Q,
+                    std::vector<std::tuple<size_t, int>> correspondences, double (*kernel)(double a))
+{
+    if (kernel == nullptr)
+        kernel = &default_kernel;
+    CPUMatrix cov = CPUMatrix(2,2);
+    std::vector<double> exclude_indices = {};
+    for (auto tup : correspondences)
+    {
+        auto i = std::get<0>(tup);
+        auto j = std::get<1>(tup);
+        CPUView q_point = Q.getLine(i);
+        CPUView p_point = P.getLine(j);
+        double weight = kernel(*p_point.getArray() - *q_point.getArray());
+        std::cout << weight << std::endl;
+        if (weight < 0.01)
+            exclude_indices.push_back(i);
+        
+        auto doted_points = q_point.dot(p_point.transpose());
+        doted_points *= weight;
+        cov += doted_points;
+    }
+    return std::make_tuple(CPUMatrix(2,2), exclude_indices);
 }
 
 std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, double *Q,
