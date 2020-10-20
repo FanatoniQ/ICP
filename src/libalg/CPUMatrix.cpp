@@ -7,6 +7,7 @@
 #include "libalg/mean.hpp"
 #include "libalg/print.hpp"
 #include "libalg/basic_operations.hpp"
+#include "libalg/svd.hpp"
 #include "libalg/CPUMatrix.hpp"
 #include "libalg/CPUView.hpp"
 #include "libalg/CPUNumber.hpp"
@@ -325,4 +326,22 @@ CPUMatrix CPUMatrix::copyLine(unsigned linenum)
     auto r = CPUMatrix(1, dim1);
     memcpy(r.array, array + dim1 * linenum, dim1 * sizeof(double));
     return r;
+}
+
+std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
+{
+    size_t nbpoints = dim0, nbaxis = dim1;
+    int n = nbpoints, m = nbaxis;
+    double *u = NULL, *sigma = NULL, *vt = NULL;
+    ::svd(array, &u, &sigma, &vt, m, n);
+    double *U = ::linearize(u, nbaxis, nbpoints, nbaxis);
+
+    std::cerr << "shapes: " << n << "," << n << "  " << n << ",  " << n << "," << m << std::endl;
+    //print_matrix(std::cerr, vt, nbpoints, nbpoints, nbpoints); // not full matrices
+    //print_matrix(std::cerr, sigma, nbpoints, 1, 1);            // shape is: n,
+    //print_matrix(std::cerr, U, nbaxis, nbpoints);
+    //print_matrix(std::cout, u, nbaxis, nbpoints, nbaxis);      // shape is: m,n (doc says m,m...)
+
+    free(u);
+    return std::make_tuple(CPUMatrix(vt, nbpoints, nbpoints), CPUMatrix(sigma, 1, nbpoints), CPUMatrix(U, nbpoints, nbaxis));
 }

@@ -17,6 +17,19 @@ namespace lapack
     }
 } // namespace lapack
 
+double *linearize(double *a, int n, int m, int lda)
+{
+    int i, j;
+    double *r = (double *)malloc(n * m * sizeof(double));
+    runtime_assert(r != nullptr, "Alloc error !");
+    for (i = 0; i < n; i++)
+    {
+        for (j = 0; j < m; j++)
+            r[j + i * m] = a[j + i * lda];
+    }
+    return r;
+}
+
 void svd(double *a, double **u, double **sigma, double **vt, int m, int n)
 {
     char jobu[] = {"All"}, jobvt[] = {"All"};

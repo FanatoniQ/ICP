@@ -2,6 +2,7 @@
 
 #include <ostream>
 #include <vector>
+#include <tuple>
 
 class CPUView;
 
@@ -75,6 +76,8 @@ public:
     CPUMatrix transpose();
 
     CPUMatrix dot(const CPUMatrix &rhs);
+
+    std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> svd();
 
     CPUView getLine(unsigned linenum);
 
