@@ -32,10 +32,11 @@ int main(int argc, char *argv[])
     double Q[4] = {0, 1, 0, 1};
     */
 
-    auto res = get_correspondence_indices(P, Q);
-    std::cout << std::get<0>(res.at(1)) << " and " << std::get<1>(res.at(1)) << std::endl;
-    //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
-    //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
+
+    //auto res = get_correspondence_indices(P, Q);
+    //std::cout << std::get<0>(res.at(1)) << " and " << std::get<1>(res.at(1)) << std::endl;
+    //auto final = compute_cross_variance(P, Q, res, nullptr);
+    //std::cout << std::get<0>(final) << " and "<< std::get<1>(final).at(0);
 
     /*
     std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
