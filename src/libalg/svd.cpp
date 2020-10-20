@@ -20,10 +20,10 @@ namespace lapack
     }
 } // namespace lapack
 
-double *linearize(double *a, int n, int m, int lda)
+double *linearize(const double *a, int n, int m, int lda)
 {
     int i, j;
-    double *r = (double *)malloc(n * m * sizeof(double));
+    auto *r = (double *)malloc(n * m * sizeof(double));
     runtime_assert(r != nullptr, "Alloc error !");
     for (i = 0; i < n; i++)
     {

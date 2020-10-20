@@ -28,4 +28,4 @@ void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int *
  **
  ** \return r the resulting no padding matrix
  **/
-double *linearize(double *a, int n, int m, int lda);
+double *linearize(const double *a, int n, int m, int lda);
