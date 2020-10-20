@@ -1,6 +1,7 @@
 #include <cstring>
 
 #include <stdexcept>
+#include <cmath>
 
 #include "error.hpp"
 #include "libalg/alg.hpp"
@@ -153,6 +154,7 @@ size_t CPUMatrix::getDim1() const
     return *this;
 }**/
 
+/*
 CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
 {
     if (&rhs == this)
@@ -172,6 +174,7 @@ CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
     memcpy(array, rhs.array, dim0 * dim1 * sizeof(double));
     return *this;
 }
+ */
 
 CPUMatrix CPUMatrix::operator+(const CPUMatrix &rhs)
 {
@@ -326,6 +329,11 @@ CPUMatrix CPUMatrix::copyLine(unsigned linenum)
     auto r = CPUMatrix(1, dim1);
     memcpy(r.array, array + dim1 * linenum, dim1 * sizeof(double));
     return r;
+}
+
+double CPUMatrix::norm(const CPUMatrix &rhs) {
+    double norm = element_wise_reduce(array, rhs.array, dim0, dim1, rhs.dim0, rhs.dim1, squared_norm_2, add, add);
+    return sqrt(norm);
 }
 
 std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()

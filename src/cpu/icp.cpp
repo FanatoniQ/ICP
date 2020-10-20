@@ -98,7 +98,7 @@ std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, 
         std::cout << weight << std::endl;
         if (weight < 0.01)
             exclude_indices.push_back(i);
-        
+
         CPUMatrix doted_points = q_point.dot(p_point.transpose());
         doted_points *= weight;
         cov += doted_points;
@@ -137,4 +137,52 @@ std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, doub
         element_wise_op(&cov, cov, *weighted_points, 2, 2, Q_r, P_r, Wcov0, Wcov1, add);
     }
     return std::make_tuple(cov, exclude_indices);
+}
+
+std::tuple<std::vector<CPUMatrix>, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix P, CPUMatrix Q, unsigned iterations){
+    // Center data P and Q
+    auto Q_center = Q.mean(1).transpose();
+    Q -= Q_center;
+    // Q_centered = Q
+//    norm_values = []
+//    P_values = [P.copy()]
+//    P_copy = P.copy()
+//    corresp_values = []
+    std::vector<std::tuple<size_t, int>> correps_values;
+    std::vector<double> norm_values(iterations);
+    auto P_copy = P + CPUMatrix();
+    std::vector<CPUMatrix> P_values(iterations + 1);
+    P_values.push_back(P_copy);
+//    exclude_indices = []
+//    for i in range(iterations):
+//        center_of_P, P_centered = center_data(P_copy, exclude_indices=exclude_indices)
+//        correspondences = get_correspondence_indices(P_centered, Q_centered)
+//        corresp_values.append(correspondences)
+//        norm_values.append(np.linalg.norm(P_centered - Q_centered))
+//        cov, exclude_indices = compute_cross_covariance(P_centered, Q_centered, correspondences, kernel)
+//        U, S, V_T = np.linalg.svd(cov)
+//        R = U.dot(V_T)
+//        t = center_of_Q - R.dot(center_of_P)
+//        P_copy = R.dot(P_copy) + t
+//        P_values.append(P_copy)
+    for(unsigned i = 0; i < iterations; ++i){
+        auto P_center = P.mean(1).transpose();
+        P -= P_center;
+        auto corresps = get_correspondence_indices(P.getArray(), Q.getArray(), P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1());
+        //FIXME
+        correps_values.insert(correps_values.end(), corresps.begin(), corresps.end());
+        norm_values.push_back(P.norm(Q));
+        auto cross_var = compute_cross_variance(P.getArray(), Q.getArray(), corresps, P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1(), default_kernel);
+        // U, S, V_T = svd
+        CPUMatrix U, S, V_T;
+        // FIXME
+        auto R = U.dot(V_T);
+        auto t = Q_center - R.dot(P_center);
+        P_copy = R.dot(P_copy) + t;
+        P_values.push_back(P_copy);
+    }
+//    corresp_values.append(corresp_values[-1]) // FIXME wtf?
+    correps_values.push_back(correps_values.back());
+    return { P_values, norm_values, correps_values };
+//    return P_values, norm_values, corresp_values
 }

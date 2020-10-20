@@ -50,6 +50,7 @@ public:
     bool operator!=(const CPUMatrix &rhs) const;
     CPUMatrix sum(int axis = 0);
     CPUMatrix mean(int axis = 0);
+    double norm(const CPUMatrix &rhs);
 
     // Operator overloading, for "standard" mathematical matrix operations
     CPUMatrix &operator=(const CPUMatrix &rhs);
