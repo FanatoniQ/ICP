@@ -354,9 +354,9 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
         runtime_failure("invalid sizes");
         */
     std::cerr << "shapes: " << n << "," << n << "  " << n << ",  " << n << "," << m << std::endl;
-    print_matrix(std::cout, vt, sizes, n, n);    // n,sizes not full matrices
-    print_matrix(std::cout, sigma, sizes, 1, 1); // 1,sizes
-    print_matrix(std::cout, u, m, sizes, m);     // m,m full matrices
+    //print_matrix(std::cout, vt, sizes, n, n);    // n,sizes not full matrices
+    //print_matrix(std::cout, sigma, sizes, 1, 1); // 1,sizes
+    //print_matrix(std::cout, u, m, sizes, m);     // m,m full matrices
 
-    return std::make_tuple(CPUMatrix(vt, nbpoints, nbpoints), CPUMatrix(sigma, 1, nbpoints), CPUMatrix(u, nbpoints, nbaxis));
+    return std::make_tuple(CPUMatrix(vt, nbpoints, sizes), CPUMatrix(sigma, 1, sizes), CPUMatrix(u, sizes, nbaxis));
 }

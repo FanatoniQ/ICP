@@ -32,9 +32,9 @@ int main(int argc, char *argv[])
     //print_matrix(std::cout, vt, nbpoints, nbpoints, nbpoints); // not full matrices
     //print_matrix(std::cout, sigma, nbpoints, 1, 1);            // shape is: n,
     //print_matrix(std::cout, U, nbaxis, nbpoints);
-    std::cerr << std::get<0>(R) << std::endl;
-    std::cerr << std::get<1>(R) << std::endl;
-    std::cerr << std::get<2>(R) << std::endl;
+    std::cerr << std::get<0>(R) << std::endl; // this should be linearized
+    std::cerr << std::get<1>(R) << std::endl; // this should be linearized
+    std::cerr << std::get<2>(R) << std::endl; // this should be linearized
 
     auto recovered = (std::get<0>(R) * std::get<1>(R)).dot(std::get<2>(R));
 
