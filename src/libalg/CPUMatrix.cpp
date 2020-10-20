@@ -335,7 +335,6 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
     double *u = nullptr, *sigma = nullptr, *vt = nullptr;
     int sizes;
     ::svd(array, &u, &sigma, &vt, m, n, &sizes);
-    /*
     if (sizes == n)
     {
         // Linearize U
@@ -352,7 +351,6 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
     }
     else
         runtime_failure("invalid sizes");
-        */
     std::cerr << "shapes: " << n << "," << n << "  " << n << ",  " << n << "," << m << std::endl;
     //print_matrix(std::cout, vt, sizes, n, n);    // n,sizes not full matrices
     //print_matrix(std::cout, sigma, sizes, 1, 1); // 1,sizes

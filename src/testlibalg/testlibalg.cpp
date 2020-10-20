@@ -37,8 +37,7 @@ int test_svd(char *file)
     size_t nbaxis, nbpoints;
     std::string h{};
     double *a = readCSV(file, h, nbpoints, nbaxis);
-    /**
-    // This needs a fix !
+    /** This needs a fix !
     auto R = CPUMatrix(a, nbpoints, nbaxis).svd();
     std::cerr << std::get<0>(R) << std::endl;
     std::cerr << std::get<1>(R) << std::endl;
