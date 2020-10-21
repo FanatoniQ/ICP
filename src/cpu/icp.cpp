@@ -174,7 +174,7 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
         // HardCoded 2*2 dim
         CPUMatrix cross_mat(std::get<0>(cross_var), 2, 2);
         // U, S, V_T = svd
-        auto [U, S, V_T] = cross_mat.svd();
+        auto [U, _, V_T] = cross_mat.svd();
         auto R = U.dot(V_T);
         auto t = Q_center - R.dot(P_center);
         P_copy = R.dot(P_copy) + t;
