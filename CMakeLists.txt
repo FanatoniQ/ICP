@@ -55,3 +55,16 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 add_executable(CPUICP ${CPUSOURCES})
 target_link_libraries(CPUICP CSV alg)
+
+###########
+#   GPU   #
+###########
+
+find_package(CUDA REQUIRED)
+set(CUDA_SEPARABLE_COMPILATION ON)
+set(CUDA_HOST_COMPILER g++)
+link_directories(/opt/cuda)
+file(GLOB GPUSOURCES "src/gpu/*.cu")
+list(APPEND CUDA_NVCC_FLAGS "-std=c++17")
+CUDA_COMPILE(GPUICP ${GPUSOURCES})
+cuda_add_executable(GPUICP ${GPUSOURCES})
