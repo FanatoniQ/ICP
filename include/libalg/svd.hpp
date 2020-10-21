@@ -14,17 +14,18 @@
  ** \param vt the, transposed right singular vector of a
  ** \param m the number of columns in a
  ** \param n the number of lines in a 
+ ** \param size_s the shape of sigma (min(n,m))
  **/
-void svd(double *a, double **u, double **sigma, double **vt, int m, int n);
+void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int *size_s);
 
 /**
  ** \brief linearize the array a (in case of padding: lda != m)
  **
  ** \param a the matrix to linearize
  ** \param n the number of lines in a
- ** \param n the number of columns in a
+ ** \param m the number of columns in a
  ** \param lda the number of columns in memory for a matrix
  **
  ** \return r the resulting no padding matrix
  **/
-double *linearize(double *a, int n, int m, int lda);
+double *linearize(const double *a, int n, int m, int lda);

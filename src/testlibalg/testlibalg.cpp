@@ -34,33 +34,31 @@ int test_norm(char *file1, char *file2)
 
 int test_svd(char *file)
 {
-    /**
-    UNUSED(argv);
-    double a[] = {1.0, 2.0, 3.0};
-    double b[] = {4.0, 5.0, 6.0};
-    double c[] = {7.0, 8.0, 9.0};
-    // TODO: use lapack for SVD computation
-    print_matrix(std::cout, a, 3, 1);
-    print_matrix(std::cout, b, 3, 1);
-    print_matrix(std::cout, c, 3, 1);
-    **/
     size_t nbaxis, nbpoints;
     std::string h{};
     double *a = readCSV(file, h, nbpoints, nbaxis);
-    //int n = MAX(nbaxis, nbpoints), m = MIN(nbaxis, nbpoints);
+    /** This needs a fix !
+    auto R = CPUMatrix(a, nbpoints, nbaxis).svd();
+    std::cerr << std::get<0>(R) << std::endl;
+    std::cerr << std::get<1>(R) << std::endl;
+    std::cerr << std::get<2>(R) << std::endl;
+    std::cerr << (std::get<0>(R) * std::get<1>(R)).dot(std::get<2>(R)) << std::endl;
+    **/
     int n = nbpoints, m = nbaxis;
-    //if (n < m)
-    //    SWAP(n, m);
-    //runtime_assert(nbaxis < nbpoints); // just checking
     double *u = NULL, *sigma = NULL, *vt = NULL;
-    svd(a, &u, &sigma, &vt, m, n);
+    int sizes;
+    svd(a, &u, &sigma, &vt, m, n, &sizes);
 
-    /** Full matrices exemple: **/
-    //print_matrix(std::cout, vt, n, n, n); // shape is: n,n
-    /** Not full matrices **/
-    print_matrix(std::cout, vt, n, n, n);    // not full matrices
-    print_matrix(std::cout, sigma, n, 1, 1); // shape is: n,
-    print_matrix(std::cout, u, m, n, m);     // shape is: m,n (doc says m,m...)
+    // Full matrices exemple:
+    //print_matrix(std::cout, vt, n, n, n);        // n,n full matrices
+    //print_matrix(std::cout, sigma, sizes, 1, 1); // 1,min(n,m)
+    //print_matrix(std::cout, u, m, m, m);         // m,m full matrices
+
+    // Not Full Matrices
+    print_matrix(std::cout, vt, sizes, n, n);    // n,sizes not full matrices
+    print_matrix(std::cout, sigma, sizes, 1, 1); // 1,sizes
+    print_matrix(std::cout, u, m, sizes, m);     // m,m full matrices
+
     free(u);
     free(sigma);
     free(vt);
