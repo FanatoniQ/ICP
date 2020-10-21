@@ -329,7 +329,7 @@ CPUMatrix CPUMatrix::copyLine(unsigned linenum)
     return r;
 }
 
-double CPUMatrix::norm(const CPUMatrix &rhs) {
+double CPUMatrix::euclidianDistance(const CPUMatrix &rhs) {
     double norm = element_wise_reduce(array, rhs.array, dim0, dim1, rhs.dim0, rhs.dim1, squared_norm_2, add, add);
     return sqrt(norm);
 }

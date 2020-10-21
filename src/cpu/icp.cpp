@@ -164,16 +164,17 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
 //        P_copy = R.dot(P_copy) + t
 //        P_values.append(P_copy)
     for(unsigned i = 0; i < iterations; ++i){
-        auto P_center = P.mean(1).transpose();
+        auto P_center = P.mean(0);
         P -= P_center;
         auto corresps = get_correspondence_indices(P.getArray(), Q.getArray(), P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1());
         //FIXME
         correps_values.insert(correps_values.end(), corresps.begin(), corresps.end());
-        norm_values.push_back(P.norm(Q));
+        norm_values.push_back(P.euclidianDistance(Q));
         auto cross_var = compute_cross_variance(P.getArray(), Q.getArray(), corresps, P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1(), default_kernel);
+        // HardCoded 2*2 dim
+        CPUMatrix cross_mat(std::get<0>(cross_var), 2, 2);
         // U, S, V_T = svd
-        CPUMatrix U, S, V_T;
-        // FIXME
+        auto [U, S, V_T] = cross_mat.svd();
         auto R = U.dot(V_T);
         auto t = Q_center - R.dot(P_center);
         P_copy = R.dot(P_copy) + t;
