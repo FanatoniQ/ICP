@@ -18,10 +18,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
  add_compile_options(-Wall -Wextra -pedantic -Werror -g)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 add_library(CSV ${LIBCSVSOURCES})
-#if (CUDA_FOUND)
-# add_library(GPUCSV ${LIBCSVSOURCES})
-#endif (CUDA_FOUND)
-
 
 ##############
 #   LIBALG   #
@@ -78,7 +74,7 @@ if (CUDA_FOUND)
  list(APPEND CUDA_NVCC_FLAGS "-std=c++17")
  CUDA_COMPILE(GPUICP ${GPUSOURCES})
  cuda_add_executable(GPUICP ${GPUSOURCES})
- target_link_libraries(GPUICP CSV)
+ target_link_libraries(GPUICP CSV alg)
 else (CUDA_FOUND)
  message("CUDA NOT FOUND !, stick with CPU version")
 endif (CUDA_FOUND)

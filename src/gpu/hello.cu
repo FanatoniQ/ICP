@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <iostream>
+#include <iomanip>
 
 #include "libCSV/csv.hpp"
+#include "libalg/CPUMatrix.hpp"
+#include "libalg/alg.hpp"
+#include "libalg/print.hpp"
 
 __global__ void print_kernel()
 {
@@ -54,7 +58,7 @@ __device__ __host__ double get_line_mean(const double *line, int nbvals)
  ** \param pitch the pitch in bytes
  ** \param nbvals the number of values in a line
  **/
-__global__ void dumb_sum_kernel(char *d_A, double *d_sumA, int pitch, int nbvals)
+__global__ void dumb_sum_kernel(const char *d_A, double *d_sumA, int pitch, int nbvals)
 {
     //int j;
     int idx = threadIdx.x;
@@ -77,32 +81,11 @@ __global__ void dumb_sum_kernel(char *d_A, double *d_sumA, int pitch, int nbvals
  ** \param pitch the pitch in bytes
  ** \param nbvals the number of values in a line
  **/
-__global__ void dumb_mean_kernel(char *d_A, double *d_meanA, int pitch, int nbvals)
+__global__ void dumb_mean_kernel(const char *d_A, double *d_meanA, int pitch, int nbvals)
 {
     int idx = threadIdx.x;
     double *line = (double *)(d_A + idx * pitch);
     d_meanA[idx] = get_line_mean(line, nbvals); //get_line_sum(line, nbvals) / nbvals;
-}
-
-// TODO: use libalg
-__host__ double *transpose(double *h_A, size_t dim0, size_t dim1)
-{
-    size_t i,j;
-    double *h_AT;
-    h_AT = (double *)malloc(dim0 * dim1 * sizeof(double));
-    if (h_AT == nullptr)
-    {
-        std::cerr << "Alloc failed !" << std::endl;
-        exit(1);
-    }
-    for (i = 0; i < dim0; ++i)
-    {
-        for (j = 0; j < dim1; ++j)
-        {
-             h_AT[j * dim0 + i] = h_A[i * dim1 + j];
-        }
-    }
-    return h_AT;
 }
 
 int main(int argc, char **argv)
@@ -112,18 +95,16 @@ int main(int argc, char **argv)
         std::cerr << "Usage: ./hello file1" << std::endl;
         exit(1);
     }
+    std::cerr << std::setprecision(15);
     std::string h{};
     size_t nblines, nbcols;
     double *h_p = readCSV(argv[1], h, nblines, nbcols);
     double *h_pT = transpose(h_p, nblines, nbcols);
-    for (size_t i = 0; i < nbcols; ++i)
-    {
-        for (size_t j = 0; j < nblines; ++j)
-        {
-             std::cerr << h_pT[i * nblines + j] << "\t";
-        }
-        std::cerr << std::endl << std::endl;
-    }
+    print_matrix(std::cerr, h_p, nbcols, nblines);
+
+    auto P = CPUMatrix(h_pT, nbcols, nblines);
+    std::cerr << "CPU Means: " << std::endl << P.mean(1) << P.mean(0) << std::endl;
+
     //print_kernel<<<2, 3>>>();
 
     // device memory
@@ -148,14 +129,14 @@ int main(int argc, char **argv)
         exit(1);
     cudaMemcpy(h_mean, d_mean, height * sizeof(double), cudaMemcpyDeviceToHost);
 
-    std::cerr << "Mean : " << std::endl;
+    std::cerr << "GPU Mean : " << std::endl;
     for (size_t i = 0; i < height; ++i)
-        std::cerr << h_mean[i] << std::endl;
+        std::cerr << h_mean[i] << "\t";
 
     cudaFree(d_mean);
     cudaFree(d_pT);
     free(h_mean);
     free(h_p);
-    free(h_pT);
+    //free(h_pT);
     return EXIT_SUCCESS;
 }
