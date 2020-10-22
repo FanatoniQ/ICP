@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 2.8.9)
 project(ICP)
 set (CMAKE_CXX_STANDARD 17) # c++17
 
+###########
+#   GPU   #
+###########
+
+find_package(CUDA)
+
 ##############
 #   LIBCSV   #
 ##############
@@ -12,6 +18,10 @@ if(CMAKE_COMPILER_IS_GNUCXX)
  add_compile_options(-Wall -Wextra -pedantic -Werror -g)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 add_library(CSV ${LIBCSVSOURCES})
+if (CUDA_FOUND)
+ add_library(GPUCSV ${LIBCSVSOURCES})
+endif (CUDA_FOUND)
+
 
 ##############
 #   LIBALG   #
@@ -60,11 +70,15 @@ target_link_libraries(CPUICP CSV alg)
 #   GPU   #
 ###########
 
-find_package(CUDA REQUIRED)
-set(CUDA_SEPARABLE_COMPILATION ON)
-set(CUDA_HOST_COMPILER g++)
-link_directories(/opt/cuda)
-file(GLOB GPUSOURCES "src/gpu/*.cu")
-list(APPEND CUDA_NVCC_FLAGS "-std=c++17")
-CUDA_COMPILE(GPUICP ${GPUSOURCES})
-cuda_add_executable(GPUICP ${GPUSOURCES})
+if (CUDA_FOUND)
+ set(CUDA_SEPARABLE_COMPILATION ON)
+ set(CUDA_HOST_COMPILER g++)
+ link_directories(/opt/cuda)
+ file(GLOB GPUSOURCES "src/gpu/*.cu")
+ list(APPEND CUDA_NVCC_FLAGS "-std=c++17")
+ CUDA_COMPILE(GPUICP ${GPUSOURCES})
+ cuda_add_executable(GPUICP ${GPUSOURCES})
+ target_link_libraries(GPUICP GPUCSV)
+else (CUDA_FOUND)
+ message("CUDA NOT FOUND !, stick with CPU version")
+endif (CUDA_FOUND)
