@@ -92,14 +92,14 @@ std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, 
     {
         auto i = std::get<0>(tup);
         auto j = std::get<1>(tup);
-        CPUView q_point = Q.getLine(i);
-        CPUView p_point = P.getLine(j);
+        CPUView q_point = Q.getLine(j);
+        CPUView p_point = P.getLine(i);
         double weight = kernel(p_point - q_point);
-        std::cout << weight << std::endl;
+
         if (weight < 0.01)
             exclude_indices.push_back(i);
 
-        CPUMatrix doted_points = q_point.dot(p_point.transpose());
+        CPUMatrix doted_points = q_point.transpose().dot(p_point);
         doted_points *= weight;
         cov += doted_points;
     }
@@ -123,7 +123,7 @@ std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, doub
         double *q_point = transposed_Q + j * Q_c;
         double *p_point = transposed_P + i * P_c;
         double weight = kernel(*p_point - *q_point);
-        std::cout << weight << std::endl;
+
         if (weight < 0.01)
             exclude_indices.push_back(i);
         double **doted_points = nullptr;
@@ -143,48 +143,36 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
     // Center data P and Q
     auto Q_center = Q.mean(0);
     Q -= Q_center;
-    // Q_centered = Q
-//    norm_values = []
-//    P_values = [P.copy()]
-//    P_copy = P.copy()
-//    corresp_values = []
+
     std::vector<std::tuple<size_t, int>> correps_values;
     std::vector<double> norm_values(iterations);
     CPUMatrix P_copy;
     P_copy = P;
-//    exclude_indices = []
-//    for i in range(iterations):
-//        center_of_P, P_centered = center_data(P_copy, exclude_indices=exclude_indices)
-//        correspondences = get_correspondence_indices(P_centered, Q_centered)
-//        corresp_values.append(correspondences)
-//        norm_values.append(np.linalg.norm(P_centered - Q_centered))
-//        cov, exclude_indices = compute_cross_covariance(P_centered, Q_centered, correspondences, kernel)
-//        U, S, V_T = np.linalg.svd(cov)
-//        R = U.dot(V_T)
-//        t = center_of_Q - R.dot(center_of_P)
-//        P_copy = R.dot(P_copy) + t
-//        P_values.append(P_copy)
     for(unsigned i = 0; i < iterations; ++i){
-        auto P_center = P.mean(0);
-        P -= P_center;
+        auto P_center = P_copy.mean(0);
+        // Center P
+        P = P_copy - P_center;
+        // Compute correspondences indices
         auto corresps = get_correspondence_indices(P, Q);
-        //FIXME
+
         correps_values.insert(correps_values.end(), corresps.begin(), corresps.end());
         norm_values.push_back(P.euclidianDistance(Q));
         auto cross_var = compute_cross_variance(P, Q, corresps, default_kernel);
+        auto cross_var_other = P.transpose().dot(Q);
         // cross_var is here 3*3 mat
         // U, S, V_T = svd
-        auto [V_T, S, U] = std::get<0>(cross_var).svd();
+        auto [U, S, V_T] = std::get<0>(cross_var).svd();
+        std::cout << "U: \n" << U << std::endl;
+        std::cout << "S: \n" << S << std::endl;
+        std::cout << "V_T: \n" << V_T << std::endl;
         (void) S; // unused
+        // Rotation matrix
         auto R = U.dot(V_T);
-        std::cout << "Rotation: " << R;
-        auto t = Q_center - P_center.dot(R);// R.dot(P_center);
-        std::cout << "Translation: " << t;
-        P_copy = P_copy.dot(R) + t;//R.dot(P_copy) + t;
-        std::cout << "iterations: " << i << " DONE";
+        // Translation Matrix
+        auto t = Q_center - P_center.dot(R.transpose());
+        // Update P
+        P_copy = P_copy.dot(R.transpose()) + t;
     }
-//    corresp_values.append(corresp_values[-1]) // FIXME wtf?
     correps_values.push_back(correps_values.back());
     return std::make_tuple(std::move(P_copy), norm_values, correps_values);
-//    return P_values, norm_values, corresp_values
 }

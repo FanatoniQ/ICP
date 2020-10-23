@@ -15,7 +15,7 @@
 int main(int argc, char *argv[])
 {
     runtime_assert(argc == 3, "Usage: ./CPUICP file1 file2");
-    std::cout << std::setprecision(15); //DBL_MANT_DIG);
+    //std::cout << std::setprecision(15); //DBL_MANT_DIG);
 
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
@@ -36,9 +36,9 @@ int main(int argc, char *argv[])
     double Q[4] = {0, 1, 0, 1};
     */
 
-    auto results = icp(P, Q, 10);
-    std::cout << "Found P: " << std::get<0>(results) << std::endl;
-    std::cout << "Ref Q: " << refQ << std::endl;
+    auto results = icp(P, Q, 4);
+    //std::cout << "Found P: " << std::get<0>(results) << std::endl;
+    //std::cout << "Ref Q: " << refQ << std::endl;
     std::cout << "Squared mean diff: " << std::get<1>(results).back() << std::endl;
     std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
     //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);

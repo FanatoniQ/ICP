@@ -22,7 +22,7 @@ CPUMatrix::CPUMatrix(double *array, size_t dim0, size_t dim1) : array(array), di
 // no need to free for user
 CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
 {
-    std::cerr << "Alloc !" << std::endl;
+    //std::cerr << "Alloc !" << std::endl;
     this->array = (double *)calloc(dim0 * dim1, sizeof(double));
     if (this->array == nullptr)
         throw std::bad_alloc();
@@ -33,7 +33,7 @@ CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
 // move constructor
 CPUMatrix::CPUMatrix(CPUMatrix &&mat)  noexcept : array(mat.array), dim0(mat.dim0), dim1(mat.dim1)
 {
-    std::cerr << "Moved !" << std::endl;
+    //std::cerr << "Moved !" << std::endl;
     mat.array = nullptr;
 }
 
