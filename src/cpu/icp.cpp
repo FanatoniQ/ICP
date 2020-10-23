@@ -174,10 +174,12 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
         auto cross_var = compute_cross_variance(P, Q, corresps, default_kernel);
         // cross_var is here 3*3 mat
         // U, S, V_T = svd
-        auto [U, S, V_T] = std::get<0>(cross_var).svd();
+        auto [V_T, S, U] = std::get<0>(cross_var).svd();
         (void) S; // unused
         auto R = U.dot(V_T);
-        auto t = Q_center -  P_center.dot(R);// R.dot(P_center);
+        std::cout << "Rotation: " << R;
+        auto t = Q_center - P_center.dot(R);// R.dot(P_center);
+        std::cout << "Translation: " << t;
         P_copy = P_copy.dot(R) + t;//R.dot(P_copy) + t;
         std::cout << "iterations: " << i << " DONE";
     }

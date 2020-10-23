@@ -25,6 +25,9 @@ int main(int argc, char *argv[])
 
     double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
+
+    CPUMatrix refQ;
+    refQ = Q;
     /*
     if (!argv[1])
         return 1;
@@ -33,9 +36,11 @@ int main(int argc, char *argv[])
     double Q[4] = {0, 1, 0, 1};
     */
 
-    auto results = icp(P, Q, 5);
-    std::cout << "Ref P: " << P << std::endl;
-    std::cout << "Found Q: " << std::get<0>(results);
+    auto results = icp(P, Q, 10);
+    std::cout << "Found P: " << std::get<0>(results) << std::endl;
+    std::cout << "Ref Q: " << refQ << std::endl;
+    std::cout << "Squared mean diff: " << std::get<1>(results).back() << std::endl;
+    std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
     //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
     //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
 
