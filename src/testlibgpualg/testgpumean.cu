@@ -28,7 +28,8 @@ int main(int argc, char **argv)
     print_matrix(std::cerr, h_p, nbcols, nblines);
 
     auto P = CPUMatrix(h_pT, nbcols, nblines);
-    std::cerr << "CPU Sums: " << std::endl << P.sum(1) << P.sum(0) << std::endl;
+    auto cpuSum = P.sum(1);
+    std::cerr << "CPU Sums: " << std::endl << cpuSum << std::endl;
 
     // device memory
     double *d_pT;
@@ -58,11 +59,25 @@ int main(int argc, char **argv)
     //print_matrix_kernel<<<blocks, threads>>>((char *)d_pT, pitch, width);
     //dumb_sum_kernel<<<blocks, threads>>>((char*)d_pT, d_mean, pitch, width);
     //dumb_mean_kernel<<<blocks, threads>>>((char*)d_pT, d_mean, pitch, width, height);
-    tree_reduce_sum_kernel<<<blocks, threads, threads>>>(d_pT, d_mean, pitch, width, height, reducepitch); // FIXME: illegal mem access
+    tree_reduce_sum_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_pT, d_mean, pitch, width, height, reducepitch);
     cudaDeviceSynchronize();
     cudaCheckError();
+    // FIXME: Call the kernel a second time instead if multiple blocks per line
+    // second call to reduce d_mean, nbthreads is nbblockPerLine, width is nbblockPerline, height is nblines
+    // Watch out ! do not use threads, blocks, width or pitch afterwards to reference d_pT
+    /**
+    pitch = reducepitch; // rowstride = threads since we stride with threads, to sum each block of threads partial sums
+    threads = nbblocksPerLine;
+    blocks = dim3(1, height);
+    width = nbblocksPerLine;
+    std::cerr << "nbthreads: " << threads << " nbblocksPerLine: " << blocks.x << " nbLines: " << blocks.y << std::endl;
+    tree_reduce_sum_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_mean, d_mean, pitch, width, height, reducepitch);
+    cudaDeviceSynchronize();
+    cudaCheckError(); // FIXME: failure
+    **/
 
     // copy back to host memory
+    std::cerr << "Device -> Host" << std::endl;
     double *h_mean;
     h_mean = (double*)malloc(height * reducepitch);
     runtime_assert(h_mean != nullptr, "Alloc error !");
@@ -70,18 +85,29 @@ int main(int argc, char **argv)
     cudaCheckError();
 
     std::cerr << "GPU Sums : " << std::endl;
-    // FIXME: Call the kernel a second time instead if multiple blocks per line
     for (size_t i = 0; i < height; ++i)
     {
-        double v = 0;
         double *line = (double *)((char *)h_mean + i * reducepitch);
+	double cpulinesum = cpuSum(0,i);
+        double gpulinesum = 0;
+	// is gpu second reduce:
+	//gpulinesum = line[0];
+        //**
+        // one reduce case, final reduce done on cpu
         for (size_t j = 0; j < nbblocksPerLine; ++j)
         {
-            std::cerr << "[]: " << line[j] << "\t";
-            v += line[j];
+            std::cerr << line[j] << "+\t";
+            gpulinesum += line[j];
         }
-        std::cerr << v << std::endl;
-        //std::cerr << h_mean[i] << "\t";
+	//**/
+        std::cerr << std::endl << "line[0]" << gpulinesum << std::endl;
+	std::cerr << "CPUSUM(0,i)" << cpulinesum << std::endl;
+	// we have some error apparently, which is weird
+	//runtime_assert(cpulinesum == gpulinesum, "Not same mean");
+        if (std::fabs(cpulinesum - gpulinesum) > 1e-13f) {
+             std::cerr << "Difference betweeen CPU and GPU sum: " << gpulinesum - cpulinesum << std::endl;
+             exit(4);
+        }
     }
 
     cudaFree(d_mean);
