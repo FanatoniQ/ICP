@@ -68,13 +68,38 @@ target_link_libraries(CPUICP CSV alg)
 
 if (CUDA_FOUND)
  set(CUDA_SEPARABLE_COMPILATION ON)
- set(CUDA_HOST_COMPILER g++)
- link_directories(/opt/cuda)
+ set(CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+ set(CMAKE_CUDA_FLAGS RELEASE) # TODO: use CXX flag
+ link_directories(/opt/cuda) # TODO: proper CUDA link dir var ?
+
+ ###############
+ #  LIBGPUALG  #
+ ###############
+ # https://developer.nvidia.com/blog/building-cuda-applications-cmake/ #
+ file(GLOB LIBALGGPUSOURCES "src/libgpualg/*.cu")
+ cuda_add_library(gpualg ${LIBALGGPUSOURCES})
+
+ #################
+ # TESTLIBGPUALG #
+ #################
+ file(GLOB TESTLIBGPUALGSOURCES "src/testlibgpualg/*.cu")
+ foreach(file_path ${TESTLIBGPUALGSOURCES})
+    string(REPLACE ".cu" "" bin_path_name ${file_path} )
+    get_filename_component(bin_name ${bin_path_name} NAME)
+    CUDA_COMPILE(${bin_name} ${file_path})
+    cuda_add_executable(${bin_name} ${file_path})
+    target_link_libraries(${bin_name} CSV alg gpualg)
+ endforeach()
+
+ #######
+ # GPU #
+ #######
+
  file(GLOB GPUSOURCES "src/gpu/*.cu")
  list(APPEND CUDA_NVCC_FLAGS "-std=c++17")
  CUDA_COMPILE(GPUICP ${GPUSOURCES})
  cuda_add_executable(GPUICP ${GPUSOURCES})
- target_link_libraries(GPUICP CSV alg)
+ target_link_libraries(GPUICP CSV alg gpualg)
 else (CUDA_FOUND)
  message("CUDA NOT FOUND !, stick with CPU version")
 endif (CUDA_FOUND)
