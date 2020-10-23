@@ -1,6 +1,7 @@
 #include <cstring>
 
 #include <stdexcept>
+#include <cmath>
 
 #include "error.hpp"
 #include "libalg/alg.hpp"
@@ -21,7 +22,7 @@ CPUMatrix::CPUMatrix(double *array, size_t dim0, size_t dim1) : array(array), di
 // no need to free for user
 CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
 {
-    std::cerr << "Alloc !" << std::endl;
+    //std::cerr << "Alloc !" << std::endl;
     this->array = (double *)calloc(dim0 * dim1, sizeof(double));
     if (this->array == nullptr)
         throw std::bad_alloc();
@@ -30,9 +31,9 @@ CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
 }
 
 // move constructor
-CPUMatrix::CPUMatrix(CPUMatrix &&mat) : array(mat.array), dim0(mat.dim0), dim1(mat.dim1)
+CPUMatrix::CPUMatrix(CPUMatrix &&mat)  noexcept : array(mat.array), dim0(mat.dim0), dim1(mat.dim1)
 {
-    std::cerr << "Moved !" << std::endl;
+    //std::cerr << "Moved !" << std::endl;
     mat.array = nullptr;
 }
 
@@ -326,6 +327,11 @@ CPUMatrix CPUMatrix::copyLine(unsigned linenum)
     auto r = CPUMatrix(1, dim1);
     memcpy(r.array, array + dim1 * linenum, dim1 * sizeof(double));
     return r;
+}
+
+double CPUMatrix::euclidianDistance(const CPUMatrix &rhs) {
+    double norm = element_wise_reduce(array, rhs.array, dim0, dim1, rhs.dim0, rhs.dim1, squared_norm_2, add, add);
+    return sqrt(norm);
 }
 
 std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()

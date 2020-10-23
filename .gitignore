@@ -62,3 +62,6 @@ build/
 
 # Python
 __pycache__/
+
+# Data
+data_students/

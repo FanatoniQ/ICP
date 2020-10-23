@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <libalg/print.hpp>
 
 #include "libCSV/csv.hpp"
 #include "error.hpp"
@@ -14,7 +15,7 @@
 int main(int argc, char *argv[])
 {
     runtime_assert(argc == 3, "Usage: ./CPUICP file1 file2");
-    std::cout << std::setprecision(15); //DBL_MANT_DIG);
+    //std::cout << std::setprecision(15); //DBL_MANT_DIG);
 
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
@@ -24,6 +25,9 @@ int main(int argc, char *argv[])
 
     double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
+
+    CPUMatrix refQ;
+    refQ = Q;
     /*
     if (!argv[1])
         return 1;
@@ -32,11 +36,13 @@ int main(int argc, char *argv[])
     double Q[4] = {0, 1, 0, 1};
     */
 
-
-    //auto res = get_correspondence_indices(P, Q);
-    //std::cout << std::get<0>(res.at(1)) << " and " << std::get<1>(res.at(1)) << std::endl;
-    //auto final = compute_cross_variance(P, Q, res, nullptr);
-    //std::cout << std::get<0>(final) << " and "<< std::get<1>(final).at(0);
+    auto results = icp(P, Q, 4);
+    //std::cout << "Found P: " << std::get<0>(results) << std::endl;
+    //std::cout << "Ref Q: " << refQ << std::endl;
+    std::cout << "Squared mean diff: " << std::get<1>(results).back() << std::endl;
+    std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
+    //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
+    //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
 
     /*
     std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
