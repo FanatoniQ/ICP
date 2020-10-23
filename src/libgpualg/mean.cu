@@ -1,6 +1,10 @@
 #include "error.cuh"
 #include "libgpualg/mean.cuh"
 
+#include <assert.h>
+
+// TODO: REMOVE this, or not it is just in assert afterall
+#define is_power_of_2(x) (x & (x-1)) == 0
 
 // computes line sum
 __device__ __host__ double get_line_sum(const double *line, int nbvals)
@@ -53,6 +57,7 @@ __global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pi
     // each thread will reduce with one other shared data element in the middle right part of s_data
     for (size_t stride = blockDim.x / 2; stride > 0; stride = stride >> 1)
     {
+        assert(is_power_of_2(stride)); // if not power of 2 ...
         if (threadid < stride) // a lot of threads are idle...
              s_data[threadid] += s_data[threadid + stride];
 	__syncthreads();
