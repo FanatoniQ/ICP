@@ -19,8 +19,11 @@ int main(int argc, char *argv[])
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
     //___readCSV(f, f1Header);
-    double *P = readCSV(argv[1], f1Header, Plines, Pcols);
-    double *Q = readCSV(argv[2], f1Header, Qlines, Qcols);
+    double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
+
+    double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
+    CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
     /*
     if (!argv[1])
         return 1;
@@ -29,10 +32,11 @@ int main(int argc, char *argv[])
     double Q[4] = {0, 1, 0, 1};
     */
 
-    auto res = get_correspondence_indices(P, Q, Plines, Pcols, Qlines, Qcols);
-    std::cout << std::get<0>(res.at(1)) << " and " << std::get<1>(res.at(1));
-    //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
-    //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
+
+    //auto res = get_correspondence_indices(P, Q);
+    //std::cout << std::get<0>(res.at(1)) << " and " << std::get<1>(res.at(1)) << std::endl;
+    //auto final = compute_cross_variance(P, Q, res, nullptr);
+    //std::cout << std::get<0>(final) << " and "<< std::get<1>(final).at(0);
 
     /*
     std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
@@ -45,9 +49,6 @@ int main(int argc, char *argv[])
         std::cerr << std::endl;
     }
     */
-
-    free(P);
-    free(Q);
 
     /**
     size_t nbaxis, nbpoints;
