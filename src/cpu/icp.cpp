@@ -139,7 +139,7 @@ std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, doub
     return std::make_tuple(cov, exclude_indices);
 }
 
-std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix P, CPUMatrix Q, unsigned iterations){
+std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix &P, CPUMatrix &Q, unsigned iterations){
     // Center data P and Q
     auto Q_center = Q.mean(1).transpose();
     Q -= Q_center;
