@@ -82,7 +82,7 @@ double default_kernel(double a)
 }
 
 std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, CPUMatrix &Q,
-    std::vector<std::tuple<size_t, int>> correspondences, double (*kernel)(CPUMatrix a))
+    const std::vector<std::tuple<size_t, int>>& correspondences, double (*kernel)(CPUMatrix a))
 {
     if (kernel == nullptr)
         kernel = &default_kernel;
@@ -141,7 +141,7 @@ std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, doub
 
 std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix &P, CPUMatrix &Q, unsigned iterations){
     // Center data P and Q
-    auto Q_center = Q.mean(1).transpose();
+    auto Q_center = Q.mean(0);
     Q -= Q_center;
     // Q_centered = Q
 //    norm_values = []
@@ -150,7 +150,8 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
 //    corresp_values = []
     std::vector<std::tuple<size_t, int>> correps_values;
     std::vector<double> norm_values(iterations);
-    CPUMatrix P_copy = P + CPUMatrix();
+    CPUMatrix P_copy;
+    P_copy = P;
 //    exclude_indices = []
 //    for i in range(iterations):
 //        center_of_P, P_centered = center_data(P_copy, exclude_indices=exclude_indices)
@@ -166,19 +167,19 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
     for(unsigned i = 0; i < iterations; ++i){
         auto P_center = P.mean(0);
         P -= P_center;
-        auto corresps = get_correspondence_indices(P.getArray(), Q.getArray(), P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1());
+        auto corresps = get_correspondence_indices(P, Q);
         //FIXME
         correps_values.insert(correps_values.end(), corresps.begin(), corresps.end());
         norm_values.push_back(P.euclidianDistance(Q));
-        auto cross_var = compute_cross_variance(P.getArray(), Q.getArray(), corresps, P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1(), default_kernel);
-        // HardCoded 2*2 dim
-        CPUMatrix cross_mat(std::get<0>(cross_var), 2, 2);
+        auto cross_var = compute_cross_variance(P, Q, corresps, default_kernel);
+        // cross_var is here 3*3 mat
         // U, S, V_T = svd
-        auto [U, S, V_T] = cross_mat.svd();
+        auto [U, S, V_T] = std::get<0>(cross_var).svd();
         (void) S; // unused
         auto R = U.dot(V_T);
-        auto t = Q_center - R.dot(P_center);
-        P_copy = R.dot(P_copy) + t;
+        auto t = Q_center -  P_center.dot(R);// R.dot(P_center);
+        P_copy = P_copy.dot(R) + t;//R.dot(P_copy) + t;
+        std::cout << "iterations: " << i << " DONE";
     }
 //    corresp_values.append(corresp_values[-1]) // FIXME wtf?
     correps_values.push_back(correps_values.back());

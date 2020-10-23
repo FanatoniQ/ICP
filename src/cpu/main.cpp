@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <libalg/print.hpp>
 
 #include "libCSV/csv.hpp"
 #include "error.hpp"
@@ -33,6 +34,8 @@ int main(int argc, char *argv[])
     */
 
     auto results = icp(P, Q, 5);
+    std::cout << "Ref P: " << P << std::endl;
+    std::cout << "Found Q: " << std::get<0>(results);
     //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
     //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
 
