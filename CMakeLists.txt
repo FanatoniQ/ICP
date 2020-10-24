@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 2.8.9)
 project(ICP)
 set (CMAKE_CXX_STANDARD 17) # c++17
 
+###########
+#   GPU   #
+###########
+
+find_package(CUDA)
+
 ##############
 #   LIBCSV   #
 ##############
@@ -55,3 +61,52 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 add_executable(CPUICP ${CPUSOURCES})
 target_link_libraries(CPUICP CSV alg)
+
+###########
+#   GPU   #
+###########
+
+if (CUDA_FOUND)
+ set(CUDA_SEPARABLE_COMPILATION ON)
+ set(CUDA_HOST_COMPILER g++) #${CMAKE_CXX_COMPILER})
+ set(CMAKE_CUDA_FLAGS RELEASE) # TODO: use CXX flag
+ link_directories(/opt/cuda) # TODO: proper CUDA link dir var ?
+ list(APPEND CUDA_NVCC_FLAGS "-std=c++17")
+
+ ###############
+ #  LIBGPUALG  #
+ ###############
+ # https://developer.nvidia.com/blog/building-cuda-applications-cmake/ #
+ file(GLOB LIBALGGPUSOURCES "src/libgpualg/*.cu")
+ #cuda_compile(gpualg ${LIBALGGPUSOURCES}) # NOT SURE
+ cuda_add_library(gpualg STATIC ${LIBALGGPUSOURCES})
+
+ #################
+ # TESTLIBGPUALG #
+ #################
+ #file(GLOB TESTLIBGPUALGSOURCES "src/testlibgpualg/*.cu")
+ #foreach(file_path ${TESTLIBGPUALGSOURCES})
+ #   string(REPLACE ".cu" "" bin_path_name ${file_path} )
+ #   get_filename_component(bin_name ${bin_path_name} NAME)
+ #   message("FILE IS: ${file_path}, BIN IS: ${bin_name}")
+ #   CUDA_COMPILE(${bin_name} ${file_path})
+ #   cuda_add_executable(${bin_name} ${file_path})
+ #   target_link_libraries(${bin_name} CSV alg gpualg)
+ #endforeach()
+
+ # Working:
+ CUDA_COMPILE(testgpumean "src/testlibgpualg/testgpumean.cu")
+ cuda_add_executable(testgpumean "src/testlibgpualg/testgpumean.cu")
+ target_link_libraries(testgpumean CSV alg gpualg)
+
+ #######
+ # GPU #
+ #######
+
+ file(GLOB GPUSOURCES "src/gpu/*.cu")
+ CUDA_COMPILE(GPUICP ${GPUSOURCES})
+ cuda_add_executable(GPUICP ${GPUSOURCES})
+ target_link_libraries(GPUICP CSV alg gpualg)
+else (CUDA_FOUND)
+ message("CUDA NOT FOUND !, stick with CPU version")
+endif (CUDA_FOUND)
