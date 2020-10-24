@@ -52,7 +52,7 @@ public:
     CPUMatrix mean(int axis = 0);
     double euclidianDistance(const CPUMatrix &rhs);
 
-    CPUMatrix norm(int axis = -1);
+    CPUMatrix squared_norm(int axis = -1);
 
     // Operator overloading, for "standard" mathematical matrix operations
     CPUMatrix &operator=(const CPUMatrix &rhs);

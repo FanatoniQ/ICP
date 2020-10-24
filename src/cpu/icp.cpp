@@ -50,7 +50,7 @@ double three_dim_norm(CPUMatrix A)
         r += pow2(A(0, i));
     if (A.getDim1() == 3)
         runtime_assert((std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2)) == r, "FATAL");
-    auto norm = A.norm(-1);
+    auto norm = A.squared_norm(-1);
     runtime_assert(norm.getDim0() == 1 && norm.getDim1() == 1, "INVALID NORM SIZE ! FATAL ERROR");
     double res = norm(0, 0);
     runtime_assert(r == res, "INVALID NORM ! FATAL ERROR");

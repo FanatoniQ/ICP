@@ -329,7 +329,7 @@ CPUMatrix CPUMatrix::copyLine(unsigned linenum)
     return r;
 }
 
-CPUMatrix CPUMatrix::norm(int axis)
+CPUMatrix CPUMatrix::squared_norm(int axis)
 {
     double *r = nullptr;
     size_t dimr;
