@@ -42,6 +42,43 @@ double *mean_axises(double *m, size_t dim0, size_t dim1, int axis)
     return r;
 }
 
+void reduce_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis,
+                   double (*op)(double a), double (*rop)(double a, double b))
+{
+    size_t i, j, id;
+    size_t (*get_id_reduce)(size_t i, size_t j, size_t dim0, size_t dim1) = NULL;
+    if (axis < 0)
+    {
+        dimr = 1; // r[0] == r[e % 1]
+        get_id_reduce = get_id_reduce_flattened;
+    }
+    else if (axis == 0)
+    {
+        dimr = dim1; // r[j] == r[e % dim0]
+        get_id_reduce = get_id_reduce_first_axis;
+    }
+    else if (axis == 1)
+    {
+        dimr = dim0; // r[i] == r[e % dim1]
+        get_id_reduce = get_id_reduce_second_axis;
+    }
+    else
+        runtime_failure("Invalid dimension !");
+    if (*r == nullptr)
+    {
+        *r = (double *)calloc(dimr, sizeof(double));
+        runtime_assert(*r != nullptr, "Alloc error !");
+    }
+    for (i = 0; i < dim0; ++i)
+    {
+        for (j = 0; j < dim1; ++j)
+        {
+            id = get_id_reduce(i, j, dim0, dim1);
+            (*r)[id] = rop((*r)[id], op(m[i * dim1 + j]));
+        }
+    }
+}
+
 void sum_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis)
 {
     size_t i, j;

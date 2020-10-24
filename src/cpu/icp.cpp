@@ -9,6 +9,7 @@
 #include "libalg/CPUMatrix.hpp"
 #include "cpu/icp.hpp"
 #include "libalg/CPUView.hpp"
+#include "error.hpp"
 
 #define UNUSED(x) (void)x
 
@@ -39,11 +40,22 @@ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, doubl
     return correspondances;
 }
 
+// \deprecated use CPUMatrix::euclidianDistance instead
 double three_dim_norm(CPUMatrix A)
 {
-    if (A.getDim1() != 3)
-        throw std::invalid_argument("Matrix not of dim 3");
-    return std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2);
+    //if (A.getDim1() != 3)
+    //    throw std::invalid_argument("Matrix not of dim 3");
+    double r = 0;
+    for (size_t i = 0; i < A.getDim1(); ++i)
+        r += pow2(A(0, i));
+    if (A.getDim1() == 3)
+        runtime_assert((std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2)) == r, "FATAL");
+    auto norm = A.norm(-1);
+    runtime_assert(norm.getDim0() == 1 && norm.getDim1() == 1, "INVALID NORM SIZE ! FATAL ERROR");
+    double res = norm(0, 0);
+    runtime_assert(r == res, "INVALID NORM ! FATAL ERROR");
+    //return std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2);
+    return r;
 }
 
 std::vector<std::tuple<size_t, int>> get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q)
