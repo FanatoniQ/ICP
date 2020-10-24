@@ -4,6 +4,9 @@
 
 #include "libalg/alg.hpp"
 
+void reduce_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis,
+                   double (*op)(double a), double (*rop)(double a, double b));
+
 void sum_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis = 0);
 
 void mean_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis = 0);

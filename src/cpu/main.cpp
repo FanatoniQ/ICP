@@ -14,8 +14,10 @@
 
 int main(int argc, char *argv[])
 {
-    runtime_assert(argc == 3, "Usage: ./CPUICP file1 file2");
+    runtime_assert(argc == 4, "Usage: ./CPUICP file1 file2 nbiters");
     //std::cout << std::setprecision(15); //DBL_MANT_DIG);
+    int nbiters = std::stoi(argv[3]);
+    runtime_assert(nbiters > 0, "nbiter <= 0");
 
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
@@ -36,14 +38,17 @@ int main(int argc, char *argv[])
     double Q[4] = {0, 1, 0, 1};
     */
 
-    auto results = icp(P, Q, 4);
+    auto results = icp(P, Q, nbiters);
     //std::cout << "Found P: " << std::get<0>(results) << std::endl;
     //std::cout << "Ref Q: " << refQ << std::endl;
     std::cout << "Squared mean diff: " << std::get<1>(results).back() << std::endl;
     std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
     //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
     //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
-
+    std::cout << "Errors:" << std::endl;
+    for (const auto &v : std::get<1>(results))
+        std::cout << v << std::endl;
+    std::cout << std::get<0>(results) << std::endl;
     /*
     std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
     for (size_t i = 0; i < nblines; ++i)

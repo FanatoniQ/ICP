@@ -31,7 +31,7 @@ CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
 }
 
 // move constructor
-CPUMatrix::CPUMatrix(CPUMatrix &&mat)  noexcept : array(mat.array), dim0(mat.dim0), dim1(mat.dim1)
+CPUMatrix::CPUMatrix(CPUMatrix &&mat) noexcept : array(mat.array), dim0(mat.dim0), dim1(mat.dim1)
 {
     //std::cerr << "Moved !" << std::endl;
     mat.array = nullptr;
@@ -329,7 +329,16 @@ CPUMatrix CPUMatrix::copyLine(unsigned linenum)
     return r;
 }
 
-double CPUMatrix::euclidianDistance(const CPUMatrix &rhs) {
+CPUMatrix CPUMatrix::squared_norm(int axis)
+{
+    double *r = nullptr;
+    size_t dimr;
+    reduce_axises(&r, array, dim0, dim1, dimr, axis, pow2, add);
+    return CPUMatrix(r, 1, dimr);
+}
+
+double CPUMatrix::euclidianDistance(const CPUMatrix &rhs)
+{
     double norm = element_wise_reduce(array, rhs.array, dim0, dim1, rhs.dim0, rhs.dim1, squared_norm_2, add, add);
     return sqrt(norm);
 }

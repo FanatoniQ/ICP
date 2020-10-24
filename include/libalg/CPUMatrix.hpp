@@ -25,7 +25,7 @@ public:
      */
     CPUMatrix(size_t dim0, size_t dim1);
     CPUMatrix(CPUMatrix const &mat) = delete; // avoid double free
-    CPUMatrix(CPUMatrix &&mat) noexcept ;               // move constructor
+    CPUMatrix(CPUMatrix &&mat) noexcept;      // move constructor
     ~CPUMatrix();
 
     // Getters and setters
@@ -51,6 +51,9 @@ public:
     CPUMatrix sum(int axis = 0);
     CPUMatrix mean(int axis = 0);
     double euclidianDistance(const CPUMatrix &rhs);
+
+    // prefer using euclidianDistance when possible
+    CPUMatrix squared_norm(int axis = -1);
 
     // Operator overloading, for "standard" mathematical matrix operations
     CPUMatrix &operator=(const CPUMatrix &rhs);
@@ -81,7 +84,6 @@ public:
     std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> svd();
 
     CPUView getLine(unsigned linenum);
-
     CPUMatrix copyLine(unsigned linenum);
 
     // Access the individual elements

@@ -13,3 +13,5 @@ double subtract(double a, double b);
 double mult(double a, double b);
 
 double divide(double a, double b);
+
+double pow2(double a);

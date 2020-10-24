@@ -26,3 +26,8 @@ double divide(double a, double b)
 {
     return a / b;
 }
+
+double pow2(double a)
+{
+    return pow(a, 2);
+}
