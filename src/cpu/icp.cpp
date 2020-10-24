@@ -82,11 +82,11 @@ double default_kernel(double a)
 }
 
 std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, CPUMatrix &Q,
-    const std::vector<std::tuple<size_t, int>>& correspondences, double (*kernel)(CPUMatrix a))
+                                                                  const std::vector<std::tuple<size_t, int>> &correspondences, double (*kernel)(CPUMatrix a))
 {
     if (kernel == nullptr)
         kernel = &default_kernel;
-    CPUMatrix cov = CPUMatrix(3,3);
+    CPUMatrix cov = CPUMatrix(P.getDim1(), P.getDim1());
     std::vector<double> exclude_indices = {};
     for (auto tup : correspondences)
     {
@@ -139,16 +139,18 @@ std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, doub
     return std::make_tuple(cov, exclude_indices);
 }
 
-std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix &P, CPUMatrix &Q, unsigned iterations){
+std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix &P, CPUMatrix &Q, unsigned iterations)
+{
     // Center data P and Q
     auto Q_center = Q.mean(0);
     Q -= Q_center;
 
     std::vector<std::tuple<size_t, int>> correps_values;
-    std::vector<double> norm_values(iterations);
+    std::vector<double> norm_values;
     CPUMatrix P_copy;
     P_copy = P;
-    for(unsigned i = 0; i < iterations; ++i){
+    for (unsigned i = 0; i < iterations; ++i)
+    {
         auto P_center = P_copy.mean(0);
         // Center P
         P = P_copy - P_center;
@@ -162,10 +164,13 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
         // cross_var is here 3*3 mat
         // U, S, V_T = svd
         auto [U, S, V_T] = std::get<0>(cross_var).svd();
-        std::cout << "U: \n" << U << std::endl;
-        std::cout << "S: \n" << S << std::endl;
-        std::cout << "V_T: \n" << V_T << std::endl;
-        (void) S; // unused
+        std::cout << "U: \n"
+                  << U << std::endl;
+        std::cout << "S: \n"
+                  << S << std::endl;
+        std::cout << "V_T: \n"
+                  << V_T << std::endl;
+        (void)S; // unused
         // Rotation matrix
         auto R = U.dot(V_T);
         // Translation Matrix
