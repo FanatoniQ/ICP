@@ -39,14 +39,14 @@ __global__ void print_matrix_kernel(char *d_A, int pitch, int nbvals)
 int main(int argc, char **argv)
 {
     std::string f1Header{};
-    size_t Qlines, Qcols, Plines, Pcols;
+    size_t Plines, Pcols;
     //___readCSV(f, f1Header);
     double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
     CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
-    std::cout << P
+    std::cout << P;
 
-    std::vector<std::tuple<size_t, int>> correspondances = {};
-    print_kernel<<<2, 3>>>(P, Q, correspondances);
+    //std::vector<std::tuple<size_t, int>> correspondances = {};
+    print_kernel<<<2, 3>>>();//(P, Q, correspondances);
     cudaDeviceSynchronize();
     cudaCheckError();
 }
