@@ -15,7 +15,7 @@
 
 __global__ void get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q, std::vector<std::tuple<size_t, int>> &correspondances);
 
-__global__ void compute_cross_variance(CPUMatrix &P, CPUMatrix &Q, onst std::vector<std::tuple<size_t, int>> &correspondences,
+__global__ void compute_cross_variance(CPUMatrix &P, CPUMatrix &Q, const std::vector<std::tuple<size_t, int>> &correspondences,
                             double (*kernel)(CPUMatrix a), std::tuple<CPUMatrix, std::vector<double>> &res);
 
-__global__ void naiveGPUTranspose(const int *d_a, int *d_b, const int rows, const int cols);
+__global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows, const int cols);

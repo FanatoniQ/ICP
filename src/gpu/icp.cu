@@ -52,7 +52,7 @@ __global__ void get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q, std::vect
     */
 }
 
-__global__ void compute_cross_variance(CPUMatrix &P, CPUMatrix &Q, onst std::vector<std::tuple<size_t, int>> &correspondences,
+__global__ void compute_cross_variance(CPUMatrix &P, CPUMatrix &Q, const std::vector<std::tuple<size_t, int>> &correspondences,
                             double (*kernel)(CPUMatrix a), std::tuple<CPUMatrix, std::vector<double>> &res) //pas besoin de cuda en fait c'est des op de base
 {
     if (kernel == nullptr)
@@ -77,7 +77,7 @@ __global__ void compute_cross_variance(CPUMatrix &P, CPUMatrix &Q, onst std::vec
     return std::make_tuple(std::move(cov), exclude_indices);
 }
 
-__global__ void naiveGPUTranspose(const int *d_a, int *d_b, const int rows, const int cols) {
+__global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows, const int cols) {
     int i = blockIdx.y * blockDim.y + threadIdx.y;
     int j = blockIdx.x * blockDim.x + threadIdx.x;
 
