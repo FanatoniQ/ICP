@@ -15,6 +15,7 @@
 // GPU
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
+#include "gpu/icp.cuh"
 
 __global__ void print_kernel()
 {
@@ -45,7 +46,7 @@ int main(int argc, char **argv)
     CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
     std::cout << P;
 
-    double *Qt = malloc(sizeof(double) * Plines * Pcols);
+    double *Qt = (double*)malloc(sizeof(double) * Plines * Pcols);
 
     //std::vector<std::tuple<size_t, int>> correspondances = {};
     naiveGPUTranspose<<<32, 32>>>(Pt, Qt, Plines, Pcols);//(P, Q, correspondances);
