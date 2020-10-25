@@ -76,14 +76,3 @@ __global__ void compute_cross_variance(CPUMatrix &P, CPUMatrix &Q, const std::ve
     }
     return std::make_tuple(std::move(cov), exclude_indices);
 }
-
-__global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows, const int cols) {
-    int i = blockIdx.y * blockDim.y + threadIdx.y;
-    int j = blockIdx.x * blockDim.x + threadIdx.x;
-
-    int index_in = i * cols + j;
-    int index_out = j * rows + i;
-
-    if (i < rows && j < cols)
-        d_b[index_out] = d_a[index_in];
-}

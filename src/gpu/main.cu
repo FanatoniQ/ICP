@@ -15,7 +15,7 @@
 // GPU
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
-#include "gpu/icp.cuh"
+
 
 __global__ void print_kernel()
 {
@@ -35,6 +35,17 @@ __global__ void print_matrix_kernel(char *d_A, int pitch, int nbvals)
 	__syncthreads();
     }
     printf("\n");
+}
+
+__global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows, const int cols) {
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+
+    int index_in = i * cols + j;
+    int index_out = j * rows + i;
+
+    if (i < rows && j < cols)
+        d_b[index_out] = d_a[index_in];
 }
 
 int main(int argc, char **argv)
