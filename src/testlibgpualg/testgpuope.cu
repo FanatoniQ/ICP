@@ -114,10 +114,10 @@ int main(int argc, char **argv)
         for (size_t j = 0; j < r_1; ++j)
         {
 	    std::cerr << h_r[i * (d_rpitch / sizeof(double)) + j] << " ";
-            if (h_r[j + i * d_rpitch] != h_Rcpu[j + i * r_1])
+            if (h_r[j + i * (d_rpitch / sizeof(double))] != h_Rcpu[j + i * r_1])
             {
                 std::cerr << i << "," << j << " : Difference : "
-                    << "GPU: " << h_r[j + i * d_rpitch]
+                    << "GPU: " << h_r[j + i * (d_rpitch / sizeof(double))]
                     << std::endl
                     << "CPU: " << h_Rcpu[j + i * r_1]
                     << std::endl;
