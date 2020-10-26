@@ -4,76 +4,104 @@
 #include <stdlib.h>
 #include <time.h>
 #include <cuda_runtime.h>
+#include <cuda.h>
 #include <cmath>
+#include <stdio.h>
+
+//Normal CPU Matrix Multiplication
+void matMultiplyOnHost(float* A, float* B, float* C, int numARows,
+    int numAColumns, int numBRows, int numBColumns,
+    int numCRows, int numCColumns)
+{
+    for (int i = 0; i < numARows; i++)
+    {
+        for (int j = 0; j < numAColumns; j++)
+        {
+            C[i * numCColumns + j] = 0.0;
+            for (int k = 0; k < numCColumns; k++)
+            {
+                C[i * numCColumns + j] += A[i * numAColumns + k] * B[k * numBColumns + j];
+            }
+        }
+    }
+    return;
+}
+
+void print_Mat(int Row, int Col, float* Mat)
+{
+    for (int i = 0; i < Row * Col; i++)
+    {
+        printf("%f  ", *(Mat + i));
+
+        if ((i % Col) == 0)
+        {
+            printf("\n");
+        }
+    }
+}
 
 int main(int argc, char** argv)
 {
     // Perform matrix multiplication C = A*B
-    // where A, B and C are NxN matrices
-    int N = 16;
-    int SIZE = N * N;
+    int h_A_row = 1;
+    int h_A_col = 3;
+    int h_B_row = 3;
+    int h_B_col = 3;
+    int h_C_row = h_A_row;
+    int h_C_col = h_B_col;
 
     // Allocate memory on the host
-    //vector<float> h_A(SIZE);
-    //vector<float> h_B(SIZE);
-    //vector<float> h_C(SIZE);
-    float* h_A = (float*)malloc(SIZE * SIZE * sizeof(float));
-    float* h_B = (float*)malloc(SIZE * SIZE * sizeof(float));
-    float* h_C = (float*)malloc(SIZE * SIZE * sizeof(float));
+    float* h_A = (float*)malloc(h_A_row * h_A_col * sizeof(float));
+    float* h_B = (float*)malloc(h_B_row * h_B_col * sizeof(float));
+    float* h_C = (float*)malloc(h_C_row * h_C_col * sizeof(float));
 
-    // Initialize matrices on the host
-    for (int i = 0; i < N; i++) {
-        for (int j = 0; j < N; j++) {
-            h_A[i * N + j] = 2;//sin(i);
-            h_B[i * N + j] = 2;//cos(j);
+    for (int i = 0; i < h_A_row; i++) {
+        for (int j = 0; j < h_A_col; j++) {
+            h_A[i * h_A_row + j] = 2;//sin(i);
         }
     }
+    h_A[3] = 9;
+    for (int i = 0; i < h_B_row; i++) {
+        for (int j = 0; j < h_B_col; j++) {
+            h_B[i * h_B_row + j] = 2;//sin(i);
+        }
+    }
+    h_B[6] = 53;
 
-    // Allocate memory on the device
-    //dev_array<float> d_A(SIZE); // CudaMalloc
-    //dev_array<float> d_B(SIZE);
-    //dev_array<float> d_C(SIZE);
     float *d_A;
     float *d_B;
     float* d_C;
-    cudaMalloc(&d_A, SIZE * sizeof(float));
-    cudaMalloc(&d_B, SIZE * sizeof(float));
-    cudaMalloc(&d_C, SIZE * sizeof(float));
+    cudaMalloc(&d_A, h_A_row * h_A_col * sizeof(float));
+    cudaMalloc(&d_B, h_B_row * h_B_col * sizeof(float));
+    cudaMalloc(&d_C, h_C_row * h_C_col * sizeof(float));
 
-    //d_A.set(&h_A[0], SIZE); // CudaMemcpy
-    //d_B.set(&h_B[0], SIZE);
-    cudaMemcpy(d_A, h_A, SIZE * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_B, h_B, SIZE * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_A, h_A, h_A_row * h_A_col * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, h_B, h_B_row * h_B_col * sizeof(float), cudaMemcpyHostToDevice);
 
-    matrixMultiplication(d_A, d_B, d_C, N);
+    matrixMultiplication(d_A, d_B, d_C, h_A_row, h_A_col, h_B_row, h_B_col, h_C_row, h_C_col);
     cudaDeviceSynchronize();
 
-    //d_C.get(&h_C[0], SIZE);
-    cudaMemcpy(h_C, d_C, SIZE * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_C, d_C, h_C_row * h_C_col * sizeof(float), cudaMemcpyDeviceToHost);
     cudaDeviceSynchronize();
 
     float* cpu_C;
-    cpu_C = new float[SIZE];
+    cpu_C = new float[h_C_row * h_C_col];
 
-    // Now do the matrix multiplication on the CPU
-    float sum;
-    for (int row = 0; row < N; row++) {
-        for (int col = 0; col < N; col++) {
-            sum = 0.f;
-            for (int n = 0; n < N; n++) {
-                sum += h_A[row * N + n] * h_B[n * N + col];
-            }
-            cpu_C[row * N + col] = sum;
-        }
-    }
+    matMultiplyOnHost(h_A, h_B, cpu_C, h_A_row, h_A_col, h_B_row, h_B_col, h_C_row, h_C_col);
 
     double err = 0;
     // Check the result and make sure it is correct
-    for (int ROW = 0; ROW < N; ROW++) {
-        for (int COL = 0; COL < N; COL++) {
-            err += cpu_C[ROW * N + COL] - h_C[ROW * N + COL];
+    for (int i = 0; i < h_C_col * h_C_row; i++) {
+        err += cpu_C[i] - h_C[i];
+        if (cpu_C[i] != h_C[i])
+        {
+            printf("Mismatch at Row = %d Col = %d hostComputed[] = %f --device[] %f\n", i / h_C_col, i % h_C_col, cpu_C[i], h_C[i]);
+            break;
         }
     }
+    //print_Mat(h_C_row, h_C_col, h_C);
+    cudaDeviceSynchronize();
+    //print_Mat(h_C_row, h_C_col, cpu_C);
     std::cout << "Error: " << err << std::endl;
 
     cudaFree(d_A);
@@ -83,5 +111,5 @@ int main(int argc, char** argv)
     free(h_B);
     free(h_C);
 
-    return err == 0;
+    return 0;
 }
