@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
+#include <assert.h>
 
 // CPU
 #include "libCSV/csv.hpp"
@@ -69,15 +70,16 @@ __global__ void broadcast_subtract_kernel(const double *d_A, double *d_B, double
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch)
 {
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x; // column
-    unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; // line
+    size_t idx = blockIdx.x * blockDim.x + threadIdx.x; // column
+    size_t idy = blockIdx.y * blockDim.y + threadIdx.y; // line
     if (idy >= r_0 || idx >= r_1)
         return;
+    assert(d_apitch == d_rpitch);
     // % is slow, have optimized versions without broadcast
-    printf("d_A[%u,%u] = %lf + d_B[%u,%u] = %lf \n",  idy % a_0, idx % a_1, d_A[(idx % a_1) + d_apitch * (idy % a_0)],
+    printf("d_A[%lu,%lu] = %lf + d_B[%lu,%lu] = %lf \n",  idy % a_0, idx % a_1, d_A[(idx % a_1) + d_apitch * (idy % a_0)],
 		    idy % b_0, idx % b_1, d_B[(idx % b_1) + d_bpitch * (idy % b_0)]);
     d_R[idx + d_rpitch * idy] = d_A[(idx % a_1) + d_apitch * (idy % a_0)] - d_B[(idx % b_1) + d_bpitch * (idy % b_0)];
-    printf("d_R[%u,%u] = %lf \t", idy, idx, d_R[idx + d_rpitch * idy]); 
+    printf("d_R[%lu,%lu] = %lf \t", idy, idx, d_R[idx + d_rpitch * idy]); 
 }
 
 /**

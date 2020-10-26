@@ -85,6 +85,7 @@ int main(int argc, char **argv)
     //int blocks = std::ceil((float)r_0 * r_1 / threads);
     //dim3 blocks(nbblocks, height);
     //broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_subtract2_op,
+    std::cerr << d_apitch << std::endl;
     broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
         a_0, a_1, d_apitch,
         b_0, b_1, d_bpitch,
