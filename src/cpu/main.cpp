@@ -38,17 +38,22 @@ int main(int argc, char *argv[])
     double Q[4] = {0, 1, 0, 1};
     */
 
-    auto results = icp(P, Q, nbiters);
+    //auto results = icp(P, Q, nbiters);
     //std::cout << "Found P: " << std::get<0>(results) << std::endl;
     //std::cout << "Ref Q: " << refQ << std::endl;
-    std::cout << "Squared mean diff: " << std::get<1>(results).back() << std::endl;
-    std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
+    //std::cout << "Squared mean diff: " << std::get<1>(results).back() << std::endl;
+    //std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
+    auto res = get_correspondence_indices(P, Q);
+    auto res2 = get_correspondence_indices(P.getArray(), Q.getArray(), Plines, Pcols, Qlines, Qcols);
+    for (int i = 0; i < 30; i++)
+        std::cout << std::get<1>(res.at(i)) << "  " << std::get<1>(res2.at(i)) << std::endl;
+
     //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
     //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
-    std::cout << "Errors:" << std::endl;
-    for (const auto &v : std::get<1>(results))
-        std::cout << v << std::endl;
-    std::cout << std::get<0>(results) << std::endl;
+    //std::cout << "Errors:" << std::endl;
+    //for (const auto &v : std::get<1>(results))
+    //    std::cout << v << std::endl;
+    //std::cout << std::get<0>(results) << std::endl;
     /*
     std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
     for (size_t i = 0; i < nblines; ++i)

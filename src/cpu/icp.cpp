@@ -13,6 +13,54 @@
 
 #define UNUSED(x) (void)x
 
+// \deprecated use CPUMatrix::euclidianDistance instead
+/**
+double three_dim_norm(CPUMatrix A)
+{
+    //if (A.getDim1() != 3)
+    //    throw std::invalid_argument("Matrix not of dim 3");
+    double r = 0;
+    for (size_t i = 0; i < A.getDim1(); ++i)
+        r += pow2(A(0, i));
+    if (A.getDim1() == 3)
+        runtime_assert((std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2)) == r, "FATAL");
+    auto norm = A.squared_norm(-1);
+    runtime_assert(norm.getDim0() == 1 && norm.getDim1() == 1, "INVALID NORM SIZE ! FATAL ERROR");
+    double res = norm(0, 0);
+    runtime_assert(r == res, "INVALID NORM ! FATAL ERROR");
+    //return std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2);
+    return r;
+}**/
+
+std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
+                                                                size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
+{
+    std::vector<std::tuple<size_t, int>> correspondances = {};
+    for (size_t i = 0; i < P_r; i++)
+    {
+        //double *transposed_P = transpose(P, P_r, P_c);
+        //double *p_point = transposed_P + i * P_c; //begin of line p_point of size P_x
+        double *p_point = P + i * P_c;
+        double min_dist = std::numeric_limits<double>::max();
+        int chosen_idx = -1;
+        for (size_t j = 0; j < Q_r; j++)
+        {
+            //double *transposed_Q = transpose(Q, Q_r, Q_c);
+            //double *q_point = transposed_Q + j * Q_c; //begin of line q_point of size P_x
+            double *q_point = Q + j * Q_c;
+            double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
+                                              squared_norm_2, add, add)); //norm 2 between 2 vectors
+            if (dist < min_dist)
+            {
+                min_dist = dist;
+                chosen_idx = j;
+            }
+        }
+        correspondances.push_back(std::make_tuple(i, chosen_idx));
+    }
+    return correspondances;
+}
+
 std::vector<std::tuple<size_t, int>> get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q)
 {
     std::vector<std::tuple<size_t, int>> correspondances = {};
@@ -116,24 +164,6 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
     return std::make_tuple(std::move(P_copy), norm_values, correps_values);
 }
 
-// \deprecated use CPUMatrix::euclidianDistance instead
-/**
-double three_dim_norm(CPUMatrix A)
-{
-    //if (A.getDim1() != 3)
-    //    throw std::invalid_argument("Matrix not of dim 3");
-    double r = 0;
-    for (size_t i = 0; i < A.getDim1(); ++i)
-        r += pow2(A(0, i));
-    if (A.getDim1() == 3)
-        runtime_assert((std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2)) == r, "FATAL");
-    auto norm = A.squared_norm(-1);
-    runtime_assert(norm.getDim0() == 1 && norm.getDim1() == 1, "INVALID NORM SIZE ! FATAL ERROR");
-    double res = norm(0, 0);
-    runtime_assert(r == res, "INVALID NORM ! FATAL ERROR");
-    //return std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2);
-    return r;
-}**/
 
 /**
 // \deprecated
@@ -170,31 +200,3 @@ std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, doub
     return std::make_tuple(cov, exclude_indices);
 }**/
 
-/**
-// \deprecated
-std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
-                                                                size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
-{
-    std::vector<std::tuple<size_t, int>> correspondances = {};
-    for (size_t i = 0; i < P_r; i++)
-    {
-        double *transposed_P = transpose(P, P_r, P_c);
-        double *p_point = transposed_P + i * P_c; //begin of line p_point of size P_x
-        double min_dist = std::numeric_limits<double>::max();
-        int chosen_idx = -1;
-        for (size_t j = 0; j < Q_r; j++)
-        {
-            double *transposed_Q = transpose(Q, Q_r, Q_c);
-            double *q_point = transposed_Q + j * Q_c; //begin of line q_point of size P_x
-            double dist = element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
-                                              squared_norm_2, add, add); //norm 2 between 2 vectors
-            if (dist < min_dist)
-            {
-                min_dist = dist;
-                chosen_idx = j;
-            }
-        }
-        correspondances.push_back(std::make_tuple(i, chosen_idx));
-    }
-    return correspondances;
-}**/

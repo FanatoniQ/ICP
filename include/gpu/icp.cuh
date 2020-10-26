@@ -13,6 +13,8 @@
 #include "libalg/CPUView.hpp"
 #include "error.hpp"
 
+
+
 __global__ void get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q, std::vector<std::tuple<size_t, int>> &correspondances);
 
 __global__ void compute_cross_variance(CPUMatrix &P, CPUMatrix &Q, const std::vector<std::tuple<size_t, int>> &correspondences,
