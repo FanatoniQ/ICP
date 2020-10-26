@@ -44,9 +44,11 @@ int main(int argc, char **argv)
     std::string h{};
     size_t nblines, nbcols;
     double *h_A = readCSV(argv[1], h, nblines, nbcols);
-    auto A = CPUMatrix(h_A, nbcols, nblines);
-    auto cpuSum = A.mean(0);
-    auto R = A - cpuSum; // testing centered data
+    std::cerr << nblines << nbcols << std::endl;
+    auto A = CPUMatrix(h_A, nblines, nbcols);
+    std::cerr << A << std::endl;
+    auto cpuMean = A.mean(0); //.transpose();
+    auto R = A - cpuMean; // testing centered data
 
     // left operand
     double *d_A;
@@ -60,10 +62,10 @@ int main(int argc, char **argv)
     // right operand
     double *d_B;
     size_t d_bpitch;
-    unsigned int b_0 = cpuSum.getDim0(), b_1 = cpuSum.getDim1();
+    unsigned int b_0 = cpuMean.getDim0(), b_1 = cpuMean.getDim1();
     cudaMallocPitch(&d_B, &d_bpitch, b_1 * sizeof(double), b_0 * sizeof(double));
     cudaCheckError();
-    cudaMemcpy2D(d_B, d_bpitch, cpuSum.getArray(), b_1 * sizeof(double), b_1 * sizeof(double), b_0, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_B, d_bpitch, cpuMean.getArray(), b_1 * sizeof(double), b_1 * sizeof(double), b_0, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     // result
@@ -82,7 +84,8 @@ int main(int argc, char **argv)
     //int threads = 4; // TODO: change this
     //int blocks = std::ceil((float)r_0 * r_1 / threads);
     //dim3 blocks(nbblocks, height);
-    broadcast_op_kernel<double><<<blocksize, gridsize>>>(d_A, d_B, d_R, h_subtract2_op,
+    //broadcast_op_kernel<double><<<blocksize, gridsize>>>(d_A, d_B, d_R, h_subtract2_op,
+    broadcast_subtract_kernel<<<blocksize, gridsize>>>(d_A, d_B, d_R,
         a_0, a_1, d_apitch,
         b_0, b_1, d_bpitch,
         r_0, r_1, d_rpitch);
@@ -98,22 +101,28 @@ int main(int argc, char **argv)
     cudaCheckError();
 
     // checking result
+    std::cerr << cpuMean << std::endl;
+    std::cerr << R << std::endl;
     double *h_Rcpu = R.getArray();
     runtime_assert(r_0 == R.getDim0() && r_1 == R.getDim1(), "Invalid shapes !");
     for (size_t i = 0; i < r_0; ++i)
     {
         for (size_t j = 0; j < r_1; ++j)
         {
-            if (h_r[i + j * d_rpitch] != h_Rcpu[i + j * r_1])
+	    std::cerr << h_r[i * d_rpitch + j] << " ";
+	    /**
+            if (h_r[j + i * d_rpitch] != h_Rcpu[j + i * r_1])
             {
-                std::cerr << "Difference : "
-                    << "GPU: " << h_r[i + j * d_rpitch]
+                std::cerr << i << "," << j << " : Difference : "
+                    << "GPU: " << h_r[j + i * d_rpitch]
                     << std::endl
-                    << "CPU: " << h_Rcpu[i + j * r_1]
+                    << "CPU: " << h_Rcpu[j + i * r_1]
                     << std::endl;
-                return EXIT_FAILURE; // Free...
+                //return EXIT_FAILURE; // Free...
             }
+	    **/
         }
+	std::cerr << std::endl;
     }
 
     std::cerr << "SUCCESS !" << std::endl;

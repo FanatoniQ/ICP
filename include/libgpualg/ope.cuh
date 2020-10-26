@@ -70,3 +70,7 @@ __global__ void broadcast_op_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
 
+__global__ void broadcast_subtract_kernel(const double *d_A, double *d_B, double *d_R,
+    unsigned int a_0, unsigned int a_1, size_t d_apitch,
+    unsigned int b_0, unsigned int b_1, size_t d_bpitch,
+    unsigned int r_0, unsigned int r_1, size_t d_rpitch);
