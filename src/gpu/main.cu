@@ -57,12 +57,12 @@ int main(int argc, char **argv)
     CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
     std::cout << P;
 
-    double *Qt = (double*)malloc(sizeof(double) * Plines * Pcols);
+    //double *Qt = (double*)malloc(sizeof(double) * Plines * Pcols);
 
     //std::vector<std::tuple<size_t, int>> correspondances = {};
-    naiveGPUTranspose<<<32, 32>>>(Pt, Qt, Plines, Pcols);//(P, Q, correspondances);
-    CPUMatrix Q = CPUMatrix(Qt, Pcols, Plines);
-    std::cout << Q;
+    //naiveGPUTranspose<<<32, 32>>>(Pt, Qt, Plines, Pcols);//(P, Q, correspondances);
+    //CPUMatrix Q = CPUMatrix(Qt, Pcols, Plines);
+    //std::cout << Q;
     cudaDeviceSynchronize();
     cudaCheckError();
 }

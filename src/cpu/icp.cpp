@@ -13,7 +13,7 @@
 
 #define UNUSED(x) (void)x
 
-
+// Implementation with double arrays for GPU usage
 std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
                                                                 size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
 {
@@ -39,6 +39,35 @@ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, doubl
     return correspondances;
 }
 
+// Implementation with double arrays and no vector for full GPU usage
+std::tuple<size_t, int> *get_correspondence_indices_array(double *P, double *Q,
+                                                                size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
+{
+    std::tuple<size_t, int> *correspondances = (std::tuple<size_t, int> *)calloc(P_r, sizeof(std::tuple<size_t, int>));
+    int push_index = 0;
+    for (size_t i = 0; i < P_r; i++)
+    {
+        double *p_point = P + i * P_c;
+        double min_dist = std::numeric_limits<double>::max();
+        int chosen_idx = -1;
+        for (size_t j = 0; j < Q_r; j++)
+        {
+            double *q_point = Q + j * Q_c;
+            double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
+                                    squared_norm_2, add, add)); //norm 2 between 2 vectors
+            if (dist < min_dist)
+            {
+                min_dist = dist;
+                chosen_idx = j;
+            }
+        }
+        correspondances[push_index] = std::make_tuple(i, chosen_idx);
+        push_index++;
+    }
+    return correspondances;
+}
+
+// Implementation with CPUMatrix for quick CPU usage
 std::vector<std::tuple<size_t, int>> get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q)
 {
     std::vector<std::tuple<size_t, int>> correspondances = {};
@@ -74,6 +103,7 @@ double default_kernel(double a)
     return 1;
 }
 
+// Implementation with CPUMAtrix
 std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, CPUMatrix &Q,
                                                                   const std::vector<std::tuple<size_t, int>> &correspondences, double (*kernel)(CPUMatrix a))
 {
@@ -99,6 +129,7 @@ std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, 
     return std::make_tuple(std::move(cov), exclude_indices);
 }
 
+// Intermediation function to be replaced with element_wise_op
 void increment_array(double *P, double *Q)
 {
     for (int i = 0; i < 3; i++)
@@ -110,6 +141,7 @@ void increment_array(double *P, double *Q)
     }
 }
 
+// Array implementation for GPU
 std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, double *Q,
                                                                  std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
                                                                  size_t Q_r, size_t Q_c, double (*kernel)(double a)) //set default function to lambda function??
@@ -146,6 +178,7 @@ std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, doub
     return std::make_tuple(cov, exclude_indices);
 }
 
+// Quick CPUMatrix implementation for CPU
 std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix &P, CPUMatrix &Q, unsigned iterations)
 {
     // Center data P and Q
