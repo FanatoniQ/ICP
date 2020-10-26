@@ -51,6 +51,10 @@ Makefile
 # vscode
 .vscode/
 
+# visual studio
+.vs/
+CMakeSettings.json
+
 # idea
 .idea/
 cmake-build-debug/

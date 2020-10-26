@@ -99,6 +99,10 @@ if (CUDA_FOUND)
  cuda_add_executable(testgpumean "src/testlibgpualg/testgpumean.cu")
  target_link_libraries(testgpumean CSV alg gpualg)
 
+ CUDA_COMPILE(testgpumult "src/testlibgpualg/testgpumult.cu")
+ cuda_add_executable(testgpumult "src/testlibgpualg/testgpumult.cu")
+ target_link_libraries(testgpumult CSV alg gpualg)
+
  #######
  # GPU #
  #######
