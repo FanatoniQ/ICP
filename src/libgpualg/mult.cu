@@ -5,11 +5,12 @@
 #define Tile_size 2
 
 __global__ void matrixMultiplyShared(float* A, float* B, float* C,
-    int numARows, int numAColumns,
-    int numBRows, int numBColumns,
-    int numCRows, int numCColumns)
+    int matARows, int matAColumns,
+    int matBRows, int matBColumns,
+    int matCRows, int matCColumns)
 {
-    __shared__ float sA[Tile_size][Tile_size];   // Tile size to store elements in shared memory
+    // Tile size to store elements in shared memory
+    __shared__ float sA[Tile_size][Tile_size]; 
     __shared__ float sB[Tile_size][Tile_size];
 
     int Row = blockDim.y * blockIdx.y + threadIdx.y; //To generate ids of threads.
@@ -18,19 +19,21 @@ __global__ void matrixMultiplyShared(float* A, float* B, float* C,
     sA[threadIdx.y][threadIdx.x] = 0.0;
     sB[threadIdx.y][threadIdx.x] = 0.0;
 
-    for (int k = 0; k < (((numAColumns - 1) / Tile_size) + 1); k++)
+    for (int k = 0; k < (((matAColumns - 1) / Tile_size) + 1); k++)
     {
-        if ((Row < numARows) && (threadIdx.x + (k * Tile_size)) < numAColumns)//Copy Data to Tile from Matrix (Global Memory to Shared Memory)
+        //Copy Data to Tile from Matrix (Global Memory to Shared Memory)
+        if ((Row < matARows) && (threadIdx.x + (k * Tile_size)) < matAColumns)
         {
-            sA[threadIdx.y][threadIdx.x] = A[(Row * numAColumns) + threadIdx.x + (k * Tile_size)];
+            sA[threadIdx.y][threadIdx.x] = A[(Row * matAColumns) + threadIdx.x + (k * Tile_size)];
         }
         else
         {
             sA[threadIdx.y][threadIdx.x] = 0.0;
         }
-        if (Col < numBColumns && (threadIdx.y + k * Tile_size) < numBRows)//Copy Data to Tile from Matrix (Global Memory to Shared Memory)
+        //Copy Data to Tile from Matrix (Global Memory to Shared Memory)
+        if (Col < matBColumns && (threadIdx.y + k * Tile_size) < matBRows)
         {
-            sB[threadIdx.y][threadIdx.x] = B[(threadIdx.y + k * Tile_size) * numBColumns + Col];
+            sB[threadIdx.y][threadIdx.x] = B[(threadIdx.y + k * Tile_size) * matBColumns + Col];
         }
         else
         {
@@ -43,9 +46,9 @@ __global__ void matrixMultiplyShared(float* A, float* B, float* C,
             Cvalue += sA[threadIdx.y][j] * sB[j][threadIdx.x];
         }
     }
-    if (Row < numCRows && Col < numCColumns)//Saving Final result into Matrix C
+    if (Row < matCRows && Col < matCColumns)//Saving Final result into Matrix C
     {
-        C[Row * numCColumns + Col] = Cvalue;
+        C[Row * matCColumns + Col] = Cvalue;
     }
 }
 
