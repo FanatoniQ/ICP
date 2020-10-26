@@ -13,6 +13,7 @@
 
 #define UNUSED(x) (void)x
 
+/*
 __global__ void get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q, std::vector<std::tuple<size_t, int>> &correspondances)
 {
     int i = blockIdx.x*width+threadIdx.x; //P getDim0
@@ -32,7 +33,7 @@ __global__ void get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q, std::vect
         }
         correspondances.push_back(std::make_tuple(i, chosen_idx));
     }
-    /*
+    //
     for (size_t i = 0; i < P.getDim0(); i++)
     {
         auto p_point = P.getLine(i);
@@ -49,8 +50,9 @@ __global__ void get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q, std::vect
         }
         correspondances.push_back(std::make_tuple(i, chosen_idx));
     }
-    */
+    
 }
+*/
 
 __global__ void compute_cross_variance(CPUMatrix &P, CPUMatrix &Q, const std::vector<std::tuple<size_t, int>> &correspondences,
                             double (*kernel)(CPUMatrix a), std::tuple<CPUMatrix, std::vector<double>> &res) //pas besoin de cuda en fait c'est des op de base

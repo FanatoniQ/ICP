@@ -44,12 +44,16 @@ int main(int argc, char *argv[])
     //std::cout << "Squared mean diff: " << std::get<1>(results).back() << std::endl;
     //std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
     auto res = get_correspondence_indices(P, Q);
-    auto res2 = get_correspondence_indices(P.getArray(), Q.getArray(), Plines, Pcols, Qlines, Qcols);
-    for (int i = 0; i < 30; i++)
-        std::cout << std::get<1>(res.at(i)) << "  " << std::get<1>(res2.at(i)) << std::endl;
+    //auto res2 = get_correspondence_indices(P.getArray(), Q.getArray(), Plines, Pcols, Qlines, Qcols);
+    //for (int i = 0; i < 30; i++)
+    //    std::cout << std::get<1>(res.at(i)) << "  " << std::get<1>(res2.at(i)) << std::endl;
 
-    //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
-    //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
+    auto final = compute_cross_variance(P, Q, res, nullptr);
+    std::cout << std::get<0>(final); //<< " and "<< std::get<1>(final).at(0);
+    //auto finale = compute_cross_variance(P.getArray(), Q.getArray(), res, P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1(), nullptr);
+    //auto arr = std::get<0>(finale);
+    //for (int i = 0; i < 9; i++)
+    //    std::cout << *(arr+i) << std::endl;
     //std::cout << "Errors:" << std::endl;
     //for (const auto &v : std::get<1>(results))
     //    std::cout << v << std::endl;
