@@ -106,6 +106,10 @@ if (CUDA_FOUND)
  CUDA_COMPILE(testgpuope "src/testlibgpualg/testgpuope.cu")
  cuda_add_executable(testgpuope "src/testlibgpualg/testgpuope.cu")
  target_link_libraries(testgpuope CSV alg gpualg)
+ 
+ CUDA_COMPILE(testgpueuclid "src/testlibgpualg/testgpueuclid.cu")
+ cuda_add_executable(testgpueuclid "src/testlibgpualg/testgpueuclid.cu")
+ target_link_libraries(testgpueuclid CSV alg gpualg)
 
  #######
  # GPU #
