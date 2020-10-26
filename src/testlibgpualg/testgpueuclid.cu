@@ -93,5 +93,4 @@ int main(int argc, char **argv)
     std::cerr << "SUCCESS" << std::endl;
     cudaFree(d_Pt);
     cudaCheckError();
-    free(h_P);
 }
