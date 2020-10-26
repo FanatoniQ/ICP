@@ -71,7 +71,7 @@ int main(int argc, char **argv)
     size_t d_rpitch = d_apitch;
     size_t r_0, r_1;
     runtime_assert(get_broadcastable_size(a_0, a_1, b_0, b_1, &r_0, &r_1), "Invalid size for broadcasting !");
-    runtime_assert(r_0 == b_0 && r_1 == b_1, "Invalid broadcasting for inplace operation !");
+    runtime_assert(r_0 == a_0 && r_1 == a_1, "Invalid broadcasting for inplace operation !");
 
     // Launch the kernel
     dim3 blocksize(32,32); // 1024 threads per block TODO: change to test
