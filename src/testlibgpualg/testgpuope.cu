@@ -47,7 +47,8 @@ int main(int argc, char **argv)
     std::cerr << nblines << nbcols << std::endl;
     auto A = CPUMatrix(h_A, nblines, nbcols);
     std::cerr << A << std::endl;
-    auto cpuMean = A.mean(0); //.transpose();
+    //auto cpuMean = A.mean(0); //.transpose();
+    auto cpuMean = A.mean(1).transpose(); //.transpose();
     auto R = A - cpuMean; // testing centered data
 
     // left operand
@@ -86,6 +87,8 @@ int main(int argc, char **argv)
     //dim3 blocks(nbblocks, height);
     //broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_subtract2_op,
     std::cerr << d_apitch << std::endl;
+    std::cerr << d_bpitch << std::endl;
+    std::cerr << b_0 << "," << b_1 << std::endl;
     broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
         a_0, a_1, d_apitch,
         b_0, b_1, d_bpitch,
