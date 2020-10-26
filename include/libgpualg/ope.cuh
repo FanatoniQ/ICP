@@ -1,18 +1,8 @@
-#include <stdio.h>
-#include <iostream>
-#include <iomanip>
+#pragma once
 
-// CPU
-#include "libCSV/csv.hpp"
-#include "libalg/CPUMatrix.hpp"
-#include "libalg/alg.hpp"
-#include "libalg/print.hpp"
-#include "libalg/broadcasting.hpp"
-#include "error.hpp"
-
-// GPU
-#include "error.cuh"
-#include "libgpualg/ope.cuh"
+// template for function pointers
+template<typename T>
+using func2_t = T (*) (T, T); // type alias quicker
 
 /** basic_operations (put this in basic_operations.cpp and co)
  ** TODO: add this to basiq_operations.cpp with ifdef
@@ -20,44 +10,34 @@
 
 template <typename T> 
 __host__ __device__
-T add(T a, T b)
-{
-    return a + b;
-}
+T add(T a, T b);
 
 template <typename T> 
 __host__ __device__
-T subtract(T a, T b)
-{
-    return a - b;
-}
+T subtract(T a, T b);
 
 template <typename T> 
 __host__ __device__
-T mult(T a, T b)
-{
-    return a * b;
-}
+T mult(T a, T b);
 
 template <typename T> 
 __host__ __device__
-T divide(T a, T b)
-{
-    return a / b;
-}
+T divide(T a, T b);
+
+/** static pointers for use in kernel
 
 template <typename T>
-__device__ func2_t<T> add2_op = add<T>;
+__device__ func2_t<T> add2_op;
 
 template <typename T>
-__device__ func2_t<T> subtract2_op = subtract<T>;
+__device__ func2_t<T> subtract2_op;
 
 template <typename T>
-__device__ func2_t<T> mult2_op = mult<T>;
+__device__ func2_t<T> mult2_op;
 
 template <typename T>
-__device__ func2_t<T> divide2_op = divide<T>;
-
+__device__ func2_t<T> divide2_op;
+**/
 
 /** Kernel **/
 
@@ -86,22 +66,6 @@ __device__ func2_t<T> divide2_op = divide<T>;
  **/
 template <typename T>
 __global__ void broadcast_op_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,
-    unsigned int a_0, unsigned int a_1, size_t d_apitch,
-    unsigned int b_0, unsigned int b_1, size_t d_bpitch,
-    unsigned int r_0, unsigned int r_1, size_t d_rpitch)
-{
-    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x; // column
-    unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; // line
-    if (idy >= r_0 || idx >= r_1)
-        return;
-    // % is slow, have optimized versions without broadcast
-    d_R[idx + d_rpitch * idy] = op(d_A[(idx % a_1) + d_apitch * (idy % a_0)], d_B[(idx % b_1) + d_bpitch * (idy % b_0)]);
-}
-
-// explicit instanciation for lib import
-
-template
-__global__ void broadcast_op_kernel<double>(const double *d_A, double *d_B, double *d_R, func2_t<double> op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
