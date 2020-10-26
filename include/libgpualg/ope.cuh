@@ -56,13 +56,13 @@ __device__ func2_t<T> divide2_op;
  ** elements from d_A and d_B
  ** \param a_0 the number of lines in d_A
  ** \param a_1 the number of columns in d_A
- ** \param d_apitch the pitch of d_A in bytes
+ ** \param d_apitch the pitch of d_A NOT in bytes
  ** \param b_0 the number of line in d_B
  ** \param b_1 the number of columns in d_B
- ** \param d_bpitch the pitch of d_B in bytes
+ ** \param d_bpitch the pitch of d_B NOT in bytes
  ** \param r_0 the number of line in d_R
  ** \param r_1 the number of columns in d_R
- ** \param d_rpitch the pitch of d_R in bytes
+ ** \param d_rpitch the pitch of d_R NOT in bytes
  **/
 template <typename T>
 __global__ void broadcast_op_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,

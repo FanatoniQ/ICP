@@ -47,8 +47,8 @@ int main(int argc, char **argv)
     std::cerr << nblines << nbcols << std::endl;
     auto A = CPUMatrix(h_A, nblines, nbcols);
     std::cerr << A << std::endl;
-    //auto cpuMean = A.mean(0); //.transpose();
-    auto cpuMean = A.mean(1).transpose(); //.transpose();
+    auto cpuMean = A.mean(0); //.transpose();
+    //auto cpuMean = A.mean(1).transpose(); //.transpose();
     auto R = A - cpuMean; // testing centered data
 
     // left operand
