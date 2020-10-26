@@ -90,9 +90,9 @@ int main(int argc, char **argv)
     std::cerr << d_bpitch << std::endl;
     std::cerr << b_0 << "," << b_1 << std::endl;
     broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
-        a_0, a_1, d_apitch,
-        b_0, b_1, d_bpitch,
-        r_0, r_1, d_rpitch);
+        a_0, a_1, d_apitch / sizeof(double),
+        b_0, b_1, d_bpitch / sizeof(double),
+        r_0, r_1, d_rpitch / sizeof(double));
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -113,8 +113,7 @@ int main(int argc, char **argv)
     {
         for (size_t j = 0; j < r_1; ++j)
         {
-	    std::cerr << h_r[i * d_rpitch + j] << " ";
-	    /**
+	    std::cerr << h_r[i * (d_rpitch / sizeof(double)) + j] << " ";
             if (h_r[j + i * d_rpitch] != h_Rcpu[j + i * r_1])
             {
                 std::cerr << i << "," << j << " : Difference : "
@@ -122,9 +121,8 @@ int main(int argc, char **argv)
                     << std::endl
                     << "CPU: " << h_Rcpu[j + i * r_1]
                     << std::endl;
-                //return EXIT_FAILURE; // Free...
+                return EXIT_FAILURE; // Free...
             }
-	    **/
         }
 	std::cerr << std::endl;
     }
