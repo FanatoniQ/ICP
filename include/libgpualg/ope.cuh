@@ -38,7 +38,7 @@ __global__ void broadcast_op_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,
 /**
  ** \brief broadcast_op_line_vector_kernel performs numpy style broadcasting with the left operand matrix and the given line vector:
  ** d_R = d_A op d_B, with the given op
- ** can be launched with <<<blocks,threads>>> as long as blocks*threads >= r_0 * r_1
+ ** can be launched with <<<blocks,threads, threads.x * sizeof(T)>>> as long as blocks*threads >= r_0 * r_1
  ** otherwise the data will not be entirely processed. This is an optimized version which uses shared memory instead of
  ** device memory for storing a partial vector line in the block (b_0 == 1) and threfore no broadcasting modulus calculating.
  ** This should have better performance due to modulus but also since we read only nbblocks times each vector line. TODO: benchmark
@@ -67,7 +67,7 @@ __global__ void broadcast_op_line_vector_kernel(const T *d_A, T *d_B, T *d_R, fu
 /**
  ** \brief broadcast_op_column_vector_kernel performs numpy style broadcasting with the left operand matrix and the given column vector:
  ** d_R = d_A op d_B, with the given op
- ** can be launched with <<<blocks,threads>>> as long as blocks*threads >= r_0 * r_1
+ ** can be launched with <<<blocks,threads, threads.y * sizeof(T)>>> as long as blocks*threads >= r_0 * r_1
  ** otherwise the data will not be entirely processed. This is an optimized version which uses shared memory instead of
  ** device memory for storing a partial vector column in the block (rowise in shared memory) (b_1 == 1)
  ** and threfore no broadcasting modulus calculating.
