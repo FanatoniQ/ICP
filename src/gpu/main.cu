@@ -54,7 +54,7 @@ int main(int argc, char **argv)
     double *source, *dest;
     double *d_source, *d_dest;
     int row = 4 * 8;
-    int column = 4 * 8;
+    int column = 4 * 1;
     size_t size = row * column * sizeof(double);
 
     source = (double *)malloc(size);
@@ -83,7 +83,10 @@ int main(int argc, char **argv)
         std::cout<<std::endl;
     }
     //double *Qt = (double*)malloc(sizeof(double) * Plines * Pcols);
-
+    free(source);
+    free(dest);
+    cudaFree(d_source);
+    cudaFree(d_dest);
     //std::vector<std::tuple<size_t, int>> correspondances = {};
     //naiveGPUTranspose<<<32, 32>>>(Pt, Qt, Plines, Pcols);//(P, Q, correspondances);
     //CPUMatrix Q = CPUMatrix(Qt, Pcols, Plines);
