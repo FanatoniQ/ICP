@@ -85,6 +85,26 @@ __global__ void broadcast_op_line_vector_kernel(const T *d_A, T *d_B, T *d_R, fu
 }
 
 template <typename T>
+__global__ void broadcast_op_column_vector_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,
+    unsigned int a_0, unsigned int a_1, size_t d_apitch,
+    unsigned int b_0, unsigned int b_1, size_t d_bpitch,
+    unsigned int r_0, unsigned int r_1, size_t d_rpitch)
+{
+    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x; // column
+    unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; // line
+    extern __shared__ T s_vector[]; // double to store vector of size (blockDim.y)
+    assert((b_1 == 1) && "d_B should be a column vector !");
+    assert((a_0 == r_0 && a_1 == r_1) && "Invalid shape for line vector op resulting matrix");
+    if (idy >= r_0 || idx >= r_1)
+        return;
+    if (threadIdx.x == 0) // first column of block loads vector
+        s_vector[threadIdx.y] = d_B[idy * d_bpitch];
+    __syncthreads(); // wait for vector to be avalaible for all threads in block
+    d_R[idx + d_rpitch * idy] = (*op)(d_A[idx + d_apitch * idy], s_vector[threadIdx.y]);
+}
+
+
+template <typename T>
 __global__ void broadcast_op_scalar_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch)
@@ -117,6 +137,12 @@ __global__ void broadcast_op_scalar_kernel<double>(const double *d_A, double *d_
 
 template
 __global__ void broadcast_op_line_vector_kernel<double>(const double *d_A, double *d_B, double *d_R, func2_t<double> op,
+    unsigned int a_0, unsigned int a_1, size_t d_apitch,
+    unsigned int b_0, unsigned int b_1, size_t d_bpitch,
+    unsigned int r_0, unsigned int r_1, size_t d_rpitch);
+
+template
+__global__ void broadcast_op_column_vector_kernel<double>(const double *d_A, double *d_B, double *d_R, func2_t<double> op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
