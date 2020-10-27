@@ -67,6 +67,7 @@ target_link_libraries(CPUICP CSV alg)
 ###########
 
 if (CUDA_FOUND)
+ set (CMAKE_CUDA_STANDARD 17)
  set(CUDA_SEPARABLE_COMPILATION ON)
  set(CUDA_HOST_COMPILER g++) #${CMAKE_CXX_COMPILER})
  set(CMAKE_CUDA_FLAGS RELEASE) # TODO: use CXX flag
@@ -80,6 +81,7 @@ if (CUDA_FOUND)
  file(GLOB LIBALGGPUSOURCES "src/libgpualg/*.cu")
  #cuda_compile(gpualg ${LIBALGGPUSOURCES}) # NOT SURE
  cuda_add_library(gpualg STATIC ${LIBALGGPUSOURCES})
+ target_link_libraries(gpualg ${CUDA_cusolver_LIBRARY})
 
  #################
  # TESTLIBGPUALG #
@@ -110,6 +112,10 @@ if (CUDA_FOUND)
  CUDA_COMPILE(testgpueuclid "src/testlibgpualg/testgpueuclid.cu")
  cuda_add_executable(testgpueuclid "src/testlibgpualg/testgpueuclid.cu")
  target_link_libraries(testgpueuclid CSV alg gpualg)
+
+ CUDA_COMPILE(testgpusvd "src/testlibgpualg/testgpusvd.cu")
+ cuda_add_executable(testgpusvd "src/testlibgpualg/testgpusvd.cu")
+ target_link_libraries(testgpusvd CSV alg gpualg)
 
  #######
  # GPU #
