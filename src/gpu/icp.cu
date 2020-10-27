@@ -15,8 +15,7 @@
 
 #define UNUSED(x) (void)x
 
-// Version CPU calling GPU kernel
-
+/* --------- CPU Version Calling GPU Kernel ------------ */
 std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
                                                                 size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
 {
@@ -42,8 +41,9 @@ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, doubl
     return correspondances;
 }
 
+
 // Intermediation function to be replaced with element_wise_op
-void increment_array(double *P, double *Q)
+void increment_cov(double *P, double *Q)
 {
     for (int i = 0; i < 3; i++)
     {
@@ -54,55 +54,36 @@ void increment_array(double *P, double *Q)
     }
 }
 
-// Need to rewrite it here otherwise not recognized from cpp file
-double default_kernel(double a)
-{
-    UNUSED(a);
-    return 1;
-}
-
-// Array implementation for GPU
-std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, double *Q,
-                                                                 std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
-                                                                 size_t Q_r, size_t Q_c, double (*kernel)(double a)) //set default function to lambda function??
+double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
+                                size_t Q_r, size_t Q_c) //set default function to lambda function??
 {
     UNUSED(Q_r);
-    UNUSED(P_r);
-    if (kernel == nullptr)
-        kernel = &default_kernel;
     double *cov = (double *)calloc(9, sizeof(double));
-    std::vector<double> exclude_indices = {};
+
     for (auto tup : correspondences)
     {
         auto i = std::get<0>(tup);
         auto j = std::get<1>(tup);
         double *q_point = Q + j * Q_c;
         double *p_point = P + i * P_c;
-        double weight = kernel(*p_point - *q_point);
-
-        if (weight < 0.01)
-            exclude_indices.push_back(i);
 
         double *doted_points = nullptr;
-        dot_product(&doted_points, transpose(q_point, 1, Q_c), p_point, Q_c, 1, 1, P_c); //dim of Q_r * P_r
-
-        double *weighted_points = nullptr; //multiply by the weight
-        size_t Wdim0, Wdim1;                // use high level API instead
-        element_wise_op(&weighted_points, &weight, doted_points, 1, 1, Q_c, P_c, Wdim0, Wdim1, mult);
-        //size_t Wcov0, Wcov1; // should be 2, use high level API instead
-        //element_wise_op(&cov, cov, weighted_points, 3, 3, P_c, Q_c, Wcov0, Wcov1, add);
-        increment_array(cov, weighted_points); //need to set element_wise_op but too complicated, doesn't work for some reason.
-        free(weighted_points);
+        double *transposed_Q = transpose(q_point, 1, Q_c);
+        dot_product(&doted_points, transposed_Q, p_point, Q_c, 1, 1, P_c); //dim of Q_r * P_r
+        free (transposed_Q); 
+        increment_cov(cov, doted_points); //need to set element_wise_op but too complicated, doesn't work for some reason.
         free(doted_points);
     }
-    return std::make_tuple(cov, exclude_indices);
+    return cov;
 }
 
-// Version GPU Kernel
-/*
-void get_correspondence_indices(std::vector<std::tuple<size_t, int>> res, double *P, double *Q, size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
+/* -------------- Version GPU Kernel -----------*/
+
+// Implementation with double arrays and no vector for full GPU usage
+void get_correspondence_indices_array(double *P, double *Q,
+                                size_t P_r, size_t P_c, size_t Q_r, size_t Q_c, std::tuple<size_t, int> *correspondances)
 {
-    std::vector<std::tuple<size_t, int>> correspondances = {};
+    int push_index = 0;
     for (size_t i = 0; i < P_r; i++)
     {
         double *p_point = P + i * P_c;
@@ -119,8 +100,42 @@ void get_correspondence_indices(std::vector<std::tuple<size_t, int>> res, double
                 chosen_idx = j;
             }
         }
-        correspondances.push_back(std::make_tuple(i, chosen_idx));
+        correspondances[push_index] = std::make_tuple(i, chosen_idx);
+        push_index++;
     }
-    return correspondances;
 }
-*/
+
+// Array implementation for GPU
+void compute_cross_variance_array(double * cov, double *P, double *Q, std::tuple<size_t, int> *correspondences, size_t P_r, size_t P_c,
+                                size_t Q_r, size_t Q_c) //set default function to lambda function??
+{
+    UNUSED(Q_r);
+    UNUSED(P_r);
+
+    for (size_t index = 0; index < P_r; index ++)
+    {
+        auto i = std::get<0>(correspondences[index]);
+        auto j = std::get<1>(correspondences[index]);
+        double *q_point = Q + j * Q_c;
+        double *p_point = P + i * P_c;
+
+        double *doted_points = nullptr;
+        double *transposed_Q = transpose(q_point, 1, Q_c);
+        dot_product(&doted_points, transposed_Q, p_point, Q_c, 1, 1, P_c); //dim of Q_r * P_r
+        free (transposed_Q); 
+        increment_cov(cov, doted_points); //need to set element_wise_op but too complicated, doesn't work for some reason.
+        free(doted_points);
+    }
+}
+
+__global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows, const int cols) 
+{
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+
+    int index_in = i * cols + j;
+    int index_out = j * rows + i;
+
+    if (i < rows && j < cols)
+        d_b[index_out] = d_a[index_in];
+}

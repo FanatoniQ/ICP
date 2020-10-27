@@ -15,6 +15,7 @@
 // GPU
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
+#include "gpu/icp.cuh"
 
 
 __global__ void print_kernel()
@@ -37,16 +38,7 @@ __global__ void print_matrix_kernel(char *d_A, int pitch, int nbvals)
     printf("\n");
 }
 
-__global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows, const int cols) {
-    int i = blockIdx.y * blockDim.y + threadIdx.y;
-    int j = blockIdx.x * blockDim.x + threadIdx.x;
 
-    int index_in = i * cols + j;
-    int index_out = j * rows + i;
-
-    if (i < rows && j < cols)
-        d_b[index_out] = d_a[index_in];
-}
 
 int main(int argc, char **argv)
 {
@@ -57,6 +49,37 @@ int main(int argc, char **argv)
     CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
     std::cout << P;
 
+
+    double values = 0;
+    double *source, *dest;
+    double *d_source, *d_dest;
+    int row = 30;
+    int column = 3;
+    size_t size = row * column * sizeof(double);
+
+    source = (double *)malloc(size);
+    dest = (double *)malloc(size);
+
+    cudaMalloc((void **)&d_source, size);
+    cudaMalloc((void **)&d_dest, size);
+
+    for (int i = 0; i < row; ++i) {
+        for (int j = 0; j < column; ++j) {
+            source[i*column+j] = values;
+            values++;
+        }
+    }
+
+    cudaMemcpy(d_source, source, size, cudaMemcpyHostToDevice);
+    naiveGPUTranspose<<<32, 32>>>(d_source, d_dest, row, column);
+    cudaMemcpy(dest, d_dest, size, cudaMemcpyDeviceToHost);
+    
+    for (int i=0; i < column; ++i) {
+        for (int j = 0; j < row; ++j) {
+            std::cout<<dest[i*row+j]<<' ';
+        }
+        std::cout<<std::endl;
+    }
     //double *Qt = (double*)malloc(sizeof(double) * Plines * Pcols);
 
     //std::vector<std::tuple<size_t, int>> correspondances = {};
