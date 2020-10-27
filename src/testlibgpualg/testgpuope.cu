@@ -186,10 +186,17 @@ int main(int argc, char **argv)
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
         r_0, r_1, d_rpitch / sizeof(double));**/
-    broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
-        a_0, a_1, d_apitch / sizeof(double),
-        b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));
+    if (b_0 == 1 && b_1 == 1)
+    {
+        broadcast_op_scalar_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
+            a_0, a_1, d_apitch / sizeof(double),
+            r_0, r_1, d_rpitch / sizeof(double));
+    } else {
+        broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
+            a_0, a_1, d_apitch / sizeof(double),
+            b_0, b_1, d_bpitch / sizeof(double),
+            r_0, r_1, d_rpitch / sizeof(double));
+    }
     cudaDeviceSynchronize();
     cudaCheckError();
 
