@@ -67,8 +67,8 @@ int main(int argc, char **argv)
     runtime_assert(argc == 4, "Usage: ./testgpuope file1 meanaxis op");
     
     // retrieving functions (this part is not required if not on __host__ function)
-    func2_t<double> h_add2_op, h_subtract2_op, h_mult2_op, h_divide2_op;
-    // TODO: func2_t<double> h_op;
+    //func2_t<double> h_add2_op, h_subtract2_op, h_mult2_op, h_divide2_op;
+    /**
     cudaMemcpyFromSymbol(&h_add2_op, add2_op<double>, sizeof(func2_t<double>));
     cudaCheckError();
     cudaMemcpyFromSymbol(&h_subtract2_op, subtract2_op<double>, sizeof(func2_t<double>));
@@ -77,6 +77,9 @@ int main(int argc, char **argv)
     cudaCheckError();
     cudaMemcpyFromSymbol(&h_divide2_op, divide2_op<double>, sizeof(func2_t<double>));
     cudaCheckError();
+    **/
+    // TODO:
+    func2_t<double> h_op;
 
     // reading file, cpu operations
     std::string h{};
@@ -136,42 +139,42 @@ int main(int argc, char **argv)
     if (strcmp(argv[3], "-") == 0)
     {
          A -= cpuMean; // testing centered data
-	 //cudaMemcpyFromSymbol(&h_op, subtract2_op<double>, sizeof(func2_t<double>));
-         //cudaCheckError();
-broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_subtract2_op,
+	 cudaMemcpyFromSymbol(&h_op, subtract2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+/**broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_subtract2_op,
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));
+        r_0, r_1, d_rpitch / sizeof(double));**/
     }
     else if (strcmp(argv[3], "+") == 0)
     {
          A += cpuMean;
-	 //cudaMemcpyFromSymbol(&h_op, add2_op<double>, sizeof(func2_t<double>));
-         //cudaCheckError();
-broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_add2_op,
+	 cudaMemcpyFromSymbol(&h_op, add2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+/**broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_add2_op,
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));
+        r_0, r_1, d_rpitch / sizeof(double));**/
     }
     else if (strcmp(argv[3], "x") == 0)
     {
          A *= cpuMean;
-	 //cudaMemcpyFromSymbol(&h_op, mult2_op<double>, sizeof(func2_t<double>));
-         //cudaCheckError();
-broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_mult2_op,
+	 cudaMemcpyFromSymbol(&h_op, mult2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+/**broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_mult2_op,
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));
+        r_0, r_1, d_rpitch / sizeof(double));**/
     }
     else if (strcmp(argv[3], "/") == 0)
     {
          A /= cpuMean;
-	 //cudaMemcpyFromSymbol(&h_op, divide2_op<double>, sizeof(func2_t<double>));
-         //cudaCheckError();
-broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_divide2_op,
+	 cudaMemcpyFromSymbol(&h_op, divide2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+/**broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_divide2_op,
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));
+        r_0, r_1, d_rpitch / sizeof(double));**/
     }
     else
     {
@@ -183,11 +186,10 @@ broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_divide2_op
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
         r_0, r_1, d_rpitch / sizeof(double));**/
-/**
     broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));**/
+        r_0, r_1, d_rpitch / sizeof(double));
     cudaDeviceSynchronize();
     cudaCheckError();
 
