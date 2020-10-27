@@ -40,7 +40,7 @@ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, doubl
 }
 
 // Implementation with double arrays and no vector for full GPU usage
-void get_correspondence_indices_array(std::tuple<size_t, int> *correspondances, double *P, double *Q, size_t P_r, size_t P_c, size_t Q_r,
+void get_correspondence_indices_array(tuple **correspondances, double *P, double *Q, size_t P_r, size_t P_c, size_t Q_r,
                                         size_t Q_c)
 {
     int push_index = 0;
@@ -60,7 +60,10 @@ void get_correspondence_indices_array(std::tuple<size_t, int> *correspondances, 
                 chosen_idx = j;
             }
         }
-        correspondances[push_index] = std::make_tuple(i, chosen_idx);
+        tuple *new_tup = (tuple*)calloc(1, sizeof(tuple));
+        new_tup->index = i;
+        new_tup->value = chosen_idx;
+        correspondances[push_index] = new_tup;
         push_index++;
     }
 }

@@ -7,16 +7,17 @@
 #include "libalg/basic_operations.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/CPUMatrix.hpp"
-#include "cpu/icp.hpp"
+//#include "cpu/icp.hpp"
 #include "libalg/CPUView.hpp"
 #include "error.hpp"
+#include "cpu/tuple.hpp"
 
 #include "gpu/icp.cuh"
 
 #define UNUSED(x) (void)x
 
 /* --------- CPU Version Calling GPU Kernel ------------ */
-std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
+__host__ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
                                                                 size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
 {
     std::vector<std::tuple<size_t, int>> correspondances = {};
@@ -43,7 +44,7 @@ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, doubl
 
 
 // Intermediation function to be replaced with element_wise_op
-void increment_cov(double *P, double *Q)
+__host__ void increment_cov(double *P, double *Q)
 {
     for (int i = 0; i < 3; i++)
     {
@@ -54,7 +55,7 @@ void increment_cov(double *P, double *Q)
     }
 }
 
-double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
+__host__ double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
                                 size_t Q_r, size_t Q_c) //set default function to lambda function??
 {
     UNUSED(Q_r);
@@ -80,8 +81,7 @@ double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::vector<st
 /* -------------- Version GPU Kernel -----------*/
 
 // Implementation with double arrays and no vector for full GPU usage
-void get_correspondence_indices_array(double *P, double *Q,
-                                size_t P_r, size_t P_c, size_t Q_r, size_t Q_c, std::tuple<size_t, int> *correspondances)
+__global__ void get_correspondence_indices_array_gpu(tuple **correspondances, double *P, double *Q, size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
 {
     int push_index = 0;
     for (size_t i = 0; i < P_r; i++)
@@ -92,15 +92,21 @@ void get_correspondence_indices_array(double *P, double *Q,
         for (size_t j = 0; j < Q_r; j++)
         {
             double *q_point = Q + j * Q_c;
-            double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
-                                    squared_norm_2, add, add)); //norm 2 between 2 vectors
+            double dist = std::sqrt(*p_point + *q_point);
+            //double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
+            //                        squared_norm_2, add, add)); //norm 2 between 2 vectors
             if (dist < min_dist)
             {
                 min_dist = dist;
                 chosen_idx = j;
             }
         }
-        correspondances[push_index] = std::make_tuple(i, chosen_idx);
+        tuple *new_tup = nullptr;
+        cudaMalloc(&new_tup, sizeof(tuple));
+        //tuple *new_tup = (tuple*)calloc(1, sizeof(tuple));
+        new_tup->index = i;
+        new_tup->value = chosen_idx;
+        correspondances[push_index] = new_tup;
         push_index++;
     }
 }
