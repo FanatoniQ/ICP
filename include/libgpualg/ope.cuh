@@ -4,42 +4,6 @@
 template<typename T>
 using func2_t = T (*) (T, T); // type alias quicker
 
-/** basic_operations (put this in basic_operations.cpp and co)
- ** TODO: add this to basiq_operations.cpp with ifdef
- **
-template <typename T> 
-__device__
-T add2(T a, T b);
-
-template <typename T> 
-__device__
-T subtract2(T a, T b);
-
-template <typename T> 
-__device__
-T mult2(T a, T b);
-
-template <typename T> 
-__device__
-T divide2(T a, T b);
-**/
-
-/**
-__device__
-double add2(double a, double b);
-
-__device__
-double subtract2(double a, double b);
-
-__device__
-double mult2(double a, double b);
-
-__device__
-double divide2(double a, double b);
-**/
-
-//
-
 /** Kernel **/
 
 /**
@@ -71,6 +35,9 @@ __global__ void broadcast_op_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
 
+/**
+ ** \depreacted use broadcast_op_kernel instead
+ **/
 __global__ void broadcast_subtract_kernel(const double *d_A, double *d_B, double *d_R,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
