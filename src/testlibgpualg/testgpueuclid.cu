@@ -48,7 +48,7 @@ void test_euclidist(double *d_Pt, double *d_Qt, size_t pitch, size_t width, size
     cudaFree(d_res);
     cudaCheckError();
 
-    std::cerr << "GPU squared mean error: " << h_res[0] << std::endl;
+    std::cerr << "GPU squared mean diff: " << h_res[0] << std::endl;
     free(h_res);
 }
 
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 
     test_euclidist(d_Pt, d_Qt, pitch, width, height);
 
-    std::cerr << "CPU mean squared error: " << cpuEuclid << std::endl;
+    std::cerr << "CPU squared mean diff: " << cpuEuclid << std::endl;
     std::cerr << "SUCCESS" << std::endl;
     cudaFree(d_Pt);
     cudaCheckError();
