@@ -65,6 +65,8 @@ void element_wise_op(double **r, double *a, double *b,
     }
     r_0 = expr_0;
     r_1 = expr_1;
+    runtime_assert(a_0 == r_0, "Operation (a_0) will Not Supported on GPU");
+    runtime_assert(a_1 == r_1, "Operation (a_1) will Not Supported on GPU");
     for (i = 0; i < r_0; ++i)
     {
         for (j = 0; j < r_1; ++j)
