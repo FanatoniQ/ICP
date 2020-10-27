@@ -14,36 +14,104 @@
 #include "error.cuh"
 #include "libgpualg/ope.cuh"
 
+// TODO: export this in static lib, was linking failing or invalid device pointer
+/**
+template <typename T> 
+__device__
+T add2(T a, T b)
+{
+    return a + b;
+}
+
+template <typename T> 
+__device__
+T subtract2(T a, T b)
+{
+    return a - b;
+}
+
+template <typename T> 
+__device__
+T mult2(T a, T b)
+{
+    return a * b;
+}
+
+template <typename T> 
+__device__
+T divide2(T a, T b)
+{
+    return a / b;
+}**/
+
+// explicit pointer instanciation
+// TODO: export this in static lib, was linking failing or invalid device pointer
+// we could use constant memory function table array in static lib for exemple
+
+//template <typename T>
+
+//__device__ func2_t<double> add2_op = add<double>;
+
+//template <typename T>
+
+//__device__ func2_t<double> subtract2_op = subtract<double>;
+
+//template <typename T>
+
+//__device__ func2_t<double> mult2_op = mult<double>;
+
+//template <typename T>
+
+//__device__ func2_t<double> divide2_op = divide<double>;
+
+
+/**
+__device__ func2_t<double> add2_op = add<double>;
+
+__device__ func2_t<double> subtract2_op = subtract<double>;
+
+__device__ func2_t<double> mult2_op = mult<double>;
+
+__device__ func2_t<double> divide2_op = divide<double>;
+**/
+
+
+//__device__ func2_t<double> add2_op = add2;
+//__device__ func2_t<double> subtract2_op = subtract2;
+//__device__ func2_t<double> mult2_op = mult2;
+//__device__ func2_t<double> divide2_op = divide2;
+
+/**
+template <typename T>
+__device__ func2_t<T> add2_op = add2<T>;
 
 template <typename T>
-__device__ func2_t<T> add2_op;
+__device__ func2_t<T> subtract2_op = subtract2<T>;
 
 template <typename T>
-__device__ func2_t<T> subtract2_op;
+__device__ func2_t<T> mult2_op = mult2<T>;
 
 template <typename T>
-__device__ func2_t<T> mult2_op;
-
-template <typename T>
-__device__ func2_t<T> divide2_op;
-
-
+__device__ func2_t<T> divide2_op = divide2<T>;
+**/
 
 int main(int argc, char **argv)
 {
     runtime_assert(argc == 4, "Usage: ./testgpuope file1 meanaxis op");
     
-    // retrieving functions (this part is not required if not on __host__ function)
     /**
+    // retrieving functions (this part is not required if not on __host__ function)
     func2_t<double> h_add2_op, h_subtract2_op, h_mult2_op, h_divide2_op;
-    cudaMemcpyFromSymbol(&h_add2_op, add2_op<double>, sizeof(func2_t<double>));
-    cudaMemcpyFromSymbol(&h_subtract2_op, subtract2_op<double>, sizeof(func2_t<double>));
-    cudaMemcpyFromSymbol(&h_mult2_op, mult2_op<double>, sizeof(func2_t<double>));
-    cudaMemcpyFromSymbol(&h_divide2_op, divide2_op<double>, sizeof(func2_t<double>));
+    //func2_t<double> h_op;
+    cudaMemcpyFromSymbol(&h_add2_op, add2<double>, sizeof(func2_t<double>));
+    cudaCheckError();
+    cudaMemcpyFromSymbol(&h_subtract2_op, subtract2<double>, sizeof(func2_t<double>));
+    cudaCheckError();
+    cudaMemcpyFromSymbol(&h_mult2_op, mult2<double>, sizeof(func2_t<double>));
+    cudaCheckError();
+    cudaMemcpyFromSymbol(&h_divide2_op, divide2<double>, sizeof(func2_t<double>));
+    cudaCheckError();
     **/
-
-    func2_t<double> h_op;
-    void *d_symbol_op;
 
     // reading file, cpu operations
     std::string h{};
@@ -54,43 +122,7 @@ int main(int argc, char **argv)
     std::cerr << A << std::endl;
     auto cpuMean = A.mean(std::stoi(argv[2])); //.transpose();
     //auto cpuMean = A.mean(1).transpose(); //.transpose();
-    std::cerr << "TOTO";
-    //CPUMatrix R;
-    if (strcmp(argv[4], "-") == 0)
-    {
-         //R = A - cpuMean; // testing centered data
-	 //Dereferencing a pointer in host from device or vice-versa results in undefined behaviour, we need
-         //cudaGetSymbolAddress 
-         cudaGetSymbolAddress((void **)&d_symbol_op, subtract2_op<double>);
-         cudaCheckError();
-	 //cudaMemcpyFromSymbol(&h_op, h_symbol_op, sizeof(func2_t<double>));
-         //cudaCheckError();
-    }
-    else if (strcmp(argv[4], "+") == 0)
-    {
-         //R = A + cpuMean;
-	 cudaMemcpyFromSymbol(&h_op, add2_op<double>, sizeof(func2_t<double>));
-         cudaCheckError();
-    }
-    else if (strcmp(argv[4], "x") == 0)
-    {
-         //R = A * cpuMean;
-	 cudaMemcpyFromSymbol(&h_op, mult2_op<double>, sizeof(func2_t<double>));
-         cudaCheckError();
-    }
-    else if (strcmp(argv[4], "/") == 0)
-    {
-         //R = A / cpuMean;
-	 cudaMemcpyFromSymbol(&h_op, divide2_op<double>, sizeof(func2_t<double>));
-         cudaCheckError();
-    }
-    else
-    {
-        std::cerr << "Invalid op" << std::endl;
-        return EXIT_FAILURE;
-    }
-    std::cerr << "TOTO";
-    auto R = A - cpuMean;
+    //auto R = A - cpuMean;
 
     // left operand
     double *d_A;
@@ -131,10 +163,69 @@ int main(int argc, char **argv)
     std::cerr << d_bpitch << std::endl;
     std::cerr << b_0 << "," << b_1 << std::endl;
     //broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
-    broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, (func2_t<double>)d_symbol_op,//h_op,
+    //auto R = A - cpuMean;
+    
+    //**
+    //runtime_assert(R.getArray() == nullptr, "Not standard empty init CPUMatrix behaviour");
+    if (strcmp(argv[3], "-") == 0)
+    {
+         std::cerr << "SUBTRACT!" << std::endl;
+         A -= cpuMean; // testing centered data
+	 std::cerr << "YEAH!" << std::endl;
+	 //cudaMemcpyFromSymbol(&h_op, subtract2_op<double>, sizeof(func2_t<double>));
+         //cudaCheckError();
+//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_subtract2_op,
+//        a_0, a_1, d_apitch / sizeof(double),
+//        b_0, b_1, d_bpitch / sizeof(double),
+//        r_0, r_1, d_rpitch / sizeof(double));
+    }
+    else if (strcmp(argv[3], "+") == 0)
+    {
+         A += cpuMean;
+	 //cudaMemcpyFromSymbol(&h_op, add2_op<double>, sizeof(func2_t<double>));
+         //cudaCheckError();
+//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_add2_op,
+//        a_0, a_1, d_apitch / sizeof(double),
+//        b_0, b_1, d_bpitch / sizeof(double),
+//        r_0, r_1, d_rpitch / sizeof(double));
+    }
+    else if (strcmp(argv[3], "x") == 0)
+    {
+         A *= cpuMean;
+	 //cudaMemcpyFromSymbol(&h_op, mult2_op<double>, sizeof(func2_t<double>));
+         //cudaCheckError();
+//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_mult2_op,
+//        a_0, a_1, d_apitch / sizeof(double),
+//        b_0, b_1, d_bpitch / sizeof(double),
+//        r_0, r_1, d_rpitch / sizeof(double));
+    }
+    else if (strcmp(argv[3], "/") == 0)
+    {
+         A /= cpuMean;
+	 //cudaMemcpyFromSymbol(&h_op, divide2_op<double>, sizeof(func2_t<double>));
+         //cudaCheckError();
+//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_divide2_op,
+//        a_0, a_1, d_apitch / sizeof(double),
+//        b_0, b_1, d_bpitch / sizeof(double),
+//        r_0, r_1, d_rpitch / sizeof(double));
+
+    }
+    else
+    {
+        std::cerr << "Invalid op" << std::endl;
+        return EXIT_FAILURE;
+    }//**/
+
+    // TODO: define other kernel functions...
+    broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
         r_0, r_1, d_rpitch / sizeof(double));
+/**
+    broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
+        a_0, a_1, d_apitch / sizeof(double),
+        b_0, b_1, d_bpitch / sizeof(double),
+        r_0, r_1, d_rpitch / sizeof(double));**/
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -150,9 +241,9 @@ int main(int argc, char **argv)
 
     // checking result
     std::cerr << cpuMean << std::endl;
-    std::cerr << R << std::endl;
-    double *h_Rcpu = R.getArray();
-    runtime_assert(r_0 == R.getDim0() && r_1 == R.getDim1(), "Invalid shapes !");
+    std::cerr << A << std::endl;
+    double *h_Rcpu = A.getArray();
+    runtime_assert(r_0 == A.getDim0() && r_1 == A.getDim1(), "Invalid shapes !");
     for (size_t i = 0; i < r_0; ++i)
     {
         for (size_t j = 0; j < r_1; ++j)

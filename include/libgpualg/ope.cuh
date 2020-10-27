@@ -1,43 +1,60 @@
 #pragma once
 
 // template for function pointers
-template<typename T>
-using func2_t = T (*) (T, T); // type alias quicker
+//template<typename T>
+//using func2_t = T (*) (T, T); // type alias quicker
 
 /** basic_operations (put this in basic_operations.cpp and co)
  ** TODO: add this to basiq_operations.cpp with ifdef
  **/
+/**
+template <typename T> 
+__device__
+T add2(T a, T b);
 
 template <typename T> 
-__host__ __device__
-T add(T a, T b);
+__device__
+T subtract2(T a, T b);
 
 template <typename T> 
-__host__ __device__
-T subtract(T a, T b);
+__device__
+T mult2(T a, T b);
 
 template <typename T> 
-__host__ __device__
-T mult(T a, T b);
-
-template <typename T> 
-__host__ __device__
-T divide(T a, T b);
-
-/** static pointers for use in kernel
-
-template <typename T>
-__device__ func2_t<T> add2_op;
-
-template <typename T>
-__device__ func2_t<T> subtract2_op;
-
-template <typename T>
-__device__ func2_t<T> mult2_op;
-
-template <typename T>
-__device__ func2_t<T> divide2_op;
+__device__
+T divide2(T a, T b);
 **/
+
+/**
+__device__
+double add2(double a, double b);
+
+__device__
+double subtract2(double a, double b);
+
+__device__
+double mult2(double a, double b);
+
+__device__
+double divide2(double a, double b);
+**/
+
+/** static pointers for use in kernel **/
+/**
+template <typename T>
+__device__ func2_t<T> add2_op = add<T>;
+
+template <typename T>
+__device__ func2_t<T> subtract2_op = subtract<T>;
+
+template <typename T>
+__device__ func2_t<T> mult2_op = mult<T>;
+
+template <typename T>
+__device__ func2_t<T> divide2_op = divide<T>;
+**/
+
+//
 
 /** Kernel **/
 
@@ -63,13 +80,13 @@ __device__ func2_t<T> divide2_op;
  ** \param r_0 the number of line in d_R
  ** \param r_1 the number of columns in d_R
  ** \param d_rpitch the pitch of d_R NOT in bytes
- **/
+ **
 template <typename T>
 __global__ void broadcast_op_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
-
+**/
 __global__ void broadcast_subtract_kernel(const double *d_A, double *d_B, double *d_R,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
