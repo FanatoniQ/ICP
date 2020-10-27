@@ -42,19 +42,19 @@ __global__ void print_matrix_kernel(char *d_A, int pitch, int nbvals)
 
 int main(int argc, char **argv)
 {
-    std::string f1Header{};
-    size_t Plines, Pcols;
+    //std::string f1Header{};
+    //size_t Plines, Pcols;
     //___readCSV(f, f1Header);
-    double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
-    CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
-    std::cout << P;
+    //double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    //CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
+    //std::cout << P;
 
 
     double values = 0;
     double *source, *dest;
     double *d_source, *d_dest;
-    int row = 30;
-    int column = 3;
+    int row = 4 * 8;
+    int column = 4 * 8;
     size_t size = row * column * sizeof(double);
 
     source = (double *)malloc(size);
@@ -71,7 +71,9 @@ int main(int argc, char **argv)
     }
 
     cudaMemcpy(d_source, source, size, cudaMemcpyHostToDevice);
-    naiveGPUTranspose<<<32, 32>>>(d_source, d_dest, row, column);
+    dim3 threadPerBlock(8, 4);
+    dim3 numBlocks(8, 8);
+    naiveGPUTranspose<<< numBlocks, threadPerBlock>>>(d_source, d_dest, row, column);
     cudaMemcpy(dest, d_dest, size, cudaMemcpyDeviceToHost);
     
     for (int i=0; i < column; ++i) {
