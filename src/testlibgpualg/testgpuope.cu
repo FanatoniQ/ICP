@@ -15,7 +15,6 @@
 #include "libgpualg/ope.cuh"
 
 // TODO: export this in static lib, was linking failing or invalid device pointer
-/**
 template <typename T> 
 __device__
 T add2(T a, T b)
@@ -42,28 +41,25 @@ __device__
 T divide2(T a, T b)
 {
     return a / b;
-}**/
+}
 
 // explicit pointer instanciation
 // TODO: export this in static lib, was linking failing or invalid device pointer
 // we could use constant memory function table array in static lib for exemple
 
-//template <typename T>
+/**
+template <typename T>
+__device__ func2_t<T> add2_op = add<T>;
 
-//__device__ func2_t<double> add2_op = add<double>;
+template <typename T>
+__device__ func2_t<T> subtract2_op = subtract<T>;
 
-//template <typename T>
+template <typename T>
+__device__ func2_t<T> mult2_op = mult<T>;
 
-//__device__ func2_t<double> subtract2_op = subtract<double>;
-
-//template <typename T>
-
-//__device__ func2_t<double> mult2_op = mult<double>;
-
-//template <typename T>
-
-//__device__ func2_t<double> divide2_op = divide<double>;
-
+template <typename T>
+__device__ func2_t<T> divide2_op = divide<T>;
+**/
 
 /**
 __device__ func2_t<double> add2_op = add<double>;
@@ -75,13 +71,14 @@ __device__ func2_t<double> mult2_op = mult<double>;
 __device__ func2_t<double> divide2_op = divide<double>;
 **/
 
-
-//__device__ func2_t<double> add2_op = add2;
-//__device__ func2_t<double> subtract2_op = subtract2;
-//__device__ func2_t<double> mult2_op = mult2;
-//__device__ func2_t<double> divide2_op = divide2;
-
 /**
+__device__ func2_t<double> add2_op = add2<double>;
+__device__ func2_t<double> subtract2_op = subtract2<double>;
+__device__ func2_t<double> mult2_op = mult2<double>;
+__device__ func2_t<double> divide2_op = divide2<double>;
+**/
+
+//**
 template <typename T>
 __device__ func2_t<T> add2_op = add2<T>;
 
@@ -93,25 +90,23 @@ __device__ func2_t<T> mult2_op = mult2<T>;
 
 template <typename T>
 __device__ func2_t<T> divide2_op = divide2<T>;
-**/
+//**/
 
 int main(int argc, char **argv)
 {
     runtime_assert(argc == 4, "Usage: ./testgpuope file1 meanaxis op");
     
-    /**
     // retrieving functions (this part is not required if not on __host__ function)
     func2_t<double> h_add2_op, h_subtract2_op, h_mult2_op, h_divide2_op;
     //func2_t<double> h_op;
-    cudaMemcpyFromSymbol(&h_add2_op, add2<double>, sizeof(func2_t<double>));
+    cudaMemcpyFromSymbol(&h_add2_op, add2_op<double>, sizeof(func2_t<double>));
     cudaCheckError();
-    cudaMemcpyFromSymbol(&h_subtract2_op, subtract2<double>, sizeof(func2_t<double>));
+    cudaMemcpyFromSymbol(&h_subtract2_op, subtract2_op<double>, sizeof(func2_t<double>));
     cudaCheckError();
-    cudaMemcpyFromSymbol(&h_mult2_op, mult2<double>, sizeof(func2_t<double>));
+    cudaMemcpyFromSymbol(&h_mult2_op, mult2_op<double>, sizeof(func2_t<double>));
     cudaCheckError();
-    cudaMemcpyFromSymbol(&h_divide2_op, divide2<double>, sizeof(func2_t<double>));
+    cudaMemcpyFromSymbol(&h_divide2_op, divide2_op<double>, sizeof(func2_t<double>));
     cudaCheckError();
-    **/
 
     // reading file, cpu operations
     std::string h{};
@@ -174,41 +169,40 @@ int main(int argc, char **argv)
 	 std::cerr << "YEAH!" << std::endl;
 	 //cudaMemcpyFromSymbol(&h_op, subtract2_op<double>, sizeof(func2_t<double>));
          //cudaCheckError();
-//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_subtract2_op,
-//        a_0, a_1, d_apitch / sizeof(double),
-//        b_0, b_1, d_bpitch / sizeof(double),
-//        r_0, r_1, d_rpitch / sizeof(double));
+broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_subtract2_op,
+        a_0, a_1, d_apitch / sizeof(double),
+        b_0, b_1, d_bpitch / sizeof(double),
+        r_0, r_1, d_rpitch / sizeof(double));
     }
     else if (strcmp(argv[3], "+") == 0)
     {
          A += cpuMean;
 	 //cudaMemcpyFromSymbol(&h_op, add2_op<double>, sizeof(func2_t<double>));
          //cudaCheckError();
-//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_add2_op,
-//        a_0, a_1, d_apitch / sizeof(double),
-//        b_0, b_1, d_bpitch / sizeof(double),
-//        r_0, r_1, d_rpitch / sizeof(double));
+broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_add2_op,
+        a_0, a_1, d_apitch / sizeof(double),
+        b_0, b_1, d_bpitch / sizeof(double),
+        r_0, r_1, d_rpitch / sizeof(double));
     }
     else if (strcmp(argv[3], "x") == 0)
     {
          A *= cpuMean;
 	 //cudaMemcpyFromSymbol(&h_op, mult2_op<double>, sizeof(func2_t<double>));
          //cudaCheckError();
-//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_mult2_op,
-//        a_0, a_1, d_apitch / sizeof(double),
-//        b_0, b_1, d_bpitch / sizeof(double),
-//        r_0, r_1, d_rpitch / sizeof(double));
+broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_mult2_op,
+        a_0, a_1, d_apitch / sizeof(double),
+        b_0, b_1, d_bpitch / sizeof(double),
+        r_0, r_1, d_rpitch / sizeof(double));
     }
     else if (strcmp(argv[3], "/") == 0)
     {
          A /= cpuMean;
 	 //cudaMemcpyFromSymbol(&h_op, divide2_op<double>, sizeof(func2_t<double>));
          //cudaCheckError();
-//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_divide2_op,
-//        a_0, a_1, d_apitch / sizeof(double),
-//        b_0, b_1, d_bpitch / sizeof(double),
-//        r_0, r_1, d_rpitch / sizeof(double));
-
+broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_divide2_op,
+        a_0, a_1, d_apitch / sizeof(double),
+        b_0, b_1, d_bpitch / sizeof(double),
+        r_0, r_1, d_rpitch / sizeof(double));
     }
     else
     {
@@ -217,10 +211,10 @@ int main(int argc, char **argv)
     }//**/
 
     // TODO: define other kernel functions...
-    broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
+    /**broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));
+        r_0, r_1, d_rpitch / sizeof(double));**/
 /**
     broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
         a_0, a_1, d_apitch / sizeof(double),
