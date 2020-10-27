@@ -117,7 +117,7 @@ __global__ void broadcast_op_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,
     if (idy >= r_0 || idx >= r_1)
         return;
     // % is slow, have optimized versions without broadcast
-    d_R[idx + d_rpitch * idy] = (*op)(d_A[(idx % a_1) + d_apitch * (idy % a_0)], d_B[(idx % b_1) + d_bpitch * (idy % b_0)]);
+    d_R[idx + d_rpitch * idy] = op(d_A[(idx % a_1) + d_apitch * (idy % a_0)], d_B[(idx % b_1) + d_bpitch * (idy % b_0)]);
 }
 
 // explicit instanciation for lib import

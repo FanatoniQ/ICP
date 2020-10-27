@@ -31,14 +31,19 @@ __device__ func2_t<T> divide2_op;
 
 int main(int argc, char **argv)
 {
-    runtime_assert(argc == 2, "Usage: ./testgpuope file1");
+    runtime_assert(argc == 4, "Usage: ./testgpuope file1 meanaxis op");
     
     // retrieving functions (this part is not required if not on __host__ function)
+    /**
     func2_t<double> h_add2_op, h_subtract2_op, h_mult2_op, h_divide2_op;
     cudaMemcpyFromSymbol(&h_add2_op, add2_op<double>, sizeof(func2_t<double>));
     cudaMemcpyFromSymbol(&h_subtract2_op, subtract2_op<double>, sizeof(func2_t<double>));
     cudaMemcpyFromSymbol(&h_mult2_op, mult2_op<double>, sizeof(func2_t<double>));
     cudaMemcpyFromSymbol(&h_divide2_op, divide2_op<double>, sizeof(func2_t<double>));
+    **/
+
+    func2_t<double> h_op;
+    void *d_symbol_op;
 
     // reading file, cpu operations
     std::string h{};
@@ -47,9 +52,45 @@ int main(int argc, char **argv)
     std::cerr << nblines << nbcols << std::endl;
     auto A = CPUMatrix(h_A, nblines, nbcols);
     std::cerr << A << std::endl;
-    auto cpuMean = A.mean(0); //.transpose();
+    auto cpuMean = A.mean(std::stoi(argv[2])); //.transpose();
     //auto cpuMean = A.mean(1).transpose(); //.transpose();
-    auto R = A - cpuMean; // testing centered data
+    std::cerr << "TOTO";
+    //CPUMatrix R;
+    if (strcmp(argv[4], "-") == 0)
+    {
+         //R = A - cpuMean; // testing centered data
+	 //Dereferencing a pointer in host from device or vice-versa results in undefined behaviour, we need
+         //cudaGetSymbolAddress 
+         cudaGetSymbolAddress((void **)&d_symbol_op, subtract2_op<double>);
+         cudaCheckError();
+	 //cudaMemcpyFromSymbol(&h_op, h_symbol_op, sizeof(func2_t<double>));
+         //cudaCheckError();
+    }
+    else if (strcmp(argv[4], "+") == 0)
+    {
+         //R = A + cpuMean;
+	 cudaMemcpyFromSymbol(&h_op, add2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+    }
+    else if (strcmp(argv[4], "x") == 0)
+    {
+         //R = A * cpuMean;
+	 cudaMemcpyFromSymbol(&h_op, mult2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+    }
+    else if (strcmp(argv[4], "/") == 0)
+    {
+         //R = A / cpuMean;
+	 cudaMemcpyFromSymbol(&h_op, divide2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+    }
+    else
+    {
+        std::cerr << "Invalid op" << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::cerr << "TOTO";
+    auto R = A - cpuMean;
 
     // left operand
     double *d_A;
@@ -89,12 +130,15 @@ int main(int argc, char **argv)
     std::cerr << d_apitch << std::endl;
     std::cerr << d_bpitch << std::endl;
     std::cerr << b_0 << "," << b_1 << std::endl;
-    broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
+    //broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
+    broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, (func2_t<double>)d_symbol_op,//h_op,
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
         r_0, r_1, d_rpitch / sizeof(double));
     cudaDeviceSynchronize();
     cudaCheckError();
+
+    std::cerr << "FINISHED !" << std::endl;
 
     // host result
     double *h_r = (double*)malloc(r_0 * d_rpitch);
