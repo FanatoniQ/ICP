@@ -11,6 +11,7 @@
 #include "libalg/alg.hpp"
 #include "libalg/print.hpp"
 #include "error.hpp"
+#include "cpu/icp.hpp"
 
 // GPU
 #include "libgpualg/mean.cuh"
