@@ -4,6 +4,14 @@
 template<typename T>
 using func2_t = T (*) (T, T); // type alias quicker
 
+enum MatrixOP
+{
+    ADD = 0,
+    SUBTRACT = 1,
+    MULT = 2,
+    DIVIDE = 3
+};
+
 /** Kernel **/
 
 /**
@@ -118,6 +126,33 @@ __global__ void broadcast_op_column_vector_kernel(const T *d_A, T *d_B, T *d_R, 
 template <typename T>
 __global__ void broadcast_op_scalar_kernel(const T *d_A, T *d_B, T *d_R, func2_t<T> op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
+    unsigned int r_0, unsigned int r_1, size_t d_rpitch);
+
+/**
+ ** \brief matrix_op wrapper around broadcast_op kernels
+ ** call it with pitches in bytes and the wanted MatrixOP enum member
+ **
+ ** \param dim3 gridsize the shape of the grid
+ ** \param dim3 blocksize the shape of each blocks
+ ** \param d_A the a_0 x a_1 left operand matrix
+ ** \param d_B the b_0 x b_1 right operand matrix
+ ** \param d_R the r_0 x r_1 result matrix
+ ** \param op the MatrixOP enum either ADD, SUBTRACT, MULT or DIVIDE
+ ** \param a_0 the number of lines in d_A
+ ** \param a_1 the number of columns in d_A
+ ** \param d_apitch the pitch of d_A IN bytes
+ ** \param b_0 the number of line in d_B
+ ** \param b_1 the number of columns in d_B
+ ** \param d_bpitch the pitch of d_B IN bytes
+ ** \param r_0 the number of line in d_R
+ ** \param r_1 the number of columns in d_R
+ ** \param d_rpitch the pitch of d_R IN bytes
+ **/
+template <typename T>
+__host__ void matrix_op(dim3 gridsize, dim3 blocksize,
+    const T *d_A, T *d_B, T *d_R, enum MatrixOP op,
+    unsigned int a_0, unsigned int a_1, size_t d_apitch,
+    unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
 
 /**
