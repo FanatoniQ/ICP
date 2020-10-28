@@ -71,10 +71,13 @@ int main(int argc, char **argv)
     }
 
     cudaMemcpy(d_source, source, size, cudaMemcpyHostToDevice);
+    
     dim3 threadPerBlock(8, 4);
     dim3 numBlocks(8, 8);
     naiveGPUTranspose<<< numBlocks, threadPerBlock>>>(d_source, d_dest, row, column);
+    
     cudaMemcpy(dest, d_dest, size, cudaMemcpyDeviceToHost);
+    
     
     for (int i=0; i < column; ++i) {
         for (int j = 0; j < row; ++j) {
@@ -83,6 +86,7 @@ int main(int argc, char **argv)
         std::cout<<std::endl;
     }
     //double *Qt = (double*)malloc(sizeof(double) * Plines * Pcols);
+    
     free(source);
     free(dest);
     cudaFree(d_source);

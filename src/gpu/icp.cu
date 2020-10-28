@@ -15,6 +15,7 @@
 #include "gpu/icp.cuh"
 
 #define UNUSED(x) (void)x
+#define Tile_size 2
 
 /* --------- CPU Version Calling GPU Kernel ------------ */
 __host__ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
@@ -144,4 +145,15 @@ __global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows
 
     if (i < rows && j < cols)
         d_b[index_out] = d_a[index_in];
+}
+
+void gpuTranspose(double* A, double* B, 
+    int numRows, int numColumns) {
+
+    // declare the number of blocks per grid and the number of threads per block
+    dim3 dimGrid((numColumns / Tile_size) + 1, (numRows / Tile_size) + 1, 1);//Number of Blocks required
+    dim3 dimBlock(Tile_size, Tile_size, 1);//Number of threads in each block
+
+    //@@ Launch the GPU Kernel here
+    naiveGPUTranspose<<<dimGrid, dimBlock>>>(A, B, numRows, numColumns);
 }
