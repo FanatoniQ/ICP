@@ -56,6 +56,30 @@ __host__ void increment_cov(double *P, double *Q)
     }
 }
 
+__host__ double* calling_transpose_kernel(double *A, size_t row, size_t column)
+{
+        // Calling transpose kernel
+        size_t size = sizeof(double) * row * column;
+
+        // Allocations
+        double *d_source_transpose, *d_dest_transpose;
+        cudaMalloc((void **)&d_source_transpose, size);
+        cudaMalloc((void **)&d_dest_transpose, size);
+        double *transposed_Q = (double *)calloc(size, sizeof(double));
+
+        // Copy mem and exec 
+        cudaMemcpy(d_source_transpose, A, size, cudaMemcpyHostToDevice);
+        gpuTranspose(d_source_transpose, d_dest_transpose, row, column);
+        cudaMemcpy(transposed_Q, d_dest_transpose, size, cudaMemcpyDeviceToHost);
+        
+        // Free cuda mem
+        cudaFree(d_source_transpose);
+        cudaFree(d_dest_transpose);
+
+        // End of transpose call
+        return transposed_Q;
+}
+
 __host__ double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
                                 size_t Q_r, size_t Q_c) //set default function to lambda function??
 {
@@ -70,7 +94,10 @@ __host__ double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::
         double *p_point = P + i * P_c;
 
         double *doted_points = nullptr;
-        double *transposed_Q = transpose(q_point, 1, Q_c);
+        
+        double *transposed_Q = calling_transpose_kernel(q_point, 1, Q_c);
+        //double *transposed_Q = transpose(q_point, 1, Q_c);
+
         dot_product(&doted_points, transposed_Q, p_point, Q_c, 1, 1, P_c); //dim of Q_r * P_r
         free (transposed_Q); 
         increment_cov(cov, doted_points); //need to set element_wise_op but too complicated, doesn't work for some reason.
@@ -126,8 +153,8 @@ void compute_cross_variance_array(double * cov, double *P, double *Q, std::tuple
         double *q_point = Q + j * Q_c;
         double *p_point = P + i * P_c;
 
-        double *doted_points = nullptr;
         double *transposed_Q = transpose(q_point, 1, Q_c);
+        double *doted_points = nullptr;
         dot_product(&doted_points, transposed_Q, p_point, Q_c, 1, 1, P_c); //dim of Q_r * P_r
         free (transposed_Q); 
         increment_cov(cov, doted_points); //need to set element_wise_op but too complicated, doesn't work for some reason.
@@ -147,8 +174,7 @@ __global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows
         d_b[index_out] = d_a[index_in];
 }
 
-void gpuTranspose(double* A, double* B, 
-    int numRows, int numColumns) {
+void gpuTranspose(double* A, double* B, int numRows, int numColumns) {
 
     // declare the number of blocks per grid and the number of threads per block
     dim3 dimGrid((numColumns / Tile_size), (numRows / Tile_size), 1);//Number of Blocks required

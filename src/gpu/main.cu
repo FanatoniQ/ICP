@@ -42,14 +42,19 @@ __global__ void print_matrix_kernel(char *d_A, int pitch, int nbvals)
 
 int main(int argc, char **argv)
 {
-    //std::string f1Header{};
-    //size_t Plines, Pcols;
+    std::string f1Header{};
+    size_t Qlines, Qcols, Plines, Pcols;
     //___readCSV(f, f1Header);
-    //double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
-    //CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
-    //std::cout << P;
+    double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
 
+    double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
+    CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
 
+    auto res = get_correspondence_indices(P, Q);
+    auto finale = compute_cross_variance(P, Q, res, nullptr);
+    std::cout << std::get<0>(finale) << std::endl;
+    /*
     double values = 0;
     double *source, *dest;
     double *d_source, *d_dest;
@@ -72,9 +77,6 @@ int main(int argc, char **argv)
 
     cudaMemcpy(d_source, source, size, cudaMemcpyHostToDevice);
     
-    //dim3 threadPerBlock(8, 4);
-    //dim3 numBlocks(8, 8);
-    //naiveGPUTranspose<<< numBlocks, threadPerBlock>>>(d_source, d_dest, row, column);
     gpuTranspose(d_source, d_dest, row, column);
 
     cudaMemcpy(dest, d_dest, size, cudaMemcpyDeviceToHost);
@@ -98,4 +100,5 @@ int main(int argc, char **argv)
     //std::cout << Q;
     cudaDeviceSynchronize();
     cudaCheckError();
+    */
 }
