@@ -9,17 +9,20 @@
 __global__ void euclidist_kernel(double *d_A, double *d_B, double *d_res, int pitch, int width, int height, int reducepitch)
 {
     int threadid = threadIdx.x; // thread id in the block
-    int r = blockIdx.y; // rows
-    int c = blockDim.x * blockIdx.x + threadIdx.x; // cols
-    extern __shared__ float s_data[];
+    int lineid = blockIdx.y; // rows
+    int dataid = blockIdx.x * blockDim.x + threadIdx.x; // cols
+    extern __shared__ double s_data[];
 
-    if (r >= width || c >= height)
+    if (dataid >= width || lineid >= height)
     {
         s_data[threadid] = 0;
         return;
     }
 
-    s_data[threadid] = (d_A[r + width * c] - d_B[r + width * c]) * (d_A[r + width * c] - d_B[r + width * c]);
+    double* d_Aline = (double*)((char*)d_A + lineid * pitch);
+    double* d_Bline = (double*)((char*)d_B + lineid * pitch);
+    double tmp = d_Aline[dataid] - d_Bline[dataid];
+    s_data[threadid] = tmp * tmp;
     __syncthreads();
 
     for(int stride = blockDim.x / 2; stride > 0; stride >>= 1)
@@ -30,6 +33,7 @@ __global__ void euclidist_kernel(double *d_A, double *d_B, double *d_res, int pi
         __syncthreads();
     }
 
+    double* d_resline = (double*)((char*)d_res + lineid * reducepitch);
     if(threadid == 0)
-        d_res[blockIdx.x] = s_data[0];
+        d_resline[blockIdx.x] = s_data[0];
 }

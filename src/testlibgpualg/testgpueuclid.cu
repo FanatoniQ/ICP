@@ -31,7 +31,7 @@ void test_euclidist(double *d_Pt, double *d_Qt, size_t pitch, size_t width, size
     cudaCheckError();
 
     // LAUNCHING KERNEL
-    std::cerr << "reducepitch: " << reducepitch << " pitch: " << pitch << std::endl;
+    std::cerr << "reducepitch: " << reducepitch << "pitch: " << pitch << std::endl;
     std::cerr << "nbthreads: " << threads << " nbblocksPerLine: " << blocks.x << " nbLines: " << blocks.y << std::endl;
     euclidist_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_Pt, d_Qt, d_res, pitch, width, height, reducepitch);
     cudaDeviceSynchronize();
@@ -48,7 +48,17 @@ void test_euclidist(double *d_Pt, double *d_Qt, size_t pitch, size_t width, size
     cudaFree(d_res);
     cudaCheckError();
 
-    std::cerr << "GPU squared mean diff: " << h_res[0] << std::endl;
+    double euclidist = 0;
+    for (size_t i = 0; i < height; ++i)
+    {
+        double* h_resline = (double*)((char*)h_res + i * reducepitch);
+        for (size_t j = 0; j < nbblocksPerLine; ++j)
+        {
+            euclidist += h_resline[j];
+        }
+    }
+
+    std::cerr << "GPU squared mean diff: " << sqrt(euclidist) << std::endl;
     free(h_res);
 }
 
@@ -66,8 +76,8 @@ int main(int argc, char **argv)
     print_matrix(std::cerr, h_P, Pcols, Plines);
     print_matrix(std::cerr, h_Q, Qcols, Qlines);
 
-    auto P = CPUMatrix(h_P, Pcols, Plines);
-    auto Q = CPUMatrix(h_Q, Qcols, Qlines);
+    auto P = CPUMatrix(h_Pt, Pcols, Plines);
+    auto Q = CPUMatrix(h_Qt, Qcols, Qlines);
 
     auto cpuEuclid = P.euclidianDistance(Q);
 
@@ -75,15 +85,15 @@ int main(int argc, char **argv)
     double *d_Pt;
     size_t pitch;
     size_t width = Plines, height = Pcols;
-    cudaCheckError();
     cudaMallocPitch(&d_Pt, &pitch, width * sizeof(double), height * sizeof(double));
+    cudaCheckError();
     cudaMemcpy2D(d_Pt, pitch, h_Pt, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     double *d_Qt;
     width = Qlines, height = Qcols;
-    cudaCheckError();
     cudaMallocPitch(&d_Qt, &pitch, width * sizeof(double), height * sizeof(double));
+    cudaCheckError();
     cudaMemcpy2D(d_Qt, pitch, h_Qt, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
     cudaCheckError();
 
