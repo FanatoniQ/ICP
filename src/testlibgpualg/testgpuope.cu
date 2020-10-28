@@ -94,21 +94,25 @@ int main(int argc, char **argv)
 
     if (argv[3][0] == '-')
     {
+        std::cerr << "SUBTRACT !" << std::endl;
         A -= cpuMean;
         op = MatrixOP::SUBTRACT;
     }
     else if (argv[3][0] == '+')
     {
+        std::cerr << "ADD !" << std::endl;
         A += cpuMean;
         op = MatrixOP::ADD;
     }
     else if (argv[3][0] == 'x')
     {
+        std::cerr << "MULT !" << std::endl;
         A *= cpuMean;
         op = MatrixOP::MULT;
     }
     else if (argv[3][0] == '/')
     {
+        std::cerr << "DIVIDE !" << std::endl;
         A += cpuMean;
         op = MatrixOP::DIVIDE;
     }

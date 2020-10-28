@@ -207,9 +207,6 @@ __host__ void matrix_op(dim3 gridsize, dim3 blocksize,
             a_0, a_1, d_apitch / sizeof(T),
             b_0, b_1, d_bpitch / sizeof(T),
             r_0, r_1, d_rpitch / sizeof(T));
-    } else {
-        fprintf(stderr, "Invalid Arguments for matrix_add !");
-        return;
     }
     cudaDeviceSynchronize();
     cudaCheckError();
