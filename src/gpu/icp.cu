@@ -151,7 +151,7 @@ void gpuTranspose(double* A, double* B,
     int numRows, int numColumns) {
 
     // declare the number of blocks per grid and the number of threads per block
-    dim3 dimGrid((numColumns / Tile_size) + 1, (numRows / Tile_size) + 1, 1);//Number of Blocks required
+    dim3 dimGrid((numColumns / Tile_size), (numRows / Tile_size), 1);//Number of Blocks required
     dim3 dimBlock(Tile_size, Tile_size, 1);//Number of threads in each block
 
     //@@ Launch the GPU Kernel here

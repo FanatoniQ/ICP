@@ -53,8 +53,8 @@ int main(int argc, char **argv)
     double values = 0;
     double *source, *dest;
     double *d_source, *d_dest;
-    int row = 4 * 8;
-    int column = 4 * 1;
+    int row = 8;
+    int column = 4;
     size_t size = row * column * sizeof(double);
 
     source = (double *)malloc(size);
@@ -72,10 +72,11 @@ int main(int argc, char **argv)
 
     cudaMemcpy(d_source, source, size, cudaMemcpyHostToDevice);
     
-    dim3 threadPerBlock(8, 4);
-    dim3 numBlocks(8, 8);
-    naiveGPUTranspose<<< numBlocks, threadPerBlock>>>(d_source, d_dest, row, column);
-    
+    //dim3 threadPerBlock(8, 4);
+    //dim3 numBlocks(8, 8);
+    //naiveGPUTranspose<<< numBlocks, threadPerBlock>>>(d_source, d_dest, row, column);
+    gpuTranspose(d_source, d_dest, row, column);
+
     cudaMemcpy(dest, d_dest, size, cudaMemcpyDeviceToHost);
     
     

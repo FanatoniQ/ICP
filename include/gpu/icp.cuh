@@ -27,4 +27,5 @@ __global__ void get_correspondence_indices_array_gpu(double *P, double *Q, size_
 void compute_cross_variance_array(double * cov, double *P, double *Q, std::tuple<size_t, int> *correspondences, size_t P_r, size_t P_c,
                                 size_t Q_r, size_t Q_c);
 
+void gpuTranspose(double *A, double *B, int numRows, int numColumns);
 __global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows, const int cols);
