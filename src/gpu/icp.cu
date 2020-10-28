@@ -14,7 +14,6 @@
 
 #include "gpu/icp.cuh"
 
-#define UNUSED(x) (void)x
 #define Tile_size 2
 
 /* --------- CPU Version Calling GPU Kernel ------------ */

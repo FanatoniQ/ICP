@@ -13,6 +13,8 @@
 #include "libalg/CPUView.hpp"
 #include "error.hpp"
 
+#define UNUSED(x) (void)x
+
 /* --------- CPU FUNCTIONS ---------*/
 
 __host__ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q, size_t P_r, size_t P_c, size_t Q_r, size_t Q_c);
