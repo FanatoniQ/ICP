@@ -69,6 +69,12 @@ __global__ void dumb_mean_kernel(const char *d_A, double *d_meanA, int pitch, in
  **/
 __global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);
 
+/**
+ ** \brief tree_reduce_mean_kernel is the same as tree_reduce_mean_kernel except than we divide the last block sum
+ ** by the width of the d_A matrix. Be sure to call this function on last reduce iteration.
+ ** \see tree_reduce_sum_kernel
+ **/
+__global__ void tree_reduce_mean_kernel(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);
 
 /** AXIS = 0 REDUCTION **/
 
@@ -119,3 +125,10 @@ __global__ void dumb_sum_kernel_0(const double *d_A, double *d_meanA, int pitch,
  ** \param reducepitch the pitch of d_sumA array in bytes
  **/
 __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);
+
+/**
+ ** \brief tree_reduce_mean_kernel_0 is the same as tree_reduce_sum_kernel_0 except than we divide the last block sum
+ ** by the height of the d_A matrix. Be sure to call this function on last reduce iteration.
+ ** \see tree_reduce_sum_kernel_0
+ **/
+__global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);

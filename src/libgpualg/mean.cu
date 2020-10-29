@@ -119,11 +119,11 @@ __global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pi
     int lineid = blockIdx.y; // line
     int dataid = blockIdx.x * blockDim.x + threadIdx.x; // column
     if (dataid >= width || lineid >= height) {
-	s_data[threadid] = 0; // prevent other threads from adding uninit values
+        s_data[threadid] = 0; // prevent other threads from adding uninit values
         return;
     }
-    double *d_Aline = (double *)((char *)d_A + lineid * pitch);
     // each thread copies to shared memory
+    double *d_Aline = (double *)((char *)d_A + lineid * pitch);
     s_data[threadid] = d_Aline[dataid];
     __syncthreads();
     // each thread will reduce with one other shared data element in the middle right part of s_data
@@ -132,7 +132,7 @@ __global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pi
         assert(is_power_of_2(stride)); // if not power of 2 ...
         if (threadid < stride) // a lot of threads are idle...
              s_data[threadid] += s_data[threadid + stride];
-	__syncthreads();
+        __syncthreads();
     }
     //printf("Reduce Index: %d\n", blockIdx.x + reducepitch * lineid);
     double *d_sumAline = (double *)((char *)d_sumA + lineid * reducepitch);
@@ -142,7 +142,33 @@ __global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pi
     //d_sumA[blockIdx.x + (height / blockDim.x) * lineid] = s_data[0]; // we store at pos x,y the partial mean
 }
 
-// TODO: check
+__global__ void tree_reduce_mean_kernel(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch)
+{
+    extern __shared__ double s_data[]; // s_data is of size blockDim.x
+    int threadid = threadIdx.x; // thread id in the block
+    int lineid = blockIdx.y; // line
+    int dataid = blockIdx.x * blockDim.x + threadIdx.x; // column
+    if (dataid >= width || lineid >= height) {
+        s_data[threadid] = 0; // prevent other threads from adding uninit values
+        return;
+    }
+    // each thread copies to shared memory
+    double *d_Aline = (double *)((char *)d_A + lineid * pitch);
+    s_data[threadid] = d_Aline[dataid];
+    __syncthreads();
+    // each thread will reduce with one other shared data element in the middle right part of s_data
+    for (size_t stride = blockDim.x / 2; stride > 0; stride = stride >> 1)
+    {
+        assert(is_power_of_2(stride)); // if not power of 2 ...
+        if (threadid < stride) // a lot of threads are idle...
+             s_data[threadid] += s_data[threadid + stride];
+        __syncthreads();
+    }
+    double *d_sumAline = (double *)((char *)d_sumA + lineid * reducepitch);
+    if (threadid == 0)
+        d_sumAline[blockIdx.x] = s_data[0] / width;
+}
+
 __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch)
 {
     extern __shared__ double s_data[]; // s_data is of size blockDim.y
@@ -150,11 +176,11 @@ __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int 
     int lineid = blockIdx.y * blockDim.x + threadIdx.x; // line
     int dataid = blockIdx.x; // column
     if (dataid >= width || lineid >= height) {
-	s_data[threadid] = 0; // prevent other threads from adding uninit values
+        s_data[threadid] = 0; // prevent other threads from adding uninit values
         return;
     }
-    double *d_Aline = (double *)((char *)d_A + lineid * pitch);
     // each thread copies to shared memory
+    double *d_Aline = (double *)((char *)d_A + lineid * pitch);
     s_data[threadid] = d_Aline[dataid];
     //printf("line: %d ,column: %d ,value: %lf\n", lineid, dataid, s_data[threadid]);
     __syncthreads();
@@ -164,7 +190,7 @@ __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int 
         assert(is_power_of_2(stride)); // if not power of 2 ...
         if (threadid < stride) // a lot of threads are idle...
              s_data[threadid] += s_data[threadid + stride];
-	__syncthreads();
+        __syncthreads();
     }
     //printf("Reduce Index: %d\n", blockIdx.x + reducepitch * lineid);
     double *d_sumAline = (double *)((char *)d_sumA + blockIdx.y * reducepitch);
@@ -172,4 +198,32 @@ __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int 
         d_sumAline[blockIdx.x] = s_data[0];
     //d_sumA[blockIdx.x + reducepitch * lineid] = s_data[0]; // we store at pos x,y the partial mean
     //d_sumA[blockIdx.x + (height / blockDim.x) * lineid] = s_data[0]; // we store at pos x,y the partial mean
+}
+
+
+__global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch)
+{
+    extern __shared__ double s_data[]; // s_data is of size blockDim.y
+    int threadid = threadIdx.x; // thread id in the block
+    int lineid = blockIdx.y * blockDim.x + threadIdx.x; // line
+    int dataid = blockIdx.x; // column
+    if (dataid >= width || lineid >= height) {
+        s_data[threadid] = 0; // prevent other threads from adding uninit values
+        return;
+    }
+    // each thread copies to shared memory
+    double *d_Aline = (double *)((char *)d_A + lineid * pitch);
+    s_data[threadid] = d_Aline[dataid];
+    __syncthreads();
+    // each thread will reduce with one other shared data element in the middle right part of s_data
+    for (size_t stride = blockDim.x / 2; stride > 0; stride = stride >> 1)
+    {
+        assert(is_power_of_2(stride)); // if not power of 2 ...
+        if (threadid < stride) // a lot of threads are idle...
+             s_data[threadid] += s_data[threadid + stride];
+        __syncthreads();
+    }
+    double *d_sumAline = (double *)((char *)d_sumA + blockIdx.y * reducepitch);
+    if (threadid == 0)
+        d_sumAline[blockIdx.x] = s_data[0] / height;
 }
