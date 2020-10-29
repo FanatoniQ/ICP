@@ -1,6 +1,17 @@
 #pragma once
 
 /**
+ ** \brief get_next_power_of_2 returns the ceiling power of 2 from the given number
+ ** function will warn use when the ceiling power of 2 is greater than 1024, loop
+ ** unrolling perfomed for cases lower than 1024, will return value if already a
+ ** power of 2
+ **
+ ** \param value the number to get the ceiling power of 2
+ ** \return r the ceiling power of two
+ **/
+unsigned int get_next_power_of_2(unsigned int value);
+
+/**
  ** \brief dumb_sum_kernel a dummy kernel to compute axis=1 sum
  ** each thread will sum one line with coallesced access then write
  ** the sum to global device memory at address d_sumA[idx] with

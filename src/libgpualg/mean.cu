@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "error.cuh"
 #include "libgpualg/mean.cuh"
 
@@ -5,6 +6,37 @@
 
 // TODO: REMOVE this, or not it is just in assert afterall
 #define is_power_of_2(x) (x & (x-1)) == 0
+
+unsigned int get_next_power_of_2(unsigned int value)
+{
+    if (is_power_of_2(value))
+        return value;
+    if (value < 2)
+        return 2;
+    if (value < 4)
+        return 4;
+    if (value < 8)
+        return 8;
+    if (value < 16)
+        return 16;
+    if (value < 32)
+        return 32;
+    if (value < 64)
+        return 64;
+    if (value < 128)
+        return 128;
+    if (value < 256)
+        return 256;
+    if (value < 512)
+        return 512;
+    if (value < 1024)
+	return 1024;
+    fprintf(stderr, "Warning: get_next_power_of_two returns a number greater than 1024");
+    unsigned int r = 1024;
+    while (r < value)
+        r <<= 1;
+    return r;
+}
 
 // computes line sum
 __device__ __host__ double get_line_sum(const double *line, int nbvals)
