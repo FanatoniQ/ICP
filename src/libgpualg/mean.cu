@@ -227,3 +227,47 @@ __global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int
     if (threadid == 0)
         d_sumAline[blockIdx.x] = s_data[0] / height;
 }
+
+__host__ void mean_0(double *d_A, double **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads)
+{
+    threads = get_next_power_of_2(threads);
+    int nbblocksPerColumn = std::ceil((float)height / threads); // each block column treats partial one column sum
+    dim3 blocks(width, nbblocksPerColumn); // we have width columns of nbblocksPerColumn
+
+    if (*d_sum == nullptr)
+    {
+        // ALLOCATING DEVICE MEMORY
+        // TODO: This is too much memory we should use cudaMalloc when we have a high number of lines
+        cudaMallocPitch(d_sum, reducepitch, width * sizeof(double), nbblocksPerColumn);
+        cudaCheckError();
+        cudaMemset2D(*d_sum, *reducepitch, 0, width * sizeof(double), nbblocksPerColumn);
+        cudaCheckError();
+    }
+
+    // LAUNCHING KERNEL
+    std::cerr << "reducepitch: " << *reducepitch << " pitch: " << pitch << std::endl;
+    std::cerr << "nbthreads: " << threads << " nbcolumns: " << blocks.x << " nbblocksPerColumns: " << blocks.y << std::endl;
+    if (nbblocksPerColumn > 1)
+        tree_reduce_sum_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(d_A, *d_sum, pitch, width, height, *reducepitch);
+    else
+        tree_reduce_mean_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(d_A, *d_sum, pitch, width, height, *reducepitch);
+    cudaDeviceSynchronize();
+    cudaCheckError();
+
+    // We call the kernel a second time instead if multiple blocks per column
+    // second call to reduce d_sum, nbthreads is nbblockPerColumn, height is nbblocksPerColumn, width is nbcols
+    // Watch out ! do not use threads, blocks, width or pitch afterwards to reference d_A
+    if (nbblocksPerColumn > 1)
+    {
+        pitch = *reducepitch;
+        threads = nbblocksPerColumn;
+        threads = get_next_power_of_2(threads);
+        blocks = dim3(width, 1); // 1,height
+        height = nbblocksPerColumn;
+        std::cerr << "reducepitch: " << *reducepitch << " pitch: " << pitch << std::endl;
+        std::cerr << "nbthreads: " << threads << " nbcolumns: " << blocks.x << " nbblocksPerColumns: " << blocks.y << std::endl;
+        tree_reduce_mean_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(*d_sum, *d_sum, pitch, width, height, *reducepitch);
+        cudaDeviceSynchronize();
+        cudaCheckError();
+    }
+}

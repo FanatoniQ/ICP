@@ -114,7 +114,7 @@ __global__ void dumb_sum_kernel_0(const double *d_A, double *d_meanA, int pitch,
  ** nbthreads / 2.
  ** For coalesced access we can transpose and call tree_reduce_sum_kernel
  ** \see tree_reduce_sum_kernel
- ** \todo TODO: check if it works and benchmark
+ ** \todo TODO: Benchmark
  **
  ** \param d_A the device pointer
  ** \param d_sumA the device mean pointer used to store mean results, each column contains at each line,
@@ -132,3 +132,18 @@ __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int 
  ** \see tree_reduce_sum_kernel_0
  **/
 __global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);
+
+/**
+ ** \brief mean_0 wrapper around tree_reduce_sum_kernel_0 and tree_reduce_mean_kernel_0 kernel functions
+ ** calling this host function will compute the mean over axis = 0 for the given d_A matrix.
+ ** \todo check if this works
+ **
+ ** \param d_A the device matrix pointer
+ ** \param d_sum a pointer to the resulting mean line vector, or nullptr (in that case this function performs allocation)
+ ** \param width the width of d_A
+ ** \param height the height of d_A
+ ** \param pitch the pitch of d_A IN bytes
+ ** \param reducepitch a pointer to the reduce d_sum matrix pitch (IN bytes)
+ ** \param threads the minimal number of threads to be used in a block
+ **/
+__host__ void mean_0(double *d_A, double **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads);
