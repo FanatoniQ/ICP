@@ -17,7 +17,7 @@ void matMultiplyOnHost(double* A, double* B, double* C, int numARows,
     {
         for (int j = 0; j < numAColumns; j++)
         {
-            C[i * numCColumns + j] = 0.0;
+            C[i * numCColumns + j] = 0;
             for (int k = 0; k < numCColumns; k++)
             {
                 C[i * numCColumns + j] += A[i * numAColumns + k] * B[k * numBColumns + j];
@@ -60,13 +60,13 @@ int main(int argc, char** argv)
             h_A[i * h_A_row + j] = 2;//sin(i);
         }
     }
-    h_A[3] = 9;
+    h_A[2] = 9.;
     for (int i = 0; i < h_B_row; i++) {
         for (int j = 0; j < h_B_col; j++) {
             h_B[i * h_B_row + j] = 2;//sin(i);
         }
     }
-    h_B[6] = 53;
+    h_B[6] = 53.;
 
     double *d_A;
     double *d_B;
@@ -110,6 +110,7 @@ int main(int argc, char** argv)
     free(h_A);
     free(h_B);
     free(h_C);
+    cudaDeviceReset();
 
     return 0;
 }
