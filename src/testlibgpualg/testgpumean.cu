@@ -286,6 +286,43 @@ void test_tree_reduce_sum_0(const CPUMatrix &cpuSum, double *d_p, size_t pitch, 
     free(h_sum);
 }
 
+void test_tree_reduce_mean_0(const CPUMatrix &cpuMean, double *d_A, size_t pitch, size_t width, size_t height)
+{
+    // SETUP
+    double *d_mean = nullptr;
+    int threads = 4; // TODO: change this
+    size_t reducepitch;
+    mean_0(d_A, &d_mean, width, height, pitch, &reducepitch, threads);
+
+    double *h_mean = (double*)malloc(1 * reducepitch); // final result is a line vector
+    runtime_assert(h_mean != nullptr, "Alloc error !");
+
+    // COPY TO HOST
+    cudaMemcpy(h_mean, d_mean, 1 * reducepitch, cudaMemcpyDeviceToHost);
+    cudaCheckError();
+
+    // FREEING DEVICE MEMORY
+    cudaFree(d_mean);
+    cudaCheckError();
+
+    // PRINTING
+    double ttlerror = 0;
+    std::cerr << "GPU Means : " << std::endl;
+    for (size_t i = 0; i < width; ++i)
+    {
+	double cpulinemean = cpuMean(0,i);
+        double gpulinemean = h_mean[i];
+        std::cerr << std::endl << "line[0]" << gpulinemean << std::endl;
+	std::cerr << "CPUSUM(0,i)" << cpulinemean << std::endl;
+        std::cerr << "Difference betweeen CPU and GPU mean: " << gpulinemean - cpulinemean << std::endl;
+	ttlerror += std::fabs(cpulinemean - gpulinemean);
+    }
+    std::cerr << std::endl << "Axis0 (mean-host-wrapper):" << std::endl << "Total error: " << ttlerror << std::endl;
+    std::cerr << "Mean error: " << ttlerror / height << std::endl << std::endl;
+    free(h_mean);
+}
+
+
 int main_axis0(int argc, char **argv)
 {
     runtime_assert(argc == 4 || argc == 3, "Usage: ./testgpusum file1 method [axis]");
@@ -314,9 +351,11 @@ int main_axis0(int argc, char **argv)
         test_tree_reduce_sum_0(cpuSum, d_p, pitch, width, height, false);
     else if (strcmp(argv[2], "trees") == 0)
         test_tree_reduce_sum_0(cpuSum, d_p, pitch, width, height, true);
+    else if (strcmp(argv[2], "treex") == 0)
+        test_tree_reduce_mean_0(P.mean(0), d_p, pitch, width, height);
     else
     {
-        std::cerr << "method = dummy | tree | trees" << std::endl;
+        std::cerr << "method = dummy | tree | trees | treex" << std::endl;
         return EXIT_FAILURE;
     }
     std::cerr << cpuSum << std::endl;

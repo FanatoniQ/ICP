@@ -128,10 +128,10 @@ __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int 
 
 /**
  ** \brief tree_reduce_mean_kernel_0 is the same as tree_reduce_sum_kernel_0 except than we divide the last block sum
- ** by the height of the d_A matrix. Be sure to call this function on last reduce iteration.
+ ** by the height of the d_A matrix. Be sure to call this function on last reduce iteration. denom is the denominator (total height)
  ** \see tree_reduce_sum_kernel_0
  **/
-__global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);
+__global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch, unsigned int denom);
 
 /**
  ** \brief mean_0 wrapper around tree_reduce_sum_kernel_0 and tree_reduce_mean_kernel_0 kernel functions
