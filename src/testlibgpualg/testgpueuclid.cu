@@ -33,7 +33,7 @@ void test_euclidist(double *d_Pt, double *d_Qt, size_t pitch, size_t width, size
     // LAUNCHING KERNEL
     std::cerr << "reducepitch: " << reducepitch << "pitch: " << pitch << std::endl;
     std::cerr << "nbthreads: " << threads << " nbblocksPerLine: " << blocks.x << " nbLines: " << blocks.y << std::endl;
-    euclidist_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_Pt, d_Qt, d_res, pitch, width, height, reducepitch);
+    squared_norm_2_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_Pt, d_Qt, d_res, pitch, width, height, reducepitch);
     cudaDeviceSynchronize();
     cudaCheckError();
 

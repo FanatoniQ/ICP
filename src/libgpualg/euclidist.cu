@@ -1,3 +1,4 @@
+#include <iostream>
 #include <assert.h>
 
 #include "error.hpp"
@@ -6,7 +7,7 @@
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
 
-__global__ void euclidist_kernel(double *d_A, double *d_B, double *d_res, int pitch, int width, int height, int reducepitch)
+__global__ void squared_norm_2_kernel(double *d_A, double *d_B, double *d_res, int pitch, int width, int height, int reducepitch)
 {
     int threadid = threadIdx.x; // thread id in the block
     int lineid = blockIdx.y; // rows
@@ -19,8 +20,8 @@ __global__ void euclidist_kernel(double *d_A, double *d_B, double *d_res, int pi
         return;
     }
 
-    double* d_Aline = (double*)((char*)d_A + lineid * pitch);
-    double* d_Bline = (double*)((char*)d_B + lineid * pitch);
+    double *d_Aline = (double*)((char*)d_A + lineid * pitch);
+    double *d_Bline = (double*)((char*)d_B + lineid * pitch);
     double tmp = d_Aline[dataid] - d_Bline[dataid];
     s_data[threadid] = tmp * tmp;
     __syncthreads();
@@ -33,7 +34,54 @@ __global__ void euclidist_kernel(double *d_A, double *d_B, double *d_res, int pi
         __syncthreads();
     }
 
-    double* d_resline = (double*)((char*)d_res + lineid * reducepitch);
+    double *d_resline = (double*)((char*)d_res + lineid * reducepitch);
     if(threadid == 0)
         d_resline[blockIdx.x] = s_data[0];
+}
+
+__host__ double cuda_squared_norm_2(double *d_A, double *d_B, double **d_res, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads)
+{
+    while (!is_power_of_2(threads))
+        threads++;
+    int nbblocksPerLine = std::ceil((float)width / threads);
+    dim3 blocks(nbblocksPerLine, height);
+
+    if (*d_res == nullptr)
+    {
+        // ALLOCATING DEVICE MEMORY
+        cudaMallocPitch(d_res, reducepitch, nbblocksPerLine * sizeof(double), height);
+        cudaCheckError();
+        cudaMemset2D(*d_res, *reducepitch, 0, nbblocksPerLine * sizeof(double), height);
+        cudaCheckError();
+    }
+
+    // LAUNCHING KERNEL
+    std::cerr << "reducepitch: " << reducepitch << "pitch: " << pitch << std::endl;
+    std::cerr << "nbthreads: " << threads << " nbblocksPerLine: " << blocks.x << " nbLines: " << blocks.y << std::endl;
+    squared_norm_2_kernel << <blocks, threads, threads * sizeof(double) >> > (d_A, d_B, *d_res, pitch, width, height, *reducepitch);
+    cudaDeviceSynchronize();
+    cudaCheckError();
+
+    double *h_res = (double*)malloc(height * *reducepitch);
+    runtime_assert(h_res != nullptr, "Alloc error !");
+
+    // COPY TO HOST
+    cudaMemcpy(h_res, d_res, height * *reducepitch, cudaMemcpyDeviceToHost);
+    cudaCheckError();
+
+    // FREEING DEVICE MEMORY
+    cudaFree(d_res);
+    cudaCheckError();
+
+    double norm = 0;
+    for (size_t i = 0; i < height; ++i)
+    {
+        double *h_resline = (double*)((char*)h_res + i * *reducepitch);
+        for (size_t j = 0; j < nbblocksPerLine; ++j)
+        {
+            norm += h_resline[j];
+        }
+    }
+
+    return norm;
 }
