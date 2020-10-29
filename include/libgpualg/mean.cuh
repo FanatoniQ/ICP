@@ -1,5 +1,7 @@
 #pragma once
 
+#define is_power_of_2(x) (x & (x-1)) == 0
+
 /**
  ** \brief get_next_power_of_2 returns the ceiling power of 2 from the given number
  ** function will warn use when the ceiling power of 2 is greater than 1024, loop

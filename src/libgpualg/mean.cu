@@ -1,11 +1,8 @@
 #include <stdio.h>
-#include "error.cuh"
-#include "libgpualg/mean.cuh"
-
 #include <assert.h>
 
-// TODO: REMOVE this, or not it is just in assert afterall
-#define is_power_of_2(x) (x & (x-1)) == 0
+#include "error.cuh"
+#include "libgpualg/mean.cuh"
 
 unsigned int get_next_power_of_2(unsigned int value)
 {
@@ -159,7 +156,7 @@ __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int 
     double *d_Aline = (double *)((char *)d_A + lineid * pitch);
     // each thread copies to shared memory
     s_data[threadid] = d_Aline[dataid];
-    printf("line: %d ,column: %d ,value: %lf\n", lineid, dataid, s_data[threadid]);
+    //printf("line: %d ,column: %d ,value: %lf\n", lineid, dataid, s_data[threadid]);
     __syncthreads();
     // each thread will reduce with one other shared data element in the middle right part of s_data
     for (size_t stride = blockDim.x / 2; stride > 0; stride = stride >> 1)

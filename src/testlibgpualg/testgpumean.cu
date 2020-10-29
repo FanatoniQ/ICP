@@ -13,9 +13,6 @@
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
 
-// FIXME: duplicated in mean.cu, move to mean.cuh
-#define is_power_of_2(x) (x & (x-1)) == 0
-
 // axis=0 dumb sum testing (same as test_dumb_sum but swapped width and height
 void test_dumb_sum_0(const CPUMatrix &cpuSum, double *d_p, size_t pitch, size_t width, size_t height)
 {
