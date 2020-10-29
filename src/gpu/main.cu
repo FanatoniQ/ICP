@@ -103,15 +103,21 @@ std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, 
 
 int main(int argc, char **argv)
 {
-    //std::string f1Header{};
-    //size_t Qlines, Qcols, Plines, Pcols;
+    std::string f1Header{};
+    size_t Qlines, Qcols, Plines, Pcols;
     //size_t Plines, Pcols;
     //___readCSV(f, f1Header);
-    //double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
-    //CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
+    double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
 
-    //double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
-    //CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
+    double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
+    CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
+
+    auto correspondances = get_correspondence_indices(P.getArray(), Q.getArray(), P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1());
+    for (int i = 0; i < 30; i++)
+    {
+        std::cout << std::get<0>(correspondances.at(i)) << " " << std::get<1>(correspondances.at(i)) << std::endl;
+    }
     //double *B = (double *)calloc(Plines*Pcols, sizeof(double));
     //double *B = calling_transpose_kernel(P.getArray(), Plines, Pcols);
     //for (int i = 0; i < Plines; i++)
@@ -128,6 +134,7 @@ int main(int argc, char **argv)
     //auto cov = compute_cross_variance_cpu_call_gpu(P.getArray(), Q.getArray(), correspondences, P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1());
 
     //std::cout << std::get<0>(finale) << std::endl;
+    /*
     double A[9];
     double B[9];
     for (int i = 0; i < 9; i++)
@@ -140,7 +147,7 @@ int main(int argc, char **argv)
         std::cout << *(cov + i) << std::endl;
     
     free(cov);
-
+    */
 
     //double values = 0;
     //int row = Plines;
