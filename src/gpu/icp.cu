@@ -7,12 +7,12 @@
 #include "libalg/basic_operations.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/CPUMatrix.hpp"
-//#include "cpu/icp.hpp"
 #include "libalg/CPUView.hpp"
 #include "error.hpp"
 #include "cpu/tuple.hpp"
 
 #include "gpu/icp.cuh"
+#include "libgpualg/mult.cuh"
 
 #define Tile_size 2
 
@@ -69,6 +69,7 @@ __host__ double* calling_transpose_kernel(double *A, size_t row, size_t column)
         // Copy mem and exec 
         cudaMemcpy(d_source_transpose, A, size, cudaMemcpyHostToDevice);
         gpuTranspose(d_source_transpose, d_dest_transpose, row, column);
+        cudaDeviceSynchronize();
         cudaMemcpy(transposed_Q, d_dest_transpose, size, cudaMemcpyDeviceToHost);
         
         // Free cuda mem
@@ -77,6 +78,37 @@ __host__ double* calling_transpose_kernel(double *A, size_t row, size_t column)
 
         // End of transpose call
         return transposed_Q;
+}
+
+__host__ double *calling_dot_kernel(double *A, double *B, size_t A_row, size_t A_col, size_t B_row, size_t B_col)
+{
+    size_t sizeA = A_row * A_col * sizeof(double);
+    size_t sizeB = B_row * B_col * sizeof(double);
+    size_t sizeC = A_row * B_col * sizeof(double);
+
+    double *h_C = (double *)calloc(sizeC, sizeof(double));
+
+    float *d_A;
+    float *d_B;
+    float *d_C;
+
+    cudaMalloc(&d_A, sizeA);
+    cudaMalloc(&d_B, sizeB);
+    cudaMalloc(&d_C, sizeC);
+
+    cudaMemcpy(d_A, A, sizeA, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, B, sizeB, cudaMemcpyHostToDevice);
+
+    matrixMultiplication((float*)d_A, (float*)d_B, (float*)d_C, A_row, A_col, B_row, B_col, A_row, B_col);
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(h_C, d_C, sizeC, cudaMemcpyDeviceToHost);
+
+    cudaFree(d_A);
+    cudaFree(d_B);
+    cudaFree(d_C);
+
+    return h_C;
 }
 
 __host__ double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
