@@ -16,50 +16,6 @@
 
 // TODO: export this in static lib, was linking failing or invalid device pointer
 
-template <typename T> 
-__device__
-T add2(T a, T b)
-{
-    return a + b;
-}
-
-template <typename T> 
-__device__
-T subtract2(T a, T b)
-{
-    return a - b;
-}
-
-template <typename T> 
-__device__
-T mult2(T a, T b)
-{
-    return a * b;
-}
-
-template <typename T> 
-__device__
-T divide2(T a, T b)
-{
-    return a / b;
-}
-
-// explicit pointer instanciation for use in kernel...
-// TODO: export this in static lib, was linking failing or invalid device pointer
-// we could use constant memory function table array in static lib for exemple
-
-template <typename T>
-__device__ func2_t<T> add2_op = add2<T>;
-
-template <typename T>
-__device__ func2_t<T> subtract2_op = subtract2<T>;
-
-template <typename T>
-__device__ func2_t<T> mult2_op = mult2<T>;
-
-template <typename T>
-__device__ func2_t<T> divide2_op = divide2<T>;
-
 // MAIN
 
 int main(int argc, char **argv)
@@ -79,7 +35,7 @@ int main(int argc, char **argv)
     cudaCheckError();
     **/
     // TODO:
-    func2_t<double> h_op;
+    //func2_t<double> h_op;
 
     // reading file, cpu operations
     std::string h{};
@@ -134,58 +90,93 @@ int main(int argc, char **argv)
     std::cerr << b_0 << "," << b_1 << std::endl;
     //broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
     //auto R = A - cpuMean;
-    
-    //runtime_assert(R.getArray() == nullptr, "Not standard empty init CPUMatrix behaviour");
-    if (strcmp(argv[3], "-") == 0)
+    enum MatrixOP op = MatrixOP::ADD;
+
+    if (argv[3][0] == '-')
     {
-         A -= cpuMean; // testing centered data
-	 cudaMemcpyFromSymbol(&h_op, subtract2_op<double>, sizeof(func2_t<double>));
-         cudaCheckError();
-/**broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_subtract2_op,
-        a_0, a_1, d_apitch / sizeof(double),
-        b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));**/
+        std::cerr << "SUBTRACT !" << std::endl;
+        A -= cpuMean;
+        op = MatrixOP::SUBTRACT;
     }
-    else if (strcmp(argv[3], "+") == 0)
+    else if (argv[3][0] == '+')
     {
-         A += cpuMean;
-	 cudaMemcpyFromSymbol(&h_op, add2_op<double>, sizeof(func2_t<double>));
-         cudaCheckError();
-/**broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_add2_op,
-        a_0, a_1, d_apitch / sizeof(double),
-        b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));**/
+        std::cerr << "ADD !" << std::endl;
+        A += cpuMean;
+        op = MatrixOP::ADD;
     }
-    else if (strcmp(argv[3], "x") == 0)
+    else if (argv[3][0] == 'x')
     {
-         A *= cpuMean;
-	 cudaMemcpyFromSymbol(&h_op, mult2_op<double>, sizeof(func2_t<double>));
-         cudaCheckError();
-/**broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_mult2_op,
-        a_0, a_1, d_apitch / sizeof(double),
-        b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));**/
+        std::cerr << "MULT !" << std::endl;
+        A *= cpuMean;
+        op = MatrixOP::MULT;
     }
-    else if (strcmp(argv[3], "/") == 0)
+    else if (argv[3][0] == '/')
     {
-         A /= cpuMean;
-	 cudaMemcpyFromSymbol(&h_op, divide2_op<double>, sizeof(func2_t<double>));
-         cudaCheckError();
-/**broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_divide2_op,
-        a_0, a_1, d_apitch / sizeof(double),
-        b_0, b_1, d_bpitch / sizeof(double),
-        r_0, r_1, d_rpitch / sizeof(double));**/
+        std::cerr << "DIVIDE !" << std::endl;
+        A += cpuMean;
+        op = MatrixOP::DIVIDE;
     }
     else
     {
         std::cerr << "Invalid op" << std::endl;
         return EXIT_FAILURE;
     }
+    
+    matrix_op<double>(gridsize, blocksize, d_A, d_B, d_R, op, a_0, a_1, d_apitch, b_0, b_1, d_bpitch, r_0, r_1, d_rpitch);
+    //runtime_assert(R.getArray() == nullptr, "Not standard empty init CPUMatrix behaviour");
+    /**
+    if (strcmp(argv[3], "-") == 0)
+    {
+         A -= cpuMean; // testing centered data
+	 cudaMemcpyFromSymbol(&h_op, subtract2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_subtract2_op,
+//        a_0, a_1, d_apitch / sizeof(double),
+//        b_0, b_1, d_bpitch / sizeof(double),
+//        r_0, r_1, d_rpitch / sizeof(double));
+    }
+    else if (strcmp(argv[3], "+") == 0)
+    {
+         A += cpuMean;
+	 cudaMemcpyFromSymbol(&h_op, add2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_add2_op,
+//        a_0, a_1, d_apitch / sizeof(double),
+//        b_0, b_1, d_bpitch / sizeof(double),
+//        r_0, r_1, d_rpitch / sizeof(double));
+    }
+    else if (strcmp(argv[3], "x") == 0)
+    {
+         A *= cpuMean;
+	 cudaMemcpyFromSymbol(&h_op, mult2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_mult2_op,
+//        a_0, a_1, d_apitch / sizeof(double),
+//        b_0, b_1, d_bpitch / sizeof(double),
+//        r_0, r_1, d_rpitch / sizeof(double));
+    }
+    else if (strcmp(argv[3], "/") == 0)
+    {
+         A /= cpuMean;
+	 cudaMemcpyFromSymbol(&h_op, divide2_op<double>, sizeof(func2_t<double>));
+         cudaCheckError();
+//broadcast_op_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_divide2_op,
+//        a_0, a_1, d_apitch / sizeof(double),
+//        b_0, b_1, d_bpitch / sizeof(double),
+//        r_0, r_1, d_rpitch / sizeof(double));
+    }
+    else
+    {
+        std::cerr << "Invalid op" << std::endl;
+        return EXIT_FAILURE;
+    }
+    **/
 
     /**broadcast_subtract_kernel<<<gridsize, blocksize>>>(d_A, d_B, d_R,
         a_0, a_1, d_apitch / sizeof(double),
         b_0, b_1, d_bpitch / sizeof(double),
         r_0, r_1, d_rpitch / sizeof(double));**/
+    /**
     if (b_0 == 1 && b_1 == 1) {
         broadcast_op_scalar_kernel<double><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
             a_0, a_1, d_apitch / sizeof(double),
@@ -208,6 +199,7 @@ int main(int argc, char **argv)
     }
     cudaDeviceSynchronize();
     cudaCheckError();
+    **/
 
     std::cerr << "FINISHED !" << std::endl;
 

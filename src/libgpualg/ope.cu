@@ -15,12 +15,56 @@
 #include "error.cuh"
 #include "libgpualg/ope.cuh"
 
+template <typename T> 
+__device__
+T add2(T a, T b)
+{
+    return a + b;
+}
+
+template <typename T> 
+__device__
+T subtract2(T a, T b)
+{
+    return a - b;
+}
+
+template <typename T> 
+__device__
+T mult2(T a, T b)
+{
+    return a * b;
+}
+
+template <typename T> 
+__device__
+T divide2(T a, T b)
+{
+    return a / b;
+}
+
+// explicit pointer instanciation for use in kernel...
+// TODO: export this in static lib, was linking failing or invalid device pointer
+// we could use constant memory function table array in static lib for exemple
+
+template <typename T>
+__device__ func2_t<T> add2_op = add2<T>;
+
+template <typename T>
+__device__ func2_t<T> subtract2_op = subtract2<T>;
+
+template <typename T>
+__device__ func2_t<T> mult2_op = mult2<T>;
+
+template <typename T>
+__device__ func2_t<T> divide2_op = divide2<T>;
+
+
 /** Kernel **/
 
 // TODO: remove me: deprecated
 #define BROADCAST_A_B(d_A, d_B, d_R, a_0, a_1, d_apitch, b_0, b_1, d_bpitch, r_0, r_1, d_rpitch, idx, idy, op) {\
     d_R[idx + d_rpitch * idy] = d_A[(idx % a_1) + d_apitch * (idy % a_0)] op d_B[(idx % b_1) + d_bpitch * (idy % b_0)]; }\
-
 
 /** basic version
  ** FIXME: remove this in profit of broadcast_op_kernel onces working
@@ -121,6 +165,53 @@ __global__ void broadcast_op_scalar_kernel(const T *d_A, T *d_B, T *d_R, func2_t
     d_R[idx + d_rpitch * idy] = (*op)(d_A[idx + d_apitch * idy], s_scalar[0]);
 }
 
+// TODO: check if it works
+template <typename T>
+__host__ void matrix_op(dim3 gridsize, dim3 blocksize, 
+    const T *d_A, T *d_B, T *d_R, enum MatrixOP op,
+    unsigned int a_0, unsigned int a_1, size_t d_apitch,
+    unsigned int b_0, unsigned int b_1, size_t d_bpitch,
+    unsigned int r_0, unsigned int r_1, size_t d_rpitch)
+{
+    func2_t<T> h_op;
+    if (op == MatrixOP::ADD)
+        cudaMemcpyFromSymbol(&h_op, add2_op<T>, sizeof(func2_t<T>));
+    else if (op == MatrixOP::SUBTRACT)
+        cudaMemcpyFromSymbol(&h_op, subtract2_op<T>, sizeof(func2_t<T>));
+    else if (op == MatrixOP::MULT)
+        cudaMemcpyFromSymbol(&h_op, mult2_op<T>, sizeof(func2_t<T>));
+    else if (op == MatrixOP::DIVIDE)
+        cudaMemcpyFromSymbol(&h_op, divide2_op<T>, sizeof(func2_t<T>));
+    else
+    {
+        fprintf(stderr, "Invalid Operation argument for matrix_add !");
+        return;
+    }
+    cudaCheckError();
+    if (b_0 == 1 && b_1 == 1) {
+        broadcast_op_scalar_kernel<T><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
+            a_0, a_1, d_apitch / sizeof(T),
+            r_0, r_1, d_rpitch / sizeof(T));
+    } else if (b_0 == 1) {
+        broadcast_op_line_vector_kernel<T><<<gridsize, blocksize, blocksize.x * sizeof(T)>>>(d_A, d_B, d_R, h_op,
+            a_0, a_1, d_apitch / sizeof(T),
+            b_0, b_1, d_bpitch / sizeof(T),
+            r_0, r_1, d_rpitch / sizeof(T));
+    } else if (b_1 == 1) {
+        broadcast_op_column_vector_kernel<T><<<gridsize, blocksize, blocksize.y * sizeof(T)>>>(d_A, d_B, d_R, h_op,
+            a_0, a_1, d_apitch / sizeof(T),
+            b_0, b_1, d_bpitch / sizeof(T),
+            r_0, r_1, d_rpitch / sizeof(T));
+    } else {
+        broadcast_op_kernel<T><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
+            a_0, a_1, d_apitch / sizeof(T),
+            b_0, b_1, d_bpitch / sizeof(T),
+            r_0, r_1, d_rpitch / sizeof(T));
+    }
+    cudaDeviceSynchronize();
+    cudaCheckError();
+};
+
 // explicit instanciation for lib import
 
 template
@@ -128,7 +219,6 @@ __global__ void broadcast_op_kernel<double>(const double *d_A, double *d_B, doub
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
-
 
 template
 __global__ void broadcast_op_scalar_kernel<double>(const double *d_A, double *d_B, double *d_R, func2_t<double> op,
@@ -143,6 +233,13 @@ __global__ void broadcast_op_line_vector_kernel<double>(const double *d_A, doubl
 
 template
 __global__ void broadcast_op_column_vector_kernel<double>(const double *d_A, double *d_B, double *d_R, func2_t<double> op,
+    unsigned int a_0, unsigned int a_1, size_t d_apitch,
+    unsigned int b_0, unsigned int b_1, size_t d_bpitch,
+    unsigned int r_0, unsigned int r_1, size_t d_rpitch);
+
+template
+__host__ void matrix_op<double>(dim3 gridsize, dim3 blocksize,
+    const double *d_A, double *d_B, double *d_R, enum MatrixOP op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
