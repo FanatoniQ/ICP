@@ -200,7 +200,7 @@ void test_tree_reduce_sum(const CPUMatrix &cpuSum, double *d_pT, size_t pitch, s
              exit(4);
         }**/
     }
-    std::cerr << std::endl << "Total error: " << ttlerror << std::endl;
+    std::cerr << std::endl << "Axis1:" << std::endl << "Total error: " << ttlerror << std::endl;
     std::cerr << "Mean error: " << ttlerror / width << std::endl << std::endl;
     free(h_sum);
 }
@@ -229,26 +229,23 @@ void test_tree_reduce_sum_0(const CPUMatrix &cpuSum, double *d_p, size_t pitch, 
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    /**
-    ** TODO: multiiter implementation
-    // We call the kernel a second time instead if multiple blocks per line
-    // second call to reduce d_mean, nbthreads is nbblockPerLine, width is nbblockPerline, height is nblines
-    // Watch out ! do not use threads, blocks, width or pitch afterwards to reference d_pT
+    /** TODO: multiiter implementation, check if working **/
+    // We call the kernel a second time instead if multiple blocks per column
+    // second call to reduce d_sum, nbthreads is nbblockPerColumn, height is nbblocksPerColumn, width is nbcols
+    // Watch out ! do not use threads, blocks, width or pitch afterwards to reference d_p
     if (multiiter)
     {
     pitch = reducepitch;
-    threads = nbblocksPerLine;
+    threads = nbblocksPerColumn;
     threads = get_next_power_of_2(threads);
-    //while (!is_power_of_2(threads))
-    //    threads++;
-    blocks = dim3(1, height);
-    width = nbblocksPerLine;
+    blocks = dim3(width, 1); // 1,height
+    height = nbblocksPerColumn;
     std::cerr << "reducepitch: " << reducepitch << " pitch: " << pitch << std::endl;
-    std::cerr << "nbthreads: " << threads << " nbblocksPerLine: " << blocks.x << " nbLines: " << blocks.y << std::endl;
-    tree_reduce_sum_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_sum, d_sum, pitch, width, height, reducepitch);
+    std::cerr << "nbthreads: " << threads << " nbcolumns: " << blocks.x << " nbblocksPerColumns: " << blocks.y << std::endl;
+    tree_reduce_sum_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(d_sum, d_sum, pitch, width, height, reducepitch);
     cudaDeviceSynchronize();
     cudaCheckError();
-    }**/
+    }
 
     double *h_sum = (double*)malloc(nbblocksPerColumn * reducepitch);
     runtime_assert(h_sum != nullptr, "Alloc error !");
@@ -270,7 +267,7 @@ void test_tree_reduce_sum_0(const CPUMatrix &cpuSum, double *d_p, size_t pitch, 
         double gpulinesum = 0;
 	// is gpu second reduce:
 	if (multiiter)
-	    gpulinesum = h_sum[i]; // TODO
+	    gpulinesum = h_sum[i];
         // one reduce case, final reduce done on cpu
 	else
             for (size_t j = 0; j < nbblocksPerColumn; ++j)
@@ -292,8 +289,8 @@ void test_tree_reduce_sum_0(const CPUMatrix &cpuSum, double *d_p, size_t pitch, 
              exit(4);
         }**/
     }
-    std::cerr << std::endl << "Total error: " << ttlerror << std::endl;
-    std::cerr << "Mean error: " << ttlerror / width << std::endl << std::endl;
+    std::cerr << std::endl << "Axis0:" << std::endl << "Total error: " << ttlerror << std::endl;
+    std::cerr << "Mean error: " << ttlerror / height << std::endl << std::endl;
     free(h_sum);
 }
 
@@ -319,17 +316,16 @@ int main_axis0(int argc, char **argv)
     cudaCheckError();
     cudaMemcpy2D(d_p, pitch, h_p, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
     cudaCheckError();
- 
-//else if (strcmp(argv[2], "trees") == 0)
-    //    test_tree_reduce_sum(cpuSum, d_pT, pitch, width, height, true);
-    
+
     if (strcmp(argv[2], "dummy") == 0)
         test_dumb_sum_0(cpuSum, d_p, pitch, width, height);
     else if (strcmp(argv[2], "tree") == 0)
         test_tree_reduce_sum_0(cpuSum, d_p, pitch, width, height, false);
+    else if (strcmp(argv[2], "trees") == 0)
+        test_tree_reduce_sum_0(cpuSum, d_p, pitch, width, height, true);
     else
     {
-        std::cerr << "method = dummy | tree" << std::endl;
+        std::cerr << "method = dummy | tree | trees" << std::endl;
         return EXIT_FAILURE;
     }
     std::cerr << cpuSum << std::endl;
@@ -371,7 +367,7 @@ int main_axis1(int argc, char **argv)
         test_tree_reduce_sum(cpuSum, d_pT, pitch, width, height, false);
     else
     {
-        std::cerr << "method = dummy | tree" << std::endl;
+        std::cerr << "method = dummy | tree | trees" << std::endl;
         return EXIT_FAILURE;
     }
     std::cerr << cpuSum << std::endl;
