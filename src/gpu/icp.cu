@@ -31,8 +31,6 @@ __host__ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double 
     cudaMallocPitch(&d_Qt, &pitch, P_r * sizeof(double), P_c * sizeof(double));
     cudaCheckError();
 
-    double **d_res;
-    size_t *reducepitch;
     int threads = 4;
 
     std::vector<std::tuple<size_t, int>> correspondances = {};
@@ -49,7 +47,7 @@ __host__ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double 
             cudaMemcpy2D(d_Qt, pitch, q_point, Q_r * sizeof(double), Q_r * sizeof(double), Q_c, cudaMemcpyHostToDevice);
             cudaCheckError();
 
-            double dist = sqrt(cuda_squared_norm_2(d_Pt, d_Qt, d_res, P_r, P_c, pitch, reducepitch, threads));
+            double dist = sqrt(cuda_squared_norm_2(d_Pt, d_Qt, Q_r, Q_c, pitch, threads));
 
             //double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
             //                        squared_norm_2, add, add)); //norm 2 between 2 vectors

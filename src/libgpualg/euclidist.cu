@@ -39,34 +39,32 @@ __global__ void squared_norm_2_kernel(double *d_A, double *d_B, double *d_res, i
         d_resline[blockIdx.x] = s_data[0];
 }
 
-__host__ double cuda_squared_norm_2(double *d_A, double *d_B, double **d_res, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads)
+__host__ double cuda_squared_norm_2(double *d_A, double *d_B, size_t width, size_t height, size_t pitch, int threads)
 {
+    size_t reducepitch;
     while (!is_power_of_2(threads))
         threads++;
     int nbblocksPerLine = std::ceil((float)width / threads);
     dim3 blocks(nbblocksPerLine, height);
 
-    if (*d_res == nullptr)
-    {
-        // ALLOCATING DEVICE MEMORY
-        cudaMallocPitch(d_res, reducepitch, nbblocksPerLine * sizeof(double), height);
-        cudaCheckError();
-        cudaMemset2D(*d_res, *reducepitch, 0, nbblocksPerLine * sizeof(double), height);
-        cudaCheckError();
-    }
+    double *d_res;
+    cudaMallocPitch(&d_res, &reducepitch, nbblocksPerLine * sizeof(double), height);
+    cudaCheckError();
+    cudaMemset2D(d_res, reducepitch, 0, nbblocksPerLine * sizeof(double), height);
+    cudaCheckError();
 
     // LAUNCHING KERNEL
     std::cerr << "reducepitch: " << reducepitch << "pitch: " << pitch << std::endl;
     std::cerr << "nbthreads: " << threads << " nbblocksPerLine: " << blocks.x << " nbLines: " << blocks.y << std::endl;
-    squared_norm_2_kernel << <blocks, threads, threads * sizeof(double) >> > (d_A, d_B, *d_res, pitch, width, height, *reducepitch);
+    squared_norm_2_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_A, d_B, d_res, pitch, width, height, reducepitch);
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    double *h_res = (double*)malloc(height * *reducepitch);
+    double *h_res = (double*)malloc(height * reducepitch);
     runtime_assert(h_res != nullptr, "Alloc error !");
 
     // COPY TO HOST
-    cudaMemcpy(h_res, d_res, height * *reducepitch, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_res, d_res, height * reducepitch, cudaMemcpyDeviceToHost);
     cudaCheckError();
 
     // FREEING DEVICE MEMORY
@@ -76,7 +74,7 @@ __host__ double cuda_squared_norm_2(double *d_A, double *d_B, double **d_res, si
     double norm = 0;
     for (size_t i = 0; i < height; ++i)
     {
-        double *h_resline = (double*)((char*)h_res + i * *reducepitch);
+        double *h_resline = (double*)((char*)h_res + i * reducepitch);
         for (size_t j = 0; j < nbblocksPerLine; ++j)
         {
             norm += h_resline[j];
