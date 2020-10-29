@@ -144,3 +144,35 @@ __global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pi
     //d_sumA[blockIdx.x + reducepitch * lineid] = s_data[0]; // we store at pos x,y the partial mean
     //d_sumA[blockIdx.x + (height / blockDim.x) * lineid] = s_data[0]; // we store at pos x,y the partial mean
 }
+
+// TODO: check
+__global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch)
+{
+    extern __shared__ double s_data[]; // s_data is of size blockDim.y
+    int threadid = threadIdx.x; // thread id in the block
+    int lineid = blockIdx.y * blockDim.x + threadIdx.x; // line
+    int dataid = blockIdx.x; // column
+    if (dataid >= width || lineid >= height) {
+	s_data[threadid] = 0; // prevent other threads from adding uninit values
+        return;
+    }
+    double *d_Aline = (double *)((char *)d_A + lineid * pitch);
+    // each thread copies to shared memory
+    s_data[threadid] = d_Aline[dataid];
+    printf("line: %d ,column: %d ,value: %lf\n", lineid, dataid, s_data[threadid]);
+    __syncthreads();
+    // each thread will reduce with one other shared data element in the middle right part of s_data
+    for (size_t stride = blockDim.x / 2; stride > 0; stride = stride >> 1)
+    {
+        assert(is_power_of_2(stride)); // if not power of 2 ...
+        if (threadid < stride) // a lot of threads are idle...
+             s_data[threadid] += s_data[threadid + stride];
+	__syncthreads();
+    }
+    //printf("Reduce Index: %d\n", blockIdx.x + reducepitch * lineid);
+    double *d_sumAline = (double *)((char *)d_sumA + blockIdx.y * reducepitch);
+    if (threadid == 0)
+        d_sumAline[blockIdx.x] = s_data[0];
+    //d_sumA[blockIdx.x + reducepitch * lineid] = s_data[0]; // we store at pos x,y the partial mean
+    //d_sumA[blockIdx.x + (height / blockDim.x) * lineid] = s_data[0]; // we store at pos x,y the partial mean
+}

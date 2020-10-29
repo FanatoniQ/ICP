@@ -11,7 +11,7 @@
  **/
 unsigned int get_next_power_of_2(unsigned int value);
 
-/** AXIS = 0 REDUCTION **/
+/** AXIS = 1 REDUCTION **/
 
 /**
  ** \brief dumb_sum_kernel a dummy kernel to compute axis=1 sum
@@ -48,7 +48,7 @@ unsigned int get_next_power_of_2(unsigned int value);
 __global__ void dumb_mean_kernel(const char *d_A, double *d_meanA, int pitch, int width, int height);
 
 /**
- ** \brief tree_reduce_sum_kernel computes axis=1 mean, each block of threads handles a partial
+ ** \brief tree_reduce_sum_kernel computes axis=1 sum, each block of threads handles a partial
  ** line sum, should be called with <<<dim3(x,height),nbthreads, nbthreads>>> with x being the number of
  ** blocks per line. Shared memory of size nbthreads is used to store device mem d_A elements.
  ** Each thread will sum the data in the shared memory data array at index threadIdx.x with the
@@ -58,8 +58,8 @@ __global__ void dumb_mean_kernel(const char *d_A, double *d_meanA, int pitch, in
  ** nbthreads / 2.
  **
  ** \param d_A the device pointer
- ** \param d_meanA the device mean pointer used to store mean results (each column is a partial mean
- ** and each row contains partial means for the given d_A line
+ ** \param d_sumA the device mean pointer used to store mean results (each column is a partial sum
+ ** and each row contains partial sums for the given d_A line
  ** \param pitch the pitch of d_A in bytes
  ** \param width the number of values in a line
  ** \param height the number of lines
@@ -91,3 +91,29 @@ __global__ void dumb_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, 
  ** \see dumb_sum_kernel_0
  **/
 __global__ void dumb_sum_kernel_0(const double *d_A, double *d_meanA, int pitch, int width, int height);
+
+/**
+ ** \brief tree_reduce_sum_kernel_0 computes axis=1 sum, each block of threads handles a partial
+ ** column sum, should be called with <<<dim3(width,y),nbthreads, nbthreads>>> with y being the number of
+ ** blocks per column. Shared memory of size nbthreads is used to store device mem d_A elements.
+ ** Each thread will sum the data in the shared memory data array at index threadIdx.x with the
+ ** shared memory content at index threadIdx.x + stride.
+ ** Global memory accesses in each blocks are not coallesced since we compute column sum, however, this is
+ ** faster than using global atomics,
+ ** At each iterations, we wait for all threads to compute the sum,
+ ** then we decrease the stride, until it reaches 0. Some threads are therefore inactive
+ ** but the overall number of cycles (ignoring sum cost) is log2(nbthreads/2), since stride starts at
+ ** nbthreads / 2.
+ ** For coalesced access we can transpose and call tree_reduce_sum_kernel
+ ** \see tree_reduce_sum_kernel
+ ** \todo TODO: check if it works and benchmark
+ **
+ ** \param d_A the device pointer
+ ** \param d_sumA the device mean pointer used to store mean results, each column contains at each line,
+ ** the partial sum of the column for the d_A pointer
+ ** \param pitch the pitch of d_A in bytes
+ ** \param width the number of values in a line
+ ** \param height the number of lines
+ ** \param reducepitch the pitch of d_sumA array in bytes
+ **/
+__global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);

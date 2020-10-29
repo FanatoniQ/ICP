@@ -169,6 +169,7 @@ void test_tree_reduce_sum(const CPUMatrix &cpuSum, double *d_pT, size_t pitch, s
     cudaCheckError();
 
     // PRINTING
+    double ttlerror = 0;
     std::cerr << "GPU Sums : " << std::endl;
     for (size_t i = 0; i < height; ++i)
     {
@@ -188,6 +189,7 @@ void test_tree_reduce_sum(const CPUMatrix &cpuSum, double *d_pT, size_t pitch, s
         std::cerr << std::endl << "line[0]" << gpulinesum << std::endl;
 	std::cerr << "CPUSUM(0,i)" << cpulinesum << std::endl;
         std::cerr << "Difference betweeen CPU and GPU sum: " << gpulinesum - cpulinesum << std::endl;
+	ttlerror += std::fabs(cpulinesum - gpulinesum);
 	// we have some error apparently, which is weird
 	//runtime_assert(cpulinesum == gpulinesum, "Not same mean");
 	/**
@@ -198,6 +200,100 @@ void test_tree_reduce_sum(const CPUMatrix &cpuSum, double *d_pT, size_t pitch, s
              exit(4);
         }**/
     }
+    std::cerr << std::endl << "Total error: " << ttlerror << std::endl;
+    std::cerr << "Mean error: " << ttlerror / width << std::endl << std::endl;
+    free(h_sum);
+}
+
+void test_tree_reduce_sum_0(const CPUMatrix &cpuSum, double *d_p, size_t pitch, size_t width, size_t height, bool multiiter)
+{
+    // SETUP
+    double *d_sum;
+    size_t reducepitch;
+    int threads = 4; // TODO: change this
+    threads = get_next_power_of_2(threads);
+    int nbblocksPerColumn = std::ceil((float)height / threads); // each block column treats partial one column sum
+    dim3 blocks(width, nbblocksPerColumn); // we have width columns of nbblocksPerColumn
+
+    // ALLOCATING DEVICE MEMORY
+    // TODO: This is too much memory we should use cudaMalloc when we have a high number of lines
+    cudaMallocPitch(&d_sum, &reducepitch, width * sizeof(double), nbblocksPerColumn);
+    cudaCheckError();
+    cudaMemset2D(d_sum, reducepitch, 0, width * sizeof(double), nbblocksPerColumn);
+    cudaCheckError();
+
+    // LAUNCHING KERNEL
+    std::cerr << "reducepitch: " << reducepitch << " pitch: " << pitch << std::endl;
+    std::cerr << "nbthreads: " << threads << " nbcolumns: " << blocks.x << " nbblocksPerColumns: " << blocks.y << std::endl;
+    tree_reduce_sum_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(d_p, d_sum, pitch, width, height, reducepitch);
+    cudaDeviceSynchronize();
+    cudaCheckError();
+
+    /**
+    ** TODO: multiiter implementation
+    // We call the kernel a second time instead if multiple blocks per line
+    // second call to reduce d_mean, nbthreads is nbblockPerLine, width is nbblockPerline, height is nblines
+    // Watch out ! do not use threads, blocks, width or pitch afterwards to reference d_pT
+    if (multiiter)
+    {
+    pitch = reducepitch;
+    threads = nbblocksPerLine;
+    threads = get_next_power_of_2(threads);
+    //while (!is_power_of_2(threads))
+    //    threads++;
+    blocks = dim3(1, height);
+    width = nbblocksPerLine;
+    std::cerr << "reducepitch: " << reducepitch << " pitch: " << pitch << std::endl;
+    std::cerr << "nbthreads: " << threads << " nbblocksPerLine: " << blocks.x << " nbLines: " << blocks.y << std::endl;
+    tree_reduce_sum_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_sum, d_sum, pitch, width, height, reducepitch);
+    cudaDeviceSynchronize();
+    cudaCheckError();
+    }**/
+
+    double *h_sum = (double*)malloc(nbblocksPerColumn * reducepitch);
+    runtime_assert(h_sum != nullptr, "Alloc error !");
+
+    // COPY TO HOST
+    cudaMemcpy(h_sum, d_sum, nbblocksPerColumn * reducepitch, cudaMemcpyDeviceToHost);
+    cudaCheckError();
+
+    // FREEING DEVICE MEMORY
+    cudaFree(d_sum);
+    cudaCheckError();
+
+    // PRINTING
+    double ttlerror = 0;
+    std::cerr << "GPU Sums : " << std::endl;
+    for (size_t i = 0; i < width; ++i)
+    {
+	double cpulinesum = cpuSum(0,i);
+        double gpulinesum = 0;
+	// is gpu second reduce:
+	if (multiiter)
+	    gpulinesum = h_sum[i]; // TODO
+        // one reduce case, final reduce done on cpu
+	else
+            for (size_t j = 0; j < nbblocksPerColumn; ++j)
+            {
+                gpulinesum += h_sum[j * (reducepitch / sizeof(double)) + i];
+                std::cerr <<  h_sum[j * (reducepitch / sizeof(double)) + i] << "(" << gpulinesum << ")+\t";
+            }
+        std::cerr << std::endl << "line[0]" << gpulinesum << std::endl;
+	std::cerr << "CPUSUM(0,i)" << cpulinesum << std::endl;
+        std::cerr << "Difference betweeen CPU and GPU sum: " << gpulinesum - cpulinesum << std::endl;
+	ttlerror += std::fabs(cpulinesum - gpulinesum);
+	// we have some error apparently, which is weird
+	//runtime_assert(cpulinesum == gpulinesum, "Not same mean");
+	/**
+	// NOTE: floating points operations are not commutative...
+	// we could use bigger type than double for shared memory... can be heavy
+        if (std::fabs(cpulinesum - gpulinesum) > 1e-10f) {
+             std::cerr << "Difference betweeen CPU and GPU sum: " << gpulinesum - cpulinesum << std::endl;
+             exit(4);
+        }**/
+    }
+    std::cerr << std::endl << "Total error: " << ttlerror << std::endl;
+    std::cerr << "Mean error: " << ttlerror / width << std::endl << std::endl;
     free(h_sum);
 }
 
@@ -226,11 +322,11 @@ int main_axis0(int argc, char **argv)
  
 //else if (strcmp(argv[2], "trees") == 0)
     //    test_tree_reduce_sum(cpuSum, d_pT, pitch, width, height, true);
-    //else if (strcmp(argv[2], "tree") == 0)
-    //    test_tree_reduce_sum(cpuSum, d_pT, pitch, width, height, false);
-
+    
     if (strcmp(argv[2], "dummy") == 0)
         test_dumb_sum_0(cpuSum, d_p, pitch, width, height);
+    else if (strcmp(argv[2], "tree") == 0)
+        test_tree_reduce_sum_0(cpuSum, d_p, pitch, width, height, false);
     else
     {
         std::cerr << "method = dummy | tree" << std::endl;
