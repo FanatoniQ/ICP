@@ -9,7 +9,7 @@ enum MatrixOP
     ADD = 0,
     SUBTRACT = 1,
     MULT = 2,
-    DIVIDE = 3
+    DIVIDE = 3 // watch out for 0 division
 };
 
 /** Kernel **/
@@ -137,7 +137,7 @@ __global__ void broadcast_op_scalar_kernel(const T *d_A, T *d_B, T *d_R, func2_t
  ** \param d_A the a_0 x a_1 left operand matrix
  ** \param d_B the b_0 x b_1 right operand matrix
  ** \param d_R the r_0 x r_1 result matrix
- ** \param op the MatrixOP enum either ADD, SUBTRACT, MULT or DIVIDE
+ ** \param op the MatrixOP enum either ADD, SUBTRACT, MULT or DIVIDE (beware of zero division)
  ** \param a_0 the number of lines in d_A
  ** \param a_1 the number of columns in d_A
  ** \param d_apitch the pitch of d_A IN bytes

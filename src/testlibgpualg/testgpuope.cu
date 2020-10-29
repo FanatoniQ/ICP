@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     else if (argv[3][0] == '/')
     {
         std::cerr << "DIVIDE !" << std::endl;
-        A += cpuMean;
+        A /= cpuMean;
         op = MatrixOP::DIVIDE;
     }
     else
