@@ -54,6 +54,26 @@ __device__ __host__ double get_line_mean(const double *line, int nbvals)
     return get_line_sum(line, nbvals) / nbvals;
 }
 
+// computes column sum (pitch is NOT in bytes)
+__device__ __host__ double get_column_sum(const double *A, int colidx, int nblines, int pitch)
+{
+    int i;
+    double sum = 0;
+    for (i = 0; i < nblines; ++i)
+        sum += A[i * pitch + colidx];
+    return sum;
+}
+
+// computes column mean (pitch is NOT in bytes)
+__device__ __host__ double get_column_mean(const double *A, int colidx, int nblines, int pitch)
+{
+    return get_column_sum(A, colidx, nblines, pitch) / nblines;
+}
+
+/** DUMB reduction **/
+
+/** AXIS = 1 : summing each columns together for all lines **/
+
 __global__ void dumb_sum_kernel(const char *d_A, double *d_sumA, int pitch, int width, int height)
 {
     int idx = threadIdx.x;
@@ -71,6 +91,29 @@ __global__ void dumb_mean_kernel(const char *d_A, double *d_meanA, int pitch, in
     double *line = (double *)(d_A + idx * pitch);
     d_meanA[idx] = get_line_mean(line, width);
 }
+
+/** AXIS = 0 summing each lines together for  all columns **/
+
+__global__ void dumb_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height)
+{
+    int idx = threadIdx.x;
+    if (idx >= width)
+        return;
+    //printf("%d - %d\n", blockIdx.x, idx);
+    d_sumA[idx] = get_column_sum(d_A, idx, height, pitch);
+}
+
+__global__ void dumb_mean_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height)
+{
+    int idx = threadIdx.x;
+    if (idx >= width)
+        return;
+    //printf("%d - %d | %d - %d\n",  blockIdx.y, blockIdx.x, idx, threadIdx.y);
+    //assert(idx >= height);
+    d_sumA[idx] = get_column_mean(d_A, idx, height, pitch);
+}
+
+/** TREE reduction **/
 
 __global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch)
 {

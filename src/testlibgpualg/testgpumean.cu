@@ -16,12 +16,62 @@
 // FIXME: duplicated in mean.cu
 #define is_power_of_2(x) (x & (x-1)) == 0
 
+// axis=0 dumb sum testing (same as test_dumb_sum but swapped width and height
+void test_dumb_sum_0(const CPUMatrix &cpuSum, double *d_p, size_t pitch, size_t width, size_t height)
+{
+    // SETUP
+    double *d_sum;
+    size_t blocks = 1;//width;
+    size_t threads = width;//height; // TODO: handle width > 1024
+    runtime_assert(threads <= 1024, "Too many threads");
+    
+    // ALLOCATING DEVICE MEMORY
+    cudaMalloc(&d_sum, width * sizeof(double));
+
+    double *h_sum = (double*)malloc(width * sizeof(double));
+    runtime_assert(h_sum != nullptr, "Alloc error !");
+
+    
+    // LAUNCHING KERNEL
+    dumb_sum_kernel_0<<<blocks, threads>>>(d_p, d_sum, pitch / sizeof(double), width, height);
+    cudaDeviceSynchronize();
+    cudaCheckError();
+
+    // COPY TO HOST
+    cudaMemcpy(h_sum, d_sum, width * sizeof(double), cudaMemcpyDeviceToHost);
+    cudaCheckError();
+
+    // FREEING DEVICE MEMORY
+    cudaFree(d_sum);
+    cudaCheckError();
+
+    // PRINTING
+    std::cerr << "GPU Sums : " << std::endl;
+    for (size_t i = 0; i < width; ++i)
+    {
+	double cpulinesum = cpuSum(0,i);
+        double gpulinesum = 0;
+	gpulinesum = h_sum[i]; // dummy sum kernel
+        std::cerr << std::endl << "line[0]" << gpulinesum << std::endl;
+	std::cerr << "CPUSUM(0,i)" << cpulinesum << std::endl;
+	// we have some error apparently, which is weird
+	//runtime_assert(cpulinesum == gpulinesum, "Not same mean");
+        if (std::fabs(cpulinesum - gpulinesum) > 1e-10f) {
+             std::cerr << "Difference betweeen CPU and GPU sum: " << gpulinesum - cpulinesum << std::endl;
+             exit(4);
+        }
+    }
+    free(h_sum);
+    std::cerr << "AXIS0 DONE" << std::endl;
+}
+
+
 void test_dumb_sum(const CPUMatrix &cpuSum, double *d_pT, size_t pitch, size_t width, size_t height)
 {
     // SETUP
     double *d_sum;
-    size_t blocks = height;
-    size_t threads = width; // TODO: handle width > 1024
+    size_t blocks = 1;//height;
+    size_t threads = height;//width; // TODO: handle width > 1024
     runtime_assert(threads <= 1024, "Too many threads");
     
     // ALLOCATING DEVICE MEMORY
@@ -151,9 +201,52 @@ void test_tree_reduce_sum(const CPUMatrix &cpuSum, double *d_pT, size_t pitch, s
     free(h_sum);
 }
 
-int main(int argc, char **argv)
+// TODO: FIXME
+int main_axis0(int argc, char **argv)
 {
-    runtime_assert(argc == 3, "Usage: ./testgpusum file1 method");
+    runtime_assert(argc == 4 || argc == 3, "Usage: ./testgpusum file1 method [axis]");
+    std::cerr << std::setprecision(15);
+    std::string h{};
+    size_t nblines, nbcols;
+    double *h_p = readCSV(argv[1], h, nblines, nbcols);
+    print_matrix(std::cerr, h_p, nbcols, nblines);
+
+    auto P = CPUMatrix(h_p, nblines, nbcols);
+    auto cpuSum = P.sum(0);
+    std::cerr << "CPU Sums: " << std::endl << cpuSum << std::endl;
+    
+    // device memory
+    double *d_p;
+    size_t pitch;
+    size_t width = nbcols, height = nblines;
+    cudaMallocPitch(&d_p, &pitch, width * sizeof(double), height * sizeof(double));
+    cudaCheckError();
+    cudaMemcpy2D(d_p, pitch, h_p, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
+    cudaCheckError();
+ 
+//else if (strcmp(argv[2], "trees") == 0)
+    //    test_tree_reduce_sum(cpuSum, d_pT, pitch, width, height, true);
+    //else if (strcmp(argv[2], "tree") == 0)
+    //    test_tree_reduce_sum(cpuSum, d_pT, pitch, width, height, false);
+
+    if (strcmp(argv[2], "dummy") == 0)
+        test_dumb_sum_0(cpuSum, d_p, pitch, width, height);
+    else
+    {
+        std::cerr << "method = dummy | tree" << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::cerr << cpuSum << std::endl;
+    std::cerr << "SUCCESS" << std::endl;
+    //cudaFree(d_p);
+    //cudaCheckError();
+    return EXIT_SUCCESS;
+}
+
+
+int main_axis1(int argc, char **argv)
+{
+    runtime_assert(argc == 3 || argc == 4, "Usage: ./testgpusum file1 method [axis]");
     std::cerr << std::setprecision(15);
     std::string h{};
     size_t nblines, nbcols;
@@ -190,6 +283,18 @@ int main(int argc, char **argv)
     cudaFree(d_pT);
     cudaCheckError();
     free(h_p);
+    return EXIT_SUCCESS;
+}
+
+int main(int argc, char **argv)
+{
+    runtime_assert(argc == 3 || argc == 4, "Usage ./testgpusum file1 method [axis]");
+    if (argc == 3 || strcmp(argv[3], "1") == 0)
+        return main_axis1(argc, argv);
+    if (argc == 4 && strcmp(argv[3], "0") == 0)
+        return main_axis0(argc, argv);
+    std::cerr << "Usage: axis = 0 | 1" << std::endl;
+    return EXIT_FAILURE;
 }
 
 

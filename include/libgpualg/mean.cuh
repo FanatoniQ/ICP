@@ -11,6 +11,8 @@
  **/
 unsigned int get_next_power_of_2(unsigned int value);
 
+/** AXIS = 0 REDUCTION **/
+
 /**
  ** \brief dumb_sum_kernel a dummy kernel to compute axis=1 sum
  ** each thread will sum one line with coallesced access then write
@@ -18,7 +20,7 @@ unsigned int get_next_power_of_2(unsigned int value);
  ** idx being the threadIdx.x. In order to get the sum for each lines
  ** we need to launch nblines kernels. Each thread will call the
  ** get_line_sum function.
- ** Kernel should be launched with <<<height, width>>>, width can be maximum
+ ** Kernel should be launched with <<<1, width>>>, width must be <= maximum
  ** number of threads per blocks or the line width.
  ** \note kernel tree_reduce_sum_kernel should be more efficient, computing partial
  ** sums in each blocks, with a cost of log2(width/2) iterations.
@@ -64,3 +66,28 @@ __global__ void dumb_mean_kernel(const char *d_A, double *d_meanA, int pitch, in
  ** \param reducepitch the pitch of d_sumA array in bytes
  **/
 __global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);
+
+
+/** AXIS = 0 REDUCTION **/
+
+/**
+ ** \brief dumb_sum_kernel_0 is the same as dumb_sum_kernel but for axis=0 instead of 1
+ ** Kernel should be launched with <<<1, height>>>, height must be at most maximum
+ ** number of threads per blocks and can be the matrix height. Each block will handle a column sum
+ ** therefore we have width blocks. Access are not coalesced since column sum, but should be better than
+ ** atomicadd.
+ ** \see dumb_sum_kernel
+ **
+ ** \param d_A device pointer to matrix A
+ ** \param d_sum device pointer for result sum line vector
+ ** \param pitch d_A pitch NOT in bytes
+ ** \param width the number of columns in d_A
+ ** \param height the number of lines in d_A
+ **/
+__global__ void dumb_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height);
+
+/**
+ ** \brief dumb_mean_kernel_0 is the same as dumb_sum_kernel_0 but for mean computation
+ ** \see dumb_sum_kernel_0
+ **/
+__global__ void dumb_sum_kernel_0(const double *d_A, double *d_meanA, int pitch, int width, int height);
