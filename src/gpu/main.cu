@@ -136,9 +136,10 @@ int main(int argc, char **argv)
         B[i] = 1;
     }
     auto cov = calling_dot_kernel(A, B, 3, 3, 3, 3);
-    //for (int i = 0; i < 9; i++)
-    //    std::cout << *(cov + i) << std::endl;
+    for (int i = 0; i < 9; i++)
+        std::cout << *(cov + i) << std::endl;
     
+    free(cov);
 
 
     //double values = 0;
