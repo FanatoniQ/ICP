@@ -82,11 +82,11 @@ __host__ double* calling_transpose_kernel(double *A, size_t row, size_t column)
 
 __host__ double *calling_dot_kernel(double *A, double *B, size_t A_row, size_t A_col, size_t B_row, size_t B_col)
 {
-    size_t sizeA = A_row * A_col * sizeof(double);
-    size_t sizeB = B_row * B_col * sizeof(double);
-    size_t sizeC = A_row * B_col * sizeof(double);
+    size_t sizeA = A_row * A_col * sizeof(float);
+    size_t sizeB = B_row * B_col * sizeof(float);
+    size_t sizeC = A_row * B_col * sizeof(float);
 
-    double *h_C = (double *)calloc(sizeC, sizeof(double));
+    float *h_C = (float *)calloc(sizeC, sizeof(float));
 
     float *d_A;
     float *d_B;
@@ -99,7 +99,7 @@ __host__ double *calling_dot_kernel(double *A, double *B, size_t A_row, size_t A
     cudaMemcpy(d_A, A, sizeA, cudaMemcpyHostToDevice);
     cudaMemcpy(d_B, B, sizeB, cudaMemcpyHostToDevice);
 
-    matrixMultiplication((float*)d_A, (float*)d_B, (float*)d_C, A_row, A_col, B_row, B_col, A_row, B_col);
+    matrixMultiplication((float*)d_A, (float*)d_B, d_C, A_row, A_col, B_row, B_col, A_row, B_col);
     cudaDeviceSynchronize();
 
     cudaMemcpy(h_C, d_C, sizeC, cudaMemcpyDeviceToHost);
@@ -108,7 +108,7 @@ __host__ double *calling_dot_kernel(double *A, double *B, size_t A_row, size_t A
     cudaFree(d_B);
     cudaFree(d_C);
 
-    return h_C;
+    return (double *)h_C;
 }
 
 __host__ double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,

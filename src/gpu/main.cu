@@ -132,8 +132,8 @@ int main(int argc, char **argv)
     double B[9];
     for (int i = 0; i < 9; i++)
     {
-        A[i] = i;
-        B[i] = i - 9;
+        A[i] = 1;
+        B[i] = 1;
     }
     auto cov = calling_dot_kernel(A, B, 3, 3, 3, 3);
     //for (int i = 0; i < 9; i++)

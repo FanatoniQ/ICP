@@ -46,6 +46,7 @@ __global__ void matrixMultiplyShared(float* A, float* B, float* C,
             Cvalue += sA[threadIdx.y][j] * sB[j][threadIdx.x];
         }
     }
+    printf("%f", Cvalue);
     if (Row < matCRows && Col < matCColumns)//Saving Final result into Matrix C
     {
         C[Row * matCColumns + Col] = Cvalue;
