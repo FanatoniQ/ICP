@@ -176,9 +176,9 @@ __global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows
 void gpuTranspose(double* A, double* B, int numRows, int numColumns) {
 
     // declare the number of blocks per grid and the number of threads per block
-    dim3 dimGrid((numColumns / Tile_size), (numRows / Tile_size), 1);//Number of Blocks required
-    dim3 dimBlock(Tile_size, Tile_size, 1);//Number of threads in each block
+    dim3 threadPerBlock(Tile_size, Tile_size);//Number of threads in each block
+    dim3 numBlocks((numColumns/ Tile_size) + 1, (numRows/ Tile_size) + 1);//Number of Blocks required
 
     //@@ Launch the GPU Kernel here
-    naiveGPUTranspose<<<dimGrid, dimBlock>>>(A, B, numRows, numColumns);
+    naiveGPUTranspose<<<numBlocks, threadPerBlock>>>(A, B, numRows, numColumns);
 }
