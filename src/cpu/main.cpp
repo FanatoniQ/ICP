@@ -38,17 +38,36 @@ int main(int argc, char *argv[])
     double Q[4] = {0, 1, 0, 1};
     */
 
-    auto results = icp(P, Q, nbiters);
+    //auto results = icp(P, Q, nbiters);
     //std::cout << "Found P: " << std::get<0>(results) << std::endl;
     //std::cout << "Ref Q: " << refQ << std::endl;
-    std::cout << "Squared mean diff: " << std::get<1>(results).back() << std::endl;
-    std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
-    //auto final = compute_cross_variance(P, Q, res, 2, 2, 2, 2, nullptr);
-    //std::cout << std::get<0>(*final) << " and "<< std::get<1>(final.at(0));
-    std::cout << "Errors:" << std::endl;
-    for (const auto &v : std::get<1>(results))
-        std::cout << v << std::endl;
-    std::cout << std::get<0>(results) << std::endl;
+    //std::cout << "Squared mean diff: " << std::get<1>(results).back() << std::endl;
+    //std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
+    auto res = get_correspondence_indices(P, Q);
+    //tuple **res2 = (tuple **)calloc(Plines, sizeof(tuple));
+    
+    //get_correspondence_indices_array(res2, P.getArray(), Q.getArray(), Plines, Pcols, Qlines, Qcols);
+    //for (int i = 0; i < 30; i++)
+    //{
+    //    std::cout << std::get<1>(res.at(i)) << "  " << res2[i]->value << std::endl;
+    //    free(res2[i]);
+    //}
+        //std::cout << std::get<1>(res.at(i)) << "  " << std::get<1>(res2.at(i)) << std::endl;
+    //free(res2);
+    //double *cov = (double *)calloc(9, sizeof(double));
+    //compute_cross_variance_array(cov, P.getArray(), Q.getArray(), res2, Plines, Pcols, Qlines, Qcols);
+    //free(res2);
+    //std::cout << std::get<0>(final); //<< " and "<< std::get<1>(final).at(0);
+    auto finale = compute_cross_variance(P, Q, res, nullptr);
+    //auto arr = std::get<0>(finale);
+    //for (int i = 0; i < 9; i++)
+    std::cout << std::get<0>(finale) << std::endl;
+    //free(cov);
+    //free(arr);
+    //std::cout << "Errors:" << std::endl;
+    //for (const auto &v : std::get<1>(results))
+    //    std::cout << v << std::endl;
+    //std::cout << std::get<0>(results) << std::endl;
     /*
     std::cerr << nblines << "x" << nbcols << " - " << f1Header << std::endl;
     for (size_t i = 0; i < nblines; ++i)

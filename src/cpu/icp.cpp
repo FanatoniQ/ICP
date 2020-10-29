@@ -13,6 +13,62 @@
 
 #define UNUSED(x) (void)x
 
+// Implementation with double arrays, calling kernels
+std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
+                                                                size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
+{
+    std::vector<std::tuple<size_t, int>> correspondances = {};
+    for (size_t i = 0; i < P_r; i++)
+    {
+        double *p_point = P + i * P_c;
+        double min_dist = std::numeric_limits<double>::max();
+        int chosen_idx = -1;
+        for (size_t j = 0; j < Q_r; j++)
+        {
+            double *q_point = Q + j * Q_c;
+            double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
+                                    squared_norm_2, add, add)); //norm 2 between 2 vectors
+            if (dist < min_dist)
+            {
+                min_dist = dist;
+                chosen_idx = j;
+            }
+        }
+        correspondances.push_back(std::make_tuple(i, chosen_idx));
+    }
+    return correspondances;
+}
+
+// Implementation with double arrays and no vector for full GPU usage
+void get_correspondence_indices_array(tuple **correspondances, double *P, double *Q, size_t P_r, size_t P_c, size_t Q_r,
+                                        size_t Q_c)
+{
+    int push_index = 0;
+    for (size_t i = 0; i < P_r; i++)
+    {
+        double *p_point = P + i * P_c;
+        double min_dist = std::numeric_limits<double>::max();
+        int chosen_idx = -1;
+        for (size_t j = 0; j < Q_r; j++)
+        {
+            double *q_point = Q + j * Q_c;
+            double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
+                                    squared_norm_2, add, add)); //norm 2 between 2 vectors
+            if (dist < min_dist)
+            {
+                min_dist = dist;
+                chosen_idx = j;
+            }
+        }
+        tuple *new_tup = (tuple*)calloc(1, sizeof(tuple));
+        new_tup->index = i;
+        new_tup->value = chosen_idx;
+        correspondances[push_index] = new_tup;
+        push_index++;
+    }
+}
+
+// Implementation with CPUMatrix for quick CPU usage
 std::vector<std::tuple<size_t, int>> get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q)
 {
     std::vector<std::tuple<size_t, int>> correspondances = {};
@@ -48,6 +104,7 @@ double default_kernel(double a)
     return 1;
 }
 
+// Implementation with CPUMAtrix
 std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, CPUMatrix &Q,
                                                                   const std::vector<std::tuple<size_t, int>> &correspondences, double (*kernel)(CPUMatrix a))
 {
@@ -73,6 +130,67 @@ std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, 
     return std::make_tuple(std::move(cov), exclude_indices);
 }
 
+// Intermediation function to be replaced with element_wise_op
+// We know this is only supposed to work with 3 dimensions so cov is 3*3
+void increment_cov(double *P, double *Q)
+{
+    for (size_t i = 0; i < 3; i++)
+    {
+        for (size_t j = 0; j < 3; j++)
+        {
+            P[i*3 + j] = P[i*3 + j] + Q[i*3 + j];
+        }
+    }
+}
+
+// Array implementation for GPU
+double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
+                                size_t Q_r, size_t Q_c) //set default function to lambda function??
+{
+    UNUSED(Q_r);
+    UNUSED(P_r);
+    double *cov = (double *)calloc(9, sizeof(double));
+
+    for (auto tup : correspondences)
+    {
+        auto i = std::get<0>(tup);
+        auto j = std::get<1>(tup);
+        double *q_point = Q + j * Q_c;
+        double *p_point = P + i * P_c;
+
+        double *doted_points = nullptr;
+        double *transposed_Q = transpose(q_point, 1, Q_c);
+        dot_product(&doted_points, transposed_Q, p_point, Q_c, 1, 1, P_c); //dim of Q_r * P_r
+        free (transposed_Q); 
+        increment_cov(cov, doted_points); //need to set element_wise_op but too complicated, doesn't work for some reason.
+        free(doted_points);
+    }
+    return cov;
+}
+
+// Array implementation for GPU
+void compute_cross_variance_array(double * cov, double *P, double *Q, std::tuple<size_t, int> *correspondences, size_t P_r, size_t P_c,
+                                size_t Q_r, size_t Q_c) //set default function to lambda function??
+{
+    UNUSED(Q_r);
+
+    for (size_t index = 0; index < P_r; index ++)
+    {
+        auto i = std::get<0>(correspondences[index]);
+        auto j = std::get<1>(correspondences[index]);
+        double *q_point = Q + j * Q_c;
+        double *p_point = P + i * P_c;
+
+        double *doted_points = nullptr;
+        double *transposed_Q = transpose(q_point, 1, Q_c);
+        dot_product(&doted_points, transposed_Q, p_point, Q_c, 1, 1, P_c); //dim of Q_r * P_r
+        free (transposed_Q); 
+        increment_cov(cov, doted_points); //need to set element_wise_op but too complicated, doesn't work for some reason.
+        free(doted_points);
+    }
+}
+
+// Quick CPUMatrix implementation for CPU
 std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>> icp(CPUMatrix &P, CPUMatrix &Q, unsigned iterations)
 {
     // Center data P and Q
@@ -116,6 +234,7 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
     return std::make_tuple(std::move(P_copy), norm_values, correps_values);
 }
 
+
 // \deprecated use CPUMatrix::euclidianDistance instead
 /**
 double three_dim_norm(CPUMatrix A)
@@ -133,68 +252,4 @@ double three_dim_norm(CPUMatrix A)
     runtime_assert(r == res, "INVALID NORM ! FATAL ERROR");
     //return std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2);
     return r;
-}**/
-
-/**
-// \deprecated
-std::tuple<double *, std::vector<double>> compute_cross_variance(double *P, double *Q,
-                                                                 std::vector<std::tuple<size_t, int>> correspondences, size_t P_r, size_t P_c,
-                                                                 size_t Q_r, size_t Q_c, double (*kernel)(double a)) //set default function to lambda function??
-{
-    if (kernel == nullptr)
-        kernel = &default_kernel;
-    double *cov = (double *)calloc(4, sizeof(double));
-    std::vector<double> exclude_indices = {};
-    for (auto tup : correspondences)
-    {
-        auto i = std::get<0>(tup);
-        auto j = std::get<1>(tup);
-        double *transposed_P = transpose(P, P_r, P_c);
-        double *transposed_Q = transpose(Q, Q_r, Q_c);
-        double *q_point = transposed_Q + j * Q_c;
-        double *p_point = transposed_P + i * P_c;
-        double weight = kernel(*p_point - *q_point);
-
-        if (weight < 0.01)
-            exclude_indices.push_back(i);
-        double **doted_points = nullptr;
-        dot_product(doted_points, q_point, transpose(P, P_r, P_c), Q_r, Q_c, P_c, P_r); //dim of Q_r * P_r
-        free(doted_points);
-        double **weighted_points = nullptr; //multiply by the weight
-        size_t Wdim0, Wdim1;                // use high level API instead
-        element_wise_op(weighted_points, &weight, *doted_points, 1, 1, Q_r, P_r, Wdim0, Wdim1, mult);
-        free(weighted_points);
-        size_t Wcov0, Wcov1; // should be 2, use high level API instead
-        element_wise_op(&cov, cov, *weighted_points, 2, 2, Q_r, P_r, Wcov0, Wcov1, add);
-    }
-    return std::make_tuple(cov, exclude_indices);
-}**/
-
-/**
-// \deprecated
-std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
-                                                                size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
-{
-    std::vector<std::tuple<size_t, int>> correspondances = {};
-    for (size_t i = 0; i < P_r; i++)
-    {
-        double *transposed_P = transpose(P, P_r, P_c);
-        double *p_point = transposed_P + i * P_c; //begin of line p_point of size P_x
-        double min_dist = std::numeric_limits<double>::max();
-        int chosen_idx = -1;
-        for (size_t j = 0; j < Q_r; j++)
-        {
-            double *transposed_Q = transpose(Q, Q_r, Q_c);
-            double *q_point = transposed_Q + j * Q_c; //begin of line q_point of size P_x
-            double dist = element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
-                                              squared_norm_2, add, add); //norm 2 between 2 vectors
-            if (dist < min_dist)
-            {
-                min_dist = dist;
-                chosen_idx = j;
-            }
-        }
-        correspondances.push_back(std::make_tuple(i, chosen_idx));
-    }
-    return correspondances;
 }**/

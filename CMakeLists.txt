@@ -72,7 +72,8 @@ if (CUDA_FOUND)
  set(CUDA_HOST_COMPILER g++) #${CMAKE_CXX_COMPILER})
  set(CMAKE_CUDA_FLAGS RELEASE) # TODO: use CXX flag
  link_directories(/opt/cuda) # TODO: proper CUDA link dir var ?
- list(APPEND CUDA_NVCC_FLAGS "-std=c++17")
+ list(APPEND CUDA_NVCC_FLAGS "--expt-relaxed-constexpr" )
+ list(APPEND CUDA_NVCC_FLAGS "-std=c++17" )
 
  ###############
  #  LIBGPUALG  #
