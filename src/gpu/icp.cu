@@ -13,6 +13,8 @@
 
 #include "gpu/icp.cuh"
 #include "libgpualg/mult.cuh"
+#include "libgpualg/euclidist.cuh"
+#include "error.cuh"
 
 #define Tile_size 2
 
@@ -20,17 +22,38 @@
 __host__ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
                                                                 size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
 {
+    double *d_Pt;
+    size_t pitch;
+    cudaMallocPitch(&d_Pt, &pitch, P_r * sizeof(double), P_c * sizeof(double));
+    cudaCheckError();
+
+    double *d_Qt;
+    cudaMallocPitch(&d_Qt, &pitch, P_r * sizeof(double), P_c * sizeof(double));
+    cudaCheckError();
+
+    double **d_res;
+    size_t *reducepitch;
+    int threads = 4;
+
     std::vector<std::tuple<size_t, int>> correspondances = {};
     for (size_t i = 0; i < P_r; i++)
     {
         double *p_point = P + i * P_c;
         double min_dist = std::numeric_limits<double>::max();
         int chosen_idx = -1;
+        cudaMemcpy2D(d_Pt, pitch, p_point, P_r * sizeof(double), P_r * sizeof(double), P_c, cudaMemcpyHostToDevice);
+        cudaCheckError();
         for (size_t j = 0; j < Q_r; j++)
         {
             double *q_point = Q + j * Q_c;
-            double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
-                                    squared_norm_2, add, add)); //norm 2 between 2 vectors
+            cudaMemcpy2D(d_Qt, pitch, q_point, Q_r * sizeof(double), Q_r * sizeof(double), Q_c, cudaMemcpyHostToDevice);
+            cudaCheckError();
+
+            double dist = sqrt(cuda_squared_norm_2(d_Pt, d_Qt, d_res, P_r, P_c, pitch, reducepitch, threads));
+
+            //double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
+            //                        squared_norm_2, add, add)); //norm 2 between 2 vectors
+
             if (dist < min_dist)
             {
                 min_dist = dist;
