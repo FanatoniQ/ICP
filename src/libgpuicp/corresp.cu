@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "libgpualg/mean.cuh"
-#include "gpu/corresp.cuh"
+#include "libgpuicp/corresp.cuh"
 #include "error.cuh"
 
 #define is_power_of_2(x) (x & (x-1)) == 0

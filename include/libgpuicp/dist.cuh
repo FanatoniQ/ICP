@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gpu/corresp.cuh"
+#include "libgpuicp/corresp.cuh"
 
 /**
  ** \brief get_distances_kernel fills the d_dist ICPCorresp matrix

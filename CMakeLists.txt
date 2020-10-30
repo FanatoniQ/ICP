@@ -118,6 +118,29 @@ if (CUDA_FOUND)
  cuda_add_executable(testgpusvd "src/testlibgpualg/testgpusvd.cu")
  target_link_libraries(testgpusvd CSV alg gpualg)
 
+ ###############
+ #  LIBGPUICP  #
+ ###############
+ file(GLOB LIBGPUICPSOURCES "src/libgpuicp/*.cu")
+ #cuda_compile(gpuicp ${LIBGPUICPSOURCES}) # NOT SURE
+ cuda_add_library(gpuicp STATIC ${LIBGPUICPSOURCES})
+ target_link_libraries(gpuicp CSV alg gpualg)
+
+ #################
+ # TESTLIBGPUICP #
+ #################
+ CUDA_COMPILE(testgpucorresp "src/testlibgpuicp/testcorresp.cu")
+ cuda_add_executable(testgpucorresp "src/testlibgpuicp/testcorresp.cu")
+ target_link_libraries(testgpucorresp CSV alg gpualg gpuicp)
+
+ CUDA_COMPILE(testgpucrosscov "src/testlibgpuicp/testcrosscov.cu")
+ cuda_add_executable(testgpucrosscov "src/testlibgpuicp/testcrosscov.cu")
+ target_link_libraries(testgpucrosscov CSV alg gpualg gpuicp)
+
+ CUDA_COMPILE(testgpudist "src/testlibgpuicp/testdist.cu")
+ cuda_add_executable(testgpudist "src/testlibgpuicp/testdist.cu")
+ target_link_libraries(testgpudist CSV alg gpualg gpuicp)
+
  #######
  # GPU #
  #######

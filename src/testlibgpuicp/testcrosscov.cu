@@ -20,11 +20,11 @@
 // GPU
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
-#include "gpu/icp.cuh"
-#include "gpu/corresp.cuh"
-#include "gpu/dist.cuh"
-#include "gpu/corresp.cuh"
-#include "gpu/crosscov.cuh"
+//#include "gpu/icp.cuh"
+#include "libgpuicp/corresp.cuh"
+#include "libgpuicp/dist.cuh"
+#include "libgpuicp/corresp.cuh"
+#include "libgpuicp/crosscov.cuh"
 
 __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
     CPUMatrix &Q, size_t q_0, size_t q_1,

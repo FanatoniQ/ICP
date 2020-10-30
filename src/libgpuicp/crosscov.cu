@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "libgpualg/mean.cuh"
-#include "gpu/crosscov.cuh"
+#include "libgpuicp/crosscov.cuh"
 #include "error.cuh"
 #include "error.hpp"
 

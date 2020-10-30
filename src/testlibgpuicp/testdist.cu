@@ -19,9 +19,9 @@
 // GPU
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
-#include "gpu/icp.cuh"
-#include "gpu/dist.cuh"
-#include "gpu/corresp.cuh"
+//#include "gpu/icp.cuh"
+#include "libgpuicp/dist.cuh"
+#include "libgpuicp/corresp.cuh"
 
 #ifdef TOTO
 int main(int argc, char **argv)

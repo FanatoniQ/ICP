@@ -18,8 +18,8 @@
 // GPU
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
-#include "gpu/icp.cuh"
-#include "gpu/corresp.cuh"
+//#include "gpu/icp.cuh"
+#include "libgpuicp/corresp.cuh"
 
 double randomdouble(double low, double high)
 {
