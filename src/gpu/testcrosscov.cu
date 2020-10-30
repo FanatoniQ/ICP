@@ -6,10 +6,12 @@
 #include <iostream>
 #include <limits>
 #include <float.h>
+#include <assert.h>
 
 // CPU
 #include "libCSV/csv.hpp"
 #include "libalg/CPUMatrix.hpp"
+#include "libalg/CPUView.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/print.hpp"
 #include "error.hpp"
@@ -22,21 +24,22 @@
 #include "gpu/corresp.cuh"
 #include "gpu/dist.cuh"
 #include "gpu/corresp.cuh"
+#include "gpu/crosscov.cuh"
 
-__host__ double *get_cross_covs_cpu(const CPUMatrix &P, size_t p_0, size_t p_1,
-    const CPUMatrix &Q, size_t q_0, size_t q_1,
+__host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
+    CPUMatrix &Q, size_t q_0, size_t q_1,
     ICPCorresp *d_dist, size_t dist_0, size_t dist_1, size_t dist_pitch)
 {
     size_t ref_pitch = q_1 * p_1 * sizeof(double);
     double *h_ref = (double*)malloc(p_0 * ref_pitch);
 
     size_t h_dist_pitch = dist_1 * sizeof(ICPCorresp);
-    ICPCorresp *h_dist = (double*)malloc(dist_0 * h_dist_pitch);
+    ICPCorresp *h_dist = (ICPCorresp*)malloc(dist_0 * h_dist_pitch);
 
     cudaMemcpy2D(h_dist, h_dist_pitch, d_dist, dist_pitch, dist_1 * sizeof(ICPCorresp), dist_0, cudaMemcpyDeviceToHost);
     cudaCheckError();
 
-    for (size_t i; i < p_0; ++i)
+    for (size_t i = 0; i < p_0; ++i)
     {
         size_t idq = h_dist[i].id;
         auto cov = Q.getLine(idq).dot(P.getLine(i).transpose());
@@ -78,7 +81,7 @@ int main(int argc, char **argv)
     size_t dist_0 = Plines, dist_1 = Qlines;
     size_t dist_pitch;
     ICPCorresp *d_dist;
-    cudaMallodist_pitch((void **)&d_dist, &dist_pitch, dist_1 * sizeof(ICPCorresp), dist_0);
+    cudaMallocPitch((void **)&d_dist, &dist_pitch, dist_1 * sizeof(ICPCorresp), dist_0);
     cudaCheckError();
     //cudaMemcpy2D(d_dist, dist_pitch, C, Qlines * sizeof(ICPCorresp), Qlines * sizeof(ICPCorresp), Plines, cudaMemcpyHostToDevice);
     //cudaCheckError();
