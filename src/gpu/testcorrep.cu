@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     // simulating P matrix with 10 lines (points) and Q matrix with 5 lines (points) correspondences
     size_t dim0 = 10;
     size_t dim1 = 5;
-    struct Corresp *C = (struct Corresp *)malloc(dim0 * dim1 * sizeof(struct Corresp));
+    ICPCorresp *C = (ICPCorresp *)malloc(dim0 * dim1 * sizeof(ICPCorresp));
     for (size_t i = 0; i < dim0; ++i)
     {
         for (size_t j = 0; j < dim1; ++j)
@@ -40,16 +40,16 @@ int main(int argc, char **argv)
     }
 
     size_t reducepitch;
-    struct Corresp *d_C;
-    cudaMallocPitch(&d_C, &reducepitch, dim1 * sizeof(struct Corresp), dim0);
+    ICPCorresp *d_C;
+    cudaMallocPitch(&d_C, &reducepitch, dim1 * sizeof(ICPCorresp), dim0);
     cudaCheckError();
-    cudaMemcpy2D(d_C, reducepitch, C, dim1 * sizeof(struct Corresp), dim1 * sizeof(struct Corresp), dim0, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_C, reducepitch, C, dim1 * sizeof(ICPCorresp), dim1 * sizeof(ICPCorresp), dim0, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     get_correspondences(d_C, reducepitch, dim0, dim1, true);
 
-    double *h_res = (struct Corresp *)malloc(dim0 * dim1 * sizeof(struct Corresp));
-    cudaMemcpy2D(h_res, dim1 * sizeof(struct Corresp), d_C, reducepitch, 1 * sizeof(struct Corresp), dim0, cudaMemcpyDeviceToHost);
+    ICPCorresp *h_res = (ICPCorresp *)malloc(dim0 * dim1 * sizeof(ICPCorresp));
+    cudaMemcpy2D(h_res, dim1 * sizeof(ICPCorresp), d_C, reducepitch, 1 * sizeof(ICPCorresp), dim0, cudaMemcpyDeviceToHost);
     cudaCheckError();
 
     std::cerr << "Min dist: " << std::endl;
