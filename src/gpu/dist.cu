@@ -7,6 +7,7 @@
 #include "libgpualg/mean.cuh"
 #include "gpu/corresp.cuh"
 #include "error.cuh"
+#include "error.hpp"
 
 //gpu-icp-dist-matrix
 
