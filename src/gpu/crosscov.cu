@@ -40,6 +40,8 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
         }
     }
     **/
+    //printf("%u -> %u\n", idp, idq);
+    //printf("P{%u:} %lf %lf %lf, Q{%u:} %lf %lf %lf \n", idp, d_pline[0], d_pline[1], d_pline[2], idq, d_qline[0], d_qline[1], d_qline[2]);
     // loop unrolled version for dim3:
     assert(p_1 == q_1 && p_1 == 3 && "Invalid: only dim3 is supported !");
     d_rline[0] = d_qline[0] * d_pline[0];
@@ -53,6 +55,8 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
     d_rline[6] = d_qline[2] * d_pline[0];
     d_rline[7] = d_qline[2] * d_pline[1];
     d_rline[8] = d_qline[2] * d_pline[2];
+    //printf("%u %u: %lf %lf %lf | %lf %lf %lf | %lf %lf %lf\n", idp, idq, d_rline[0], d_rline[1], d_rline[2], d_rline[3], d_rline[4], d_rline[5], d_rline[6], d_rline[7], d_rline[8]);
+    //printf("P{%u:} %lf %lf %lf, Q{%u:} %lf %lf %lf \n", idp, d_pline[0], d_pline[1], d_pline[2], idq, d_qline[0], d_qline[1], d_qline[2]);
 }
 
 __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, const ICPCorresp *d_dist,

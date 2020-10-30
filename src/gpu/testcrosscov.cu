@@ -41,7 +41,8 @@ __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
 
     for (size_t i = 0; i < p_0; ++i)
     {
-        size_t idq = h_dist[i].id;
+        size_t idq = h_dist[i * dist_1].id;
+	std::cerr << "idq: " << idq << "i: " << i << std::endl;
         auto cov = Q.getLine(idq).transpose().dot(P.getLine(i)); // since getLine returns line vector
 	std::cerr << ref_pitch << std::endl;
 	std::cerr << cov.getDim0() * cov.getDim1() * sizeof(double) << std::endl;

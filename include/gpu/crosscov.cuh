@@ -9,6 +9,7 @@
  ** This kernel should be called using 1D blocks and threads <<<gridsize, blocksize>>> with:
  ** - gridsize.x * blocksize.x >= dist_0 (== p_0)
  ** - gridsize.y == 1 and blocksize.y == 1
+ ** \todo TODO: optimize since we do a 3 times memory access on device data -> shared_memory
  **
  ** \param d_P the P matrix of shape p_0,p_1
  ** \param d_Q the Q matrix of shape q_0,q_1
