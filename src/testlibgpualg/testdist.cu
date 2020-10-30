@@ -23,6 +23,7 @@
 #include "gpu/dist.cuh"
 #include "gpu/corresp.cuh"
 
+#ifdef TOTO
 int main(int argc, char **argv)
 {
     std::string f1Header{};
@@ -113,3 +114,4 @@ int main(int argc, char **argv)
     cudaFree(d_dist);
     cudaCheckError();
 }
+#endif
