@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     // h_ref_cross_covs is BUGGED !
     double *h_ref_cross_covs = get_cross_covs_cpu(P, Plines, Pcols, Q, Qlines, Qcols, d_dist, dist_0, dist_1, dist_pitch);
     double *h_r = (double*)malloc(Rlines * Rcols * sizeof(double));
-    cudaMemcpy2D(h_r, Rcols * sizeof(double), d_dist, dist_pitch, Rcols * sizeof(double), Rlines, cudaMemcpyDeviceToHost);
+    cudaMemcpy2D(h_r, Rcols * sizeof(double), d_R, r_pitch, Rcols * sizeof(double), Rlines, cudaMemcpyDeviceToHost);
     cudaCheckError();
     //assert(memcmp(h_ref_cross_covs, h_r, Rlines * Rcols * sizeof(double)) == 0);
     double ttlerror = 0;
@@ -134,7 +134,8 @@ int main(int argc, char **argv)
     {
          for (size_t j = 0; j < Rcols; ++j)
          {
-             double error = std::fabs(h_r[i * r_pitch + j] - h_ref_cross_covs[i * r_pitch + j]);
+             double error = std::fabs(h_r[i * (r_pitch / sizeof(double)) + j] - h_ref_cross_covs[i * (r_pitch) + j]); // Weird not having to divide by sizeof double...
+	     std::cerr << h_r[i * (r_pitch / sizeof(double)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch) + j] << std::endl;
 	     ttlerror += error;
          }
     }
