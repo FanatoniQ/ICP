@@ -72,13 +72,11 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
     dim3 gridsize(std::ceil((float)blocksize.x / dist_0), 1);
     
     std::cerr << "bytes needed:" << sizeof(void *) * 4 + sizeof(size_t) * 12 << std::endl;
-    /**
-    get_correspondences_kernel<<<gridsize, blocksize>>>(d_P, d_Q, *d_R, d_dist,
+    get_cross_cov_kernel<<<gridsize, blocksize>>>(d_P, d_Q, *d_R, d_dist,
         p_0, p_1, p_pitch,
         q_0, q_1, q_pitch,
         r_0, r_1, *r_pitch,
         dist_0, dist_1, dist_pitch);
-	**/
     
     if (sync) {
         cudaDeviceSynchronize();

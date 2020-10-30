@@ -42,9 +42,14 @@ __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
     for (size_t i = 0; i < p_0; ++i)
     {
         size_t idq = h_dist[i].id;
-        auto cov = Q.getLine(idq).dot(P.getLine(i).transpose());
-        assert(ref_pitch == cov.getDim0() * cov.getDim1());
+        auto cov = Q.getLine(idq).transpose().dot(P.getLine(i)); // since getLine returns line vector
+	std::cerr << ref_pitch << std::endl;
+	std::cerr << cov.getDim0() * cov.getDim1() * sizeof(double) << std::endl;
+        assert(ref_pitch == (cov.getDim0() * cov.getDim1() * sizeof(double)));
         memcpy(h_ref + i * ref_pitch, cov.getArray(), cov.getDim0() * cov.getDim1() * sizeof(double));
+	for (size_t a = 0; a < ref_pitch / sizeof(double); ++a)
+            std::cerr << cov.getArray()[a] << "\t";
+	std::cerr << std::endl;
     }
 
     return h_ref;
@@ -52,6 +57,7 @@ __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
 
 int main(int argc, char **argv)
 {
+    runtime_assert(argc == 3, "./bin file1 file2");
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
     double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
@@ -116,6 +122,7 @@ int main(int argc, char **argv)
     std::cerr << "CROSS-COVS DONE" << std::endl;
 
     /** Testing cross-covs: **/
+    // h_ref_cross_covs is BUGGED !
     double *h_ref_cross_covs = get_cross_covs_cpu(P, Plines, Pcols, Q, Qlines, Qcols, d_dist, dist_0, dist_1, dist_pitch);
     double *h_r = (double*)malloc(Rlines * Rcols * sizeof(double));
     cudaMemcpy2D(h_r, Rcols * sizeof(double), d_dist, dist_pitch, Rcols * sizeof(double), Rlines, cudaMemcpyDeviceToHost);
