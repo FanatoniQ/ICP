@@ -2,6 +2,12 @@
 
 #define is_power_of_2(x) (x & (x-1)) == 0
 
+enum MatrixReduceOP
+{
+    SUM = 0,
+    MEAN = 1
+};
+
 /**
  ** \brief get_next_power_of_2 returns the ceiling power of 2 from the given number
  ** function will warn use when the ceiling power of 2 is greater than 1024, loop
@@ -134,10 +140,11 @@ __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int 
 __global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch, unsigned int denom);
 
 /**
- ** \brief mean_0 wrapper around tree_reduce_sum_kernel_0 and tree_reduce_mean_kernel_0 kernel functions
- ** calling this host function will compute the mean over axis = 0 for the given d_A matrix.
+ ** \brief reduce_0 wrapper around tree_reduce_sum_kernel_0 and tree_reduce_mean_kernel_0 kernel functions
+ ** calling this host function will compute the sum or mean over axis = 0 for the given d_A matrix.
  ** \todo check if this works
  **
+ ** \param op the MatrixReduceOP member (either MEAN or SUM)
  ** \param d_A the device matrix pointer
  ** \param d_sum a pointer to the resulting mean line vector, or nullptr (in that case this function performs allocation)
  ** \param width the width of d_A
@@ -145,5 +152,11 @@ __global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int
  ** \param pitch the pitch of d_A IN bytes
  ** \param reducepitch a pointer to the reduce d_sum matrix pitch (IN bytes)
  ** \param threads the minimal number of threads to be used in a block
+ **/
+__host__ void reduce_0(enum MatrixReduceOP op, double *d_A, double **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads);
+
+
+/**
+ ** \deprecated use reduce_0 instead
  **/
 __host__ void mean_0(double *d_A, double **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads);

@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "error.hpp"
+
 #include "error.cuh"
 #include "libgpualg/mean.cuh"
 
@@ -229,8 +231,9 @@ __global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int
         d_sumAline[blockIdx.x] = s_data[0] / denom;
 }
 
-__host__ void mean_0(double *d_A, double **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads)
+__host__ void reduce_0(enum MatrixReduceOP op, double *d_A, double **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads)
 {
+    runtime_assert(op == MatrixReduceOP::SUM || op == MatrixReduceOP::MEAN, "Invalid reduce operation !");
     threads = get_next_power_of_2(threads);
     int nbblocksPerColumn = std::ceil((float)height / threads); // each block column treats partial one column sum
     dim3 blocks(width, nbblocksPerColumn); // we have width columns of nbblocksPerColumn
@@ -249,9 +252,14 @@ __host__ void mean_0(double *d_A, double **d_sum, size_t width, size_t height, s
     std::cerr << "reducepitch: " << *reducepitch << " pitch: " << pitch << std::endl;
     std::cerr << "nbthreads: " << threads << " nbcolumns: " << blocks.x << " nbblocksPerColumns: " << blocks.y << std::endl;
     if (nbblocksPerColumn > 1)
+    {
         tree_reduce_sum_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(d_A, *d_sum, pitch, width, height, *reducepitch);
-    else
-        tree_reduce_mean_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(d_A, *d_sum, pitch, width, height, *reducepitch, height);
+    } else {
+        if (op == MatrixReduceOP::MEAN)
+            tree_reduce_mean_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(d_A, *d_sum, pitch, width, height, *reducepitch, height);
+        else if (op == MatrixReduceOP::SUM)
+            tree_reduce_sum_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(d_A, *d_sum, pitch, width, height, *reducepitch);
+    }
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -267,8 +275,16 @@ __host__ void mean_0(double *d_A, double **d_sum, size_t width, size_t height, s
         //height = nbblocksPerColumn;
         std::cerr << "reducepitch: " << *reducepitch << " pitch: " << pitch << std::endl;
         std::cerr << "nbthreads: " << threads << " nbcolumns: " << blocks.x << " nbblocksPerColumns: " << blocks.y << std::endl;
-        tree_reduce_mean_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(*d_sum, *d_sum, pitch, width, nbblocksPerColumn, *reducepitch, height);
+        if (op == MatrixReduceOP::MEAN)
+            tree_reduce_mean_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(*d_sum, *d_sum, pitch, width, nbblocksPerColumn, *reducepitch, height);
+        else if (op == MatrixReduceOP::SUM)
+            tree_reduce_sum_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(*d_sum, *d_sum, pitch, width, nbblocksPerColumn, *reducepitch);
         cudaDeviceSynchronize();
         cudaCheckError();
     }
+}
+
+__host__ void mean_0(double *d_A, double **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads)
+{
+    reduce_0(MatrixReduceOP::MEAN, d_A, d_sum, width, height, pitch, reducepitch, threads);
 }
