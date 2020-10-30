@@ -47,11 +47,13 @@ __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
 	std::cerr << ref_pitch << std::endl;
 	std::cerr << cov.getDim0() * cov.getDim1() * sizeof(double) << std::endl;
         assert(ref_pitch == (cov.getDim0() * cov.getDim1() * sizeof(double)));
-        memcpy(h_ref + i * ref_pitch, cov.getArray(), cov.getDim0() * cov.getDim1() * sizeof(double));
-	for (size_t a = 0; a < ref_pitch / sizeof(double); ++a)
+        memcpy(h_ref + i * ref_pitch / sizeof(double), cov.getArray(), cov.getDim0() * cov.getDim1() * sizeof(double));
+	for (size_t a = 0; a < q_1 * p_1; ++a)
             std::cerr << cov.getArray()[a] << "\t";
 	std::cerr << std::endl;
     }
+
+    free(h_dist);
 
     return h_ref;
 }
@@ -134,8 +136,8 @@ int main(int argc, char **argv)
     {
          for (size_t j = 0; j < Rcols; ++j)
          {
-             double error = std::fabs(h_r[i * (r_pitch / sizeof(double)) + j] - h_ref_cross_covs[i * (r_pitch) + j]); // Weird not having to divide by sizeof double...
-	     std::cerr << h_r[i * (r_pitch / sizeof(double)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch) + j] << std::endl;
+             double error = std::fabs(h_r[i * (r_pitch / sizeof(double)) + j] - h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j]); // Weird not having to divide by sizeof double...
+	     std::cerr << h_r[i * (r_pitch / sizeof(double)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j] << std::endl;
 	     ttlerror += error;
          }
     }
