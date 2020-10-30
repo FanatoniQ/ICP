@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "error.hpp"
+
 #include "error.cuh"
 #include "libgpualg/mean.cuh"
 
