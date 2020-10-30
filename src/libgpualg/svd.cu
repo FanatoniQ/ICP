@@ -16,7 +16,7 @@ void printMatrix(int m, int n, const double* A, int lda, const char* name)
     }
 }
 
-std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A)
+void svd_gpu(double* d_A, size_t r_A, size_t c_A, double *d_U, double *d_S, double *d_VT)
 {
     // Error checking variables
     cusolverDnHandle_t cusolverH = NULL;
@@ -33,7 +33,7 @@ std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A)
     const int m = r_A;
     const int n = c_A;
     const int lda = m;
-
+    /*
     // Return arrays
     double* U = (double*)malloc(lda * m * sizeof(double));
     if (U == nullptr)
@@ -47,11 +47,12 @@ std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A)
     //double U[lda * m]; // m-by-m unitary matrix 
     //double VT[lda * n];  // n-by-n unitary matrix
     //double S[n]; // singular value
-    
-    double* d_A = NULL;
-    double* d_S = NULL;
-    double* d_U = NULL;
-    double* d_VT = NULL;
+    */
+
+    //double* d_A = NULL;
+    //double* d_S = NULL;
+    //double* d_U = NULL;
+    //double* d_VT = NULL;
     int* devInfo = NULL;
     double* d_work = NULL;
     double* d_rwork = NULL;
@@ -59,22 +60,22 @@ std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A)
 
     int lwork = 0;
     int info_gpu = 0;
-    
+    /*
     printf("A = (matlab base-1)\n");
     printMatrix(m, n, A, lda, "A");
     printf("=====\n");
-
+    */
     // step 1: create cusolverDn/cublas handle
     cusolver_status = cusolverDnCreate(&cusolverH);
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
 
     // step 2: copy A and B to device
-    cudaStat1 = cudaMalloc((void**)&d_A, sizeof(double) * lda * n);
-    cudaStat2 = cudaMalloc((void**)&d_S, sizeof(double) * n);
-    cudaStat3 = cudaMalloc((void**)&d_U, sizeof(double) * lda * m);
-    cudaStat4 = cudaMalloc((void**)&d_VT, sizeof(double) * lda * n);
+    //cudaStat1 = cudaMalloc((void**)&d_A, sizeof(double) * lda * n);
+    //cudaStat2 = cudaMalloc((void**)&d_S, sizeof(double) * n);
+    //cudaStat3 = cudaMalloc((void**)&d_U, sizeof(double) * lda * m);
+    //cudaStat4 = cudaMalloc((void**)&d_VT, sizeof(double) * lda * n);
     cudaStat5 = cudaMalloc((void**)&devInfo, sizeof(int));
-    //cudaStat6 = cudaMalloc((void**)&d_W, sizeof(double) * lda * n);
+
     assert(cudaSuccess == cudaStat1);
     assert(cudaSuccess == cudaStat2);
     assert(cudaSuccess == cudaStat3);
@@ -82,7 +83,7 @@ std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A)
     assert(cudaSuccess == cudaStat5);
     assert(cudaSuccess == cudaStat6);
 
-    cudaStat1 = cudaMemcpy(d_A, A, sizeof(double) * lda * n, cudaMemcpyHostToDevice);
+    //cudaStat1 = cudaMemcpy(d_A, A, sizeof(double) * lda * n, cudaMemcpyHostToDevice);
     assert(cudaSuccess == cudaStat1);
 
     // step 3: query working space of SVD
@@ -121,9 +122,9 @@ std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A)
     assert(cudaSuccess == cudaStat1);
 
 
-    cudaStat1 = cudaMemcpy(U, d_U, sizeof(double) * lda * m, cudaMemcpyDeviceToHost);
-    cudaStat2 = cudaMemcpy(VT, d_VT, sizeof(double) * lda * n, cudaMemcpyDeviceToHost);
-    cudaStat3 = cudaMemcpy(S, d_S, sizeof(double) * n, cudaMemcpyDeviceToHost);
+    //cudaStat1 = cudaMemcpy(U, d_U, sizeof(double) * lda * m, cudaMemcpyDeviceToHost);
+    //cudaStat2 = cudaMemcpy(VT, d_VT, sizeof(double) * lda * n, cudaMemcpyDeviceToHost);
+    //cudaStat3 = cudaMemcpy(S, d_S, sizeof(double) * n, cudaMemcpyDeviceToHost);
     cudaStat4 = cudaMemcpy(&info_gpu, devInfo, sizeof(int), cudaMemcpyDeviceToHost);
     assert(cudaSuccess == cudaStat1);
     assert(cudaSuccess == cudaStat2);
@@ -134,6 +135,7 @@ std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A)
     assert(0 == info_gpu);
     printf("=====\n");
 
+    /*
     printf("S = (matlab base-1)\n");
     printMatrix(n, 1, S, lda, "S");
     printf("=====\n");
@@ -145,12 +147,12 @@ std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A)
     printf("VT = (matlab base-1)\n");
     printMatrix(n, n, VT, lda, "VT");
     printf("=====\n");
-
+    */
     // free resources
-    if (d_A) cudaFree(d_A);
-    if (d_S) cudaFree(d_S);
-    if (d_U) cudaFree(d_U);
-    if (d_VT) cudaFree(d_VT);
+    //if (d_A) cudaFree(d_A);
+    //if (d_S) cudaFree(d_S);
+    //if (d_U) cudaFree(d_U);
+    //if (d_VT) cudaFree(d_VT);
     if (devInfo) cudaFree(devInfo);
     if (d_work) cudaFree(d_work);
     if (d_rwork) cudaFree(d_rwork);
@@ -158,6 +160,6 @@ std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A)
 
     if (cusolverH) cusolverDnDestroy(cusolverH);
 
-    cudaDeviceReset();
-    return { U, S, VT };
+    //cudaDeviceReset();
+    //return { U, S, VT };
 }

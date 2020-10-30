@@ -17,6 +17,7 @@
 #include "error.cuh"
 #include "libgpualg/mean.cuh"
 #include "libgpualg/ope.cuh"
+#include "libgpualg/svd.cuh"
 
 #define Tile_size 2
 
@@ -226,12 +227,12 @@ void icp()
     cudaMalloc(t) translation matrix dim(Qcenter.Dim0 * Qcenter.dim1)
     */
     // Device pointers
-    double* dQ_center, dQ_centered, 
-        dP_copy, dP_centered, dP_center,
-        dDot_temp,
-        dcross_var, 
-        dU, dV_T, 
-        dR, dR_transpose, dt;
+    double* dQ_center, *dQ_centered, 
+        *dP_copy, *dP_centered,*dP_center,
+        *dDot_temp,
+        *dcorresps, *dcross_var, 
+        *dU, *dS, *dV_T, 
+        *dR, *dR_transpose, *dt;
 
     cudaMalloc(&dQ_center, Q.getDim1() * sizeof(double));
     cudaMalloc(&dQ_centered, Q.getDim0() * Q.getDim1() * sizeof(double));
@@ -241,10 +242,12 @@ void icp()
     cudaMalloc(&dDot_temp, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dcross_var, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dU, P.getDim1() * P.getDim1() * sizeof(double));
+    cudaMalloc(&dS, P.getDim1() * P.getDim1() * sizeof(double)); // FIXME is it rly the good shape
     cudaMalloc(&dV_T, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dR, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dR_transpose, P.getDim1() * P.getDim1() * sizeof(double)); // FIXME, can use dDot_temp in replacement,
     cudaMalloc(&dt, Q.getDim1() * sizeof(double)); // FIXME
+    // cudaMallocPitch(dcorresps) dim(Plines * 1)
 
     //----- MEMCPY -----/
     cudaMemcpy(dQ_centered, Q.getArray(), Q.getDim0() * Q.getDim1() * sizeof(double), cudaMemcpyHostToDevice);
@@ -259,16 +262,18 @@ void icp()
     //// Q -= Q_center;
 
     //------COMPUTATION------/
+    // pitch = dim1 * sizeof()
     // Mean Q_center = Q.mean(0)
-    mean_0(dQ_centered, dQ_center, Q.getDim0(), Q.getDim1(), Q.getDim0() * sizeof(double), &reducepitch, threads_num);
+    mean_0(dQ_centered, dQ_center, Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double), &reducepitch, threads_num);
+    // FIXME pass pointer or reference dQ_center ?
 
     // Subtract Q -= Q_center
     dim3 blocksize(32, 32);
     auto gridsize = get_gridsize(Q.getDim0(), Q.getDim1(), 1, Q.getDim1());
     matrix_op<double>(gridsize, blocksize, dQ_centered, dQ_center, dQ_centered, MatrixOP::SUBTRACT, 
-        Q.getDim0(), Q.getDim1(), Q.getDim0() * sizeof(double), 
-        1, Q.getDim1(), 1 * sizeof(double), 
-        Q.getDim0(), Q.getDim1(), Q.getDim0() * sizeof(double));
+        Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double), 
+        1, Q.getDim1(), Q.getDim1() * sizeof(double), 
+        Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double));
 
     ////std::vector<std::tuple<size_t, int>> correps_values; // Might need device to host move in for loop
     ////std::vector<double> norm_values; // Might need device to host move in for loop
@@ -277,24 +282,37 @@ void icp()
     // cuda memcpy device to device to put equal P_centered and P_copy
     for (unsigned i = 0; i < iterations; ++i)
     {
-        auto P_center = P_copy.mean(0);
+        //// auto P_center = P_copy.mean(0);
         // Mean calculation, pass P_center pointer directly as result
+        mean_0(dP_copy, dP_center, P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double), &reducepitch, threads_num);
+        // FIXME pass pointer or reference ?
+
         // Center P
-        P = P_copy - P_center;
+        //// P = P_copy - P_center;
         // Substract and put result in P_centered
+        // but first compute new gridsize
+        gridsize = get_gridsize(P.getDim0(), P.getDim1(), 1, P.getDim1());
+        matrix_op<double>(gridsize, blocksize, dP_copy, dP_center, dP_centered, MatrixOP::SUBTRACT,
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double),
+            1, P.getDim1(), P.getDim1() * sizeof(double),
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double));
+
         // Compute correspondences indices
         auto corresps = get_correspondence_indices(P, Q);
-        // Call correspondence indices gpu with (P_centered, Q_centered)? device or host pointers?
+        // Call correspondence indices gpu with (P_centered, Q_centered)
+        // use dcorresps
 
         correps_values.insert(correps_values.end(), corresps.begin(), corresps.end());
         // Insert or not? If we do we have to move back to host
         norm_values.push_back(P.euclidianDistance(Q));
+        // call GPU euclidian distance? Move back to host
         // same
         auto cross_var = compute_cross_variance(P, Q, corresps, default_kernel);
         // Compute cross var GPU, call with (P_centered, Q_centered, corresps, default_kernel)
         // 
         // cross_var is here 3*3 mat
         // U, S, V_T = svd
+        /*
         auto [U, S, V_T] = std::get<0>(cross_var).svd();
         std::cout << "U: \n"
             << U << std::endl;
@@ -303,21 +321,51 @@ void icp()
         std::cout << "V_T: \n"
             << V_T << std::endl;
         UNUSED(S); // unused
+        */
+        svd_gpu(dcross_var, P.getDim1(), P.getDim1(), dU, dS, dV_T); // FIXME check size
         // Rotation matrix
-        auto R = U.dot(V_T);
+        //// auto R = U.dot(V_T);
+        gridsize = get_gridsize(P.getDim1(), P.getDim1(), P.getDim1(), P.getDim1());
+        matrix_op<double>(gridsize, blocksize, dU, dV_T, dR, MatrixOP::MULT,
+            P.getDim1(), P.getDim1(), P.getDim1() * sizeof(double),
+            P.getDim1(), P.getDim1(), P.getDim1() * sizeof(double),
+            P.getDim1(), P.getDim1(), P.getDim1() * sizeof(double));
+
         // cudaMalloc(R)? rotation
         // Translation Matrix
         auto t = Q_center - P_center.dot(R.transpose());
         // 3 different calculations
         // transpose
+        gpuTranspose(dR, dR_transpose, P.getDim1(), P.getDim1());
         // dot product
+        // Normally dt should fit the right dimension
+        gridsize = get_gridsize(1, P.getDim1(), P.getDim1(), P.getDim1());
+        matrix_op<double>(gridsize, blocksize, dP_center, dR_transpose, dt, MatrixOP::MULT,
+            1, P.getDim1(), P.getDim1() * sizeof(double),
+            P.getDim1(), P.getDim1(), P.getDim1() * sizeof(double),
+            1, P.getDim1(), P.getDim1() * sizeof(double));
         // subtract
+        gridsize = get_gridsize(1, Q.getDim1(), 1, P.getDim1());
+        matrix_op<double>(gridsize, blocksize, dQ_center, dt, dt, MatrixOP::SUBTRACT,
+            1, Q.getDim1(), Q.getDim1() * sizeof(double),
+            1, P.getDim1(), P.getDim1() * sizeof(double),
+            1, P.getDim1(), P.getDim1() * sizeof(double));
         // Update P
         P_copy = P_copy.dot(R.transpose()) + t;
         // use same device pointer for the dot product both dimensions being the same
-        // first transpose
-        // dot product
+        // first transpose - already done with R transpose
+        // dot product / use P_centered to store the result bc no need of the data anymore
+        gridsize = get_gridsize(P.getDim0(), P.getDim1(), P.getDim1(), P.getDim1());
+        matrix_op<double>(gridsize, blocksize, dP_copy, dR_transpose, dP_centered, MatrixOP::MULT,
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double),
+            P.getDim1(), P.getDim1(), P.getDim1() * sizeof(double),
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double));
         // plus
+        gridsize = get_gridsize(P.getDim0(), P.getDim1(), 1, P.getDim1());
+        matrix_op<double>(gridsize, blocksize, dP_centered, dt, dP_copy, MatrixOP::ADD,
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double),
+            1, P.getDim1(), P.getDim1() * sizeof(double),
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double));
     }
     correps_values.push_back(correps_values.back());
 

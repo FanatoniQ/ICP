@@ -35,6 +35,8 @@ int main(int argc, char** argv)
 	// U (m * m)
 	// S (n)
 	// VT (m * n)
+	double* dS, * dU, * dVt;
+
 	auto [U, S, V_T] = svd(array, Pdim0, Pdim1);
 
 	std::cout << "Done GPU!";
