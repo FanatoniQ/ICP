@@ -27,6 +27,7 @@ double randomdouble(double low, double high)
 
 int main(int argc, char **argv)
 {
+    srand(time(NULL));
     // simulating P matrix with 10 lines (points) and Q matrix with 5 lines (points) correspondences
     size_t dim0 = 10;
     size_t dim1 = 5;
@@ -35,14 +36,15 @@ int main(int argc, char **argv)
     {
         for (size_t j = 0; j < dim1; ++j)
         {
-            C[i * dim1 + dim0] = {randomdouble(0.0, 10.0), (unsigned int)j};
-            std::cerr << "dist: " << C[i * dim1 + dim0].dist << " id: " << C[i * dim1 + dim0].id << std::endl;
+            C[i * dim1 + j] = {randomdouble(0.0, 10.0), (unsigned int)j};
+            std::cerr << "dist: " << C[i * dim1 + j].dist << " id: " << C[i * dim1 + j].id << "\t";
         }
+	std::cerr << std::endl;
     }
 
     size_t reducepitch;
     ICPCorresp *d_C;
-    cudaMallocPitch(&d_C, &reducepitch, dim1 * sizeof(ICPCorresp), dim0); // FIXME: crashes...
+    cudaMallocPitch((void **)&d_C, &reducepitch, dim1 * sizeof(ICPCorresp), dim0); // FIXME: crashes...
     cudaCheckError();
     cudaMemcpy2D(d_C, reducepitch, C, dim1 * sizeof(ICPCorresp), dim1 * sizeof(ICPCorresp), dim0, cudaMemcpyHostToDevice);
     cudaCheckError();
@@ -57,10 +59,7 @@ int main(int argc, char **argv)
     std::cerr << "Min dist: " << std::endl;
     for (size_t i = 0; i < dim0; ++i)
     {
-        for (size_t j = 0; j < dim1; ++j)
-        {
-            std::cerr << "dist: " << h_res[i * dim1 + dim0].dist << " id: " << h_res[i * dim1 + dim0].id << std::endl;
-        }
+        std::cerr << "dist: " << h_res[i * dim1].dist << " id: " << h_res[i * dim1].id << std::endl;
     }
     free(h_res);
     free(C);

@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "libgpualg/mean.cuh"
 #include "gpu/corresp.cuh"
 #include "error.cuh"
 
@@ -40,7 +41,7 @@ __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
 __host__ void get_correspondences(ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync)
 {
-    dim3 gridsize(1, dist_0);
+    dim3 gridsize(1, get_next_power_of_2(dist_0));
     dim3 blocksize(dist_1, 1);
     get_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
     if (sync) {
