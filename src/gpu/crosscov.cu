@@ -24,6 +24,8 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
     ICPCorresp *d_distline = (ICPCorresp *)((char*)d_dist + lineid * dist_pitch);
     unsigned int idp = lineid; // p_point id
     unsigned int idq = d_distline[0].id; // q_point id
+    // if pitch not in bytes:
+    //unsigned int idq = d_dist[lineid * dist_pitch].id;//d_distline[0].id; // q_point id
 
     double *d_rline = (double *)((char *)d_R + idp * r_pitch);
     double *d_pline = (double *)((char *)d_P + idp * p_pitch);
@@ -40,7 +42,7 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
         }
     }
     **/
-    //printf("%u -> %u\n", idp, idq);
+    printf("%u -> %u\n", idp, idq);
     //printf("P{%u:} %lf %lf %lf, Q{%u:} %lf %lf %lf \n", idp, d_pline[0], d_pline[1], d_pline[2], idq, d_qline[0], d_qline[1], d_qline[2]);
     // loop unrolled version for dim3:
     assert(p_1 == q_1 && p_1 == 3 && "Invalid: only dim3 is supported !");
@@ -72,10 +74,10 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
         cudaCheckError();
     }
 
-    dim3 blocksize(1024, 1); // TODO: change nb threads
-    dim3 gridsize(std::ceil((float)blocksize.x / dist_0), 1);
+    dim3 blocksize(8, 1); // TODO: change nb threads
+    dim3 gridsize(std::ceil((float)dist_0 / blocksize.x), 1);
+    std::cerr << blocksize.x << " èè " << gridsize.x << std::endl;
     
-    std::cerr << "bytes needed:" << sizeof(void *) * 4 + sizeof(size_t) * 12 << std::endl;
     get_cross_cov_kernel<<<gridsize, blocksize>>>(d_P, d_Q, *d_R, d_dist,
         p_0, p_1, p_pitch,
         q_0, q_1, q_pitch,
