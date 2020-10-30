@@ -4,6 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <iostream>
+#include <limits>
 
 // CPU
 #include "libCSV/csv.hpp"
@@ -34,19 +35,20 @@ int main(int argc, char **argv)
     {
         for (size_t j = 0; j < dim1; ++j)
         {
-            C[i * dim1 + dim0] = {randomdouble(0.0, 10.0), j};
+            C[i * dim1 + dim0] = {randomdouble(0.0, 10.0), (unsigned int)j};
             std::cerr << "dist: " << C[i * dim1 + dim0].dist << " id: " << C[i * dim1 + dim0].id << std::endl;
         }
     }
 
     size_t reducepitch;
     ICPCorresp *d_C;
-    cudaMallocPitch(&d_C, &reducepitch, dim1 * sizeof(ICPCorresp), dim0);
+    cudaMallocPitch(&d_C, &reducepitch, dim1 * sizeof(ICPCorresp), dim0); // FIXME: crashes...
     cudaCheckError();
     cudaMemcpy2D(d_C, reducepitch, C, dim1 * sizeof(ICPCorresp), dim1 * sizeof(ICPCorresp), dim0, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     get_correspondences(d_C, reducepitch, dim0, dim1, true);
+    std::cerr << "DONE" << std::endl;
 
     ICPCorresp *h_res = (ICPCorresp *)malloc(dim0 * dim1 * sizeof(ICPCorresp));
     cudaMemcpy2D(h_res, dim1 * sizeof(ICPCorresp), d_C, reducepitch, 1 * sizeof(ICPCorresp), dim0, cudaMemcpyDeviceToHost);

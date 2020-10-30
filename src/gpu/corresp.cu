@@ -1,20 +1,26 @@
 #include <limits>
+#include <float.h>
+#include <assert.h>
+#include <stdio.h>
 
 #include "gpu/corresp.cuh"
+#include "error.cuh"
 
-__global__ void get_correspondences_kernel(ICPCorreps *d_dist,
+#define is_power_of_2(x) (x & (x-1)) == 0
+
+__global__ void get_correspondences_kernel(ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1)
 {
-    extern __shared__ ICPCorreps s_data[]; // s_data is of size blockDim.x
-    int threadid = threadIdx.x; // thread id in the block
-    int lineid = blockIdx.y; // line
-    int dataid = blockIdx.x * blockDim.x + threadIdx.x; // column
+    extern __shared__ ICPCorresp s_data[]; // s_data is of size blockDim.x
+    unsigned int threadid = threadIdx.x; // thread id in the block
+    unsigned int lineid = blockIdx.y; // line
+    unsigned int dataid = blockIdx.x * blockDim.x + threadIdx.x; // column
     if (dataid >= dist_1 || lineid >= dist_0) {
         s_data[threadid] = { DBL_MAX,dataid };
         return;
     }
     // each thread copies to shared memory
-    ICPCorreps *d_distline = (ICPCorreps *)((char *)d_dist + lineid * pitch);
+    ICPCorresp *d_distline = (ICPCorresp *)((char *)d_dist + lineid * dist_pitch);
     s_data[threadid] = d_distline[dataid];
     __syncthreads();
     // each thread will reduce with one other shared data element in the middle right part of s_data
@@ -31,12 +37,12 @@ __global__ void get_correspondences_kernel(ICPCorreps *d_dist,
         d_distline[blockIdx.x] = s_data[0]; // or [0] since gridsize.x should be 1
 }
 
-__host__ void get_correspondences(ICPCorreps *d_dist,
+__host__ void get_correspondences(ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync)
 {
     dim3 gridsize(1, dist_0);
     dim3 blocksize(dist_1, 1);
-    get_correspondences_kernel<<<gridsize, blocksize, blockDim.x * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
+    get_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
     if (sync) {
         cudaDeviceSynchronize();
         cudaCheckError();

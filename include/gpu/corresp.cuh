@@ -4,7 +4,7 @@ typedef struct
 {
     double dist;
     unsigned int id;
-} Corresp;
+} ICPCorresp;
 
 /**
  ** \brief get_correspondences_kernel is a destructive in-place min distance axis=1 reduction kernel
@@ -18,17 +18,17 @@ typedef struct
  ** \param dist_0 the number of lines in d_dist (== gridsize.y)
  ** \param dist_1 the number of columns in d_dist (== blocksize.x)
  **/
-__global__ void get_correspondences_kernel(ICPCorrep *d_dist,
+__global__ void get_correspondences_kernel(ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1);
 
 /**
  ** \brief get_correspondences wrapper around get_correspondences_kernel
  **
- ** \param d_dist the ICPCorrep struct matrix to be in place min reduced
+ ** \param d_dist the ICPCorresp struct matrix to be in place min reduced
  ** \param dist_pitch pitch of d_dist IN bytes
  ** \param dist_0 the number of lines in d_dist (== gridsize.y)
  ** \param dist_1 the number of columns in d_dist (== blocksize.x)
  ** \param sync wether to wait for device to finish or not
  **/
-__host__ void get_correspondences(ICPCorrep *d_dist,
+__host__ void get_correspondences(ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync);
