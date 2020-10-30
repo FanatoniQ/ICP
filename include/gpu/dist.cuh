@@ -1,5 +1,7 @@
 #pragma once
 
+#include "gpu/corresp.cuh"
+
 /**
  ** \brief get_distances_kernel fills the d_dist ICPCorresp matrix
  ** each thread will compute euclidian distances between two points (one line of P and one line of Q)
