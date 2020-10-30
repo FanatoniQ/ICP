@@ -35,6 +35,7 @@ int main_axis1(char **argv)
     double *h_Pt = transpose(h_P, Plines, Pcols);
     double *h_Q = readCSV(argv[2], h, Qlines, Qcols);
     double *h_Qt = transpose(h_Q, Qlines, Qcols);
+    runtime_assert(Pcols == Qcols, "Not same dimension !");
 
     print_matrix(std::cerr, h_P, Pcols, Plines);
     print_matrix(std::cerr, h_Q, Qcols, Qlines);
@@ -75,6 +76,7 @@ int main_axis0(char **argv)
     size_t Plines, Pcols, Qlines, Qcols;
     double *h_P = readCSV(argv[1], h, Plines, Pcols);
     double *h_Q = readCSV(argv[2], h, Qlines, Qcols);
+    runtime_assert(Pcols == Qcols, "Not same dimension !");
 
     print_matrix(std::cerr, h_P, Pcols, Plines);
     print_matrix(std::cerr, h_Q, Qcols, Qlines);
@@ -87,14 +89,14 @@ int main_axis0(char **argv)
     // device memory
     double *d_P;
     size_t pitch;
-    size_t width = Plines, height = Pcols;
+    size_t width = Pcols, height = Plines;
     cudaMallocPitch(&d_P, &pitch, width * sizeof(double), height * sizeof(double));
     cudaCheckError();
     cudaMemcpy2D(d_P, pitch, h_P, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     double *d_Q;
-    width = Qlines, height = Qcols;
+    width = Qcols, height = Qlines;
     cudaMallocPitch(&d_Q, &pitch, width * sizeof(double), height * sizeof(double));
     cudaCheckError();
     cudaMemcpy2D(d_Q, pitch, h_Q, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);

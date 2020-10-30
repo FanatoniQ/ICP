@@ -101,6 +101,7 @@ std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, 
     return std::make_tuple(std::move(cov), exclude_indices);
 }
 
+#ifdef TOTO
 int main(int argc, char **argv)
 {
     std::string f1Header{};
@@ -202,3 +203,4 @@ int main(int argc, char **argv)
     cudaCheckError();
     */
 }
+#endif
