@@ -6,6 +6,7 @@
 #include <iostream>
 #include <limits>
 #include <float.h>
+#include <assert.h>
 
 // CPU
 #include "libCSV/csv.hpp"
@@ -38,6 +39,7 @@ int main(int argc, char **argv)
          for (size_t j = 0; j < Qlines; ++j)
          {
              auto dist = P.getLine(i).euclidianDistance(Q.getLine(j));
+	     assert(P.getLine(i).euclidianDistance(Q.getLine(j)) == Q.getLine(j).euclidianDistance(P.getLine(i)));
              h_ref_dist[i * Qlines + j] = {dist, (unsigned int)j};
          }
     }
@@ -76,19 +78,31 @@ int main(int argc, char **argv)
     cudaMemcpy2D(h_dist, Qlines * sizeof(ICPCorresp), d_dist, dist_pitch, Qlines * sizeof(ICPCorresp), Plines, cudaMemcpyDeviceToHost);
     cudaCheckError();
 
+    double ttlerror = 0;
     for (size_t i = 0; i < Plines; ++i)
     {
          for (size_t j = 0; j < Qlines; ++j)
          {
-             std::cerr << "dist: " << h_dist[i * Qlines + j].dist << " id: " <<  h_dist[i * Qlines + j].id << "\t";
-             if (memcmp(&h_dist[i * Qlines + j], &h_ref_dist[i * Qlines + j], sizeof(ICPCorresp)) != 0)
-             {
-                 std::cerr << "h_ref_dist: " << h_ref_dist[i * Qlines + j].dist << " id: " << h_ref_dist[i * Qlines + j].id << std::endl;
-		 return EXIT_FAILURE;
-             }
+             //std::cerr << "dist: " << h_dist[i * Qlines + j].dist << " id: " <<  h_dist[i * Qlines + j].id << "\t";
+	     if (h_dist[i * Qlines + j].id != h_ref_dist[i * Qlines + j].id)
+	     {
+		     std::cerr << "FATAL ID ERROR !" << std::endl;
+		     return EXIT_FAILURE;
+	     }
+	     double err = std::fabs(h_dist[i * Qlines + j].dist - h_ref_dist[i * Qlines + j].dist);
+	     ttlerror += err;
+             std::cerr << err << "\t";
+             //if (memcmp(&h_dist[i * Qlines + j], &h_ref_dist[i * Qlines + j], sizeof(ICPCorresp)) != 0)
+             //{
+                 //std::cerr << "h_ref_dist: " << h_ref_dist[i * Qlines + j].dist << " id: " << h_ref_dist[i * Qlines + j].id << std::endl;
+		 //return EXIT_FAILURE;
+             //}
          }
 	 std::cerr << std::endl;
     }
+    std::cerr << std::endl << "ttlerror: " << ttlerror << std::endl;
+    std::cerr << "mean error: " << ttlerror / (Plines * Qlines) << std::endl;
+    std::cerr << "SUCCESS" << std::endl;
 
     free(h_dist);
     free(h_ref_dist);
