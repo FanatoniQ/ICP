@@ -31,6 +31,17 @@ int main(int argc, char **argv)
     double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
 
+    ICPCorresp *h_ref_dist = (ICPCorresp *)malloc(Plines * Qlines * sizeof(ICPCorresp));
+    runtime_assert(h_ref_dist != nullptr, "Invalid ptr");
+    for (size_t i = 0; i < Plines; ++i)
+    {
+         for (size_t j = 0; j < Qlines; ++j)
+         {
+             auto dist = P.getLine(i).euclidianDistance(Q.getLine(j));
+             h_ref_dist[i * Qlines + j] = {dist, (unsigned int)j};
+         }
+    }
+
     // device P matrix
     size_t p_pitch = Pcols * sizeof(double);
     double *d_P;
@@ -70,11 +81,17 @@ int main(int argc, char **argv)
          for (size_t j = 0; j < Qlines; ++j)
          {
              std::cerr << "dist: " << h_dist[i * Qlines + j].dist << " id: " <<  h_dist[i * Qlines + j].id << "\t";
+             if (memcmp(&h_dist[i * Qlines + j], &h_ref_dist[i * Qlines + j], sizeof(ICPCorresp)) != 0)
+             {
+                 std::cerr << "h_ref_dist: " << h_ref_dist[i * Qlines + j].dist << " id: " << h_ref_dist[i * Qlines + j].id << std::endl;
+		 return EXIT_FAILURE;
+             }
          }
 	 std::cerr << std::endl;
     }
 
     free(h_dist);
+    free(h_ref_dist);
     cudaFree(d_P);
     cudaCheckError();
     cudaFree(d_Q);
