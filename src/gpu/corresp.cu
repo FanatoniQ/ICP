@@ -1,20 +1,7 @@
 #include <limits>
 
-struct Correps
-{
-    double dist;
-    unsigned int id;
-};
+#include "gpu/corresp.cuh"
 
-/**
- ** \brief get_correspondences_kernel is a destructive in-place min distance axis=1 reduction kernel
- ** it should be called with <<<gridsize, blocksize, blockdim.x * sizeof(double)>>>
- ** must be called with gridsize.y = dist_0 and gridsize.x == 1, since this is an inplace destructive operation
- ** blocksize.x == dist_1 and blocksize.y == 1
- ** each block treats a line min reduction using shared memory and stores the result at its line start
- **
- ** \param dist_pitch pitch of d_dist IN bytes
- **/
 __global__ void get_correspondences_kernel(const struct Correps *d_dist,
     int dist_pitch, size_t dist_0, size_t dist_1)
 {
@@ -42,4 +29,16 @@ __global__ void get_correspondences_kernel(const struct Correps *d_dist,
     }
     if (threadid == 0)
         d_distline[blockIdx.x] = s_data[0];
+}
+
+__host__ void get_correspondences(struct Correps *d_dist,
+    int dist_pitch, size_t dist_0, size_t dist_1, bool sync)
+{
+    dim3 gridsize(1, dist_0);
+    dim3 blocksize(dist_1, 1);
+    get_correspondences_kernel<<<gridsize, blocksize>>>(d_dist, dist_pitch, dist_0, dist_1);
+    if (sync) {
+        cudaDeviceSynchronize();
+        cudaCheckError();
+    }
 }
