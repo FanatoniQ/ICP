@@ -32,27 +32,27 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
     // generic case:
     //fake transpose dot between P and Q:
     //d_rline stores P.dot(Q.T) flattened in the line
-    for (size_t p_i = 0; p_i < p_1 ; ++p_i)
+    for (size_t q_i = 0; q_i < q_1 ; ++q_i)
     {
-        for (size_t q_i = 0; q_i < q_1 ; ++q_i)
+        for (size_t p_i = 0; p_i < p_1 ; ++p_i)
         {
-            d_rline[p_i * q_1 + p_j] = d_pline[p_i] * d_qline[q_i];
+            d_rline[p_i * q_1 + p_j] = d_qline[q_i] * d_pline[p_i];
         }
     }
     **/
     // loop unrolled version for dim3:
     assert(p_1 == q_1 && p_1 == 3 && "Invalid: only dim3 is supported !");
-    d_rline[0] = d_pline[0] * d_qline[0];
-    d_rline[1] = d_pline[0] * d_qline[1];
-    d_rline[2] = d_pline[0] * d_qline[2];
+    d_rline[0] = d_qline[0] * d_pline[0];
+    d_rline[1] = d_qline[0] * d_pline[1];
+    d_rline[2] = d_qline[0] * d_pline[2];
 
-    d_rline[3] = d_pline[1] * d_qline[0];
-    d_rline[4] = d_pline[1] * d_qline[1];
-    d_rline[5] = d_pline[1] * d_qline[2];
+    d_rline[3] = d_qline[1] * d_pline[0];
+    d_rline[4] = d_qline[1] * d_pline[1];
+    d_rline[5] = d_qline[1] * d_pline[2];
 
-    d_rline[6] = d_pline[2] * d_qline[0];
-    d_rline[7] = d_pline[2] * d_qline[1];
-    d_rline[8] = d_pline[2] * d_qline[2];
+    d_rline[6] = d_qline[2] * d_pline[0];
+    d_rline[7] = d_qline[2] * d_pline[1];
+    d_rline[8] = d_qline[2] * d_pline[2];
 }
 
 __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, const ICPCorresp *d_dist,
