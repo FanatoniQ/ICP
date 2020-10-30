@@ -19,7 +19,7 @@ struct Correps
  ** \param dist_1 the number of columns in d_dist (== blocksize.x)
  **/
 __global__ void get_correspondences_kernel(struct Correps *d_dist,
-    int dist_pitch, size_t dist_0, size_t dist_1);
+    size_t dist_pitch, size_t dist_0, size_t dist_1);
 
 /**
  ** \brief get_correspondences wrapper around get_correspondences_kernel
@@ -31,4 +31,4 @@ __global__ void get_correspondences_kernel(struct Correps *d_dist,
  ** \param sync wether to wait for device to finish or not
  **/
 __host__ void get_correspondences(struct Correps *d_dist,
-    int dist_pitch, size_t dist_0, size_t dist_1, bool sync);
+    size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync);

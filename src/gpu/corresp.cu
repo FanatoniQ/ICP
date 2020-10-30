@@ -3,7 +3,7 @@
 #include "gpu/corresp.cuh"
 
 __global__ void get_correspondences_kernel(const struct Correps *d_dist,
-    int dist_pitch, size_t dist_0, size_t dist_1)
+    size_t dist_pitch, size_t dist_0, size_t dist_1)
 {
     extern __shared__ struct Correps s_data[]; // s_data is of size blockDim.x
     int threadid = threadIdx.x; // thread id in the block
@@ -32,7 +32,7 @@ __global__ void get_correspondences_kernel(const struct Correps *d_dist,
 }
 
 __host__ void get_correspondences(struct Correps *d_dist,
-    int dist_pitch, size_t dist_0, size_t dist_1, bool sync)
+    size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync)
 {
     dim3 gridsize(1, dist_0);
     dim3 blocksize(dist_1, 1);
