@@ -28,7 +28,7 @@ __global__ void get_correspondences_kernel(const struct Correps *d_dist,
         __syncthreads();
     }
     if (threadid == 0)
-        d_distline[blockIdx.x] = s_data[0];
+        d_distline[blockIdx.x] = s_data[0]; // or [0] since gridsize.x should be 1
 }
 
 __host__ void get_correspondences(struct Correps *d_dist,
