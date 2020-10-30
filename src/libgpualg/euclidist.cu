@@ -129,7 +129,7 @@ __host__ double cuda_squared_norm_2_0(double *d_A, double *d_B, size_t width, si
     // LAUNCHING KERNEL
     std::cerr << "reducepitch: " << reducepitch << "pitch: " << pitch << std::endl;
     std::cerr << "nbthreads: " << threads << " nbcols: " << blocks.x << " nbblocksPerColumn: " << blocks.y << std::endl;
-    squared_norm_2_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_A, d_B, d_res, pitch, width, height, reducepitch);
+    squared_norm_2_kernel_0<<<blocks, threads, threads * sizeof(double)>>>(d_A, d_B, d_res, pitch, width, height, reducepitch);
     cudaDeviceSynchronize();
     cudaCheckError();
 

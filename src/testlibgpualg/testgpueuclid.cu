@@ -23,7 +23,7 @@ void test_euclidist(double *d_Pt, double *d_Qt, size_t pitch, size_t width, size
 void test_euclidist_0(double *d_P, double *d_Q, size_t pitch, size_t width, size_t height)
 {
     int threads = 4;
-    double dist = sqrt(cuda_squared_norm_2(d_P, d_Q, width, height, pitch, threads));
+    double dist = sqrt(cuda_squared_norm_2_0(d_P, d_Q, width, height, pitch, threads));
     std::cerr << "GPU squared mean diff: " << dist << std::endl;
 }
 
