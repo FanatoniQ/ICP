@@ -26,7 +26,6 @@ double randomdouble(double low, double high)
     return ((double)rand() * (high - low)) / (double)RAND_MAX + low;
 }
 
-#ifdef TOTO
 int main(int argc, char **argv)
 {
     srand(time(NULL));
@@ -83,4 +82,3 @@ int main(int argc, char **argv)
     cudaFree(d_C);
     cudaCheckError();
 }
-#endif
