@@ -147,7 +147,7 @@ int main(int argc, char **argv)
     // COVS SUM
     //reduce_0(MatrixReduceOP::SUM, d_dist, double **d_sum, Pcols * Qcols, Plines, dist_pitch, size_t *reducepitch, int threads);
     // TODO: FIXME: implement sum over axis=0 with ICPCorresp...
-    reduce_0(MatrixReduceOP::SUM, d_R, &d_R, Pcols * Qcols, Plines, r_pitch, &r_pitch, 32);
+    reduce_0(MatrixReduceOP::SUM, d_R, &d_R, Rcols, Rlines, r_pitch, &r_pitch, 32);
 
     /** testing covs-sum **/
     auto RefCOV = CPUMatrix(Qcols, Pcols);
@@ -157,8 +157,8 @@ int main(int argc, char **argv)
 	 RefCOV += c;
 	 c.setArray(nullptr,1,1); // avoid freeing
     }
-    double *h_cov = (double *)malloc(Pcols * Qcols * sizeof(double));
-    cudaMemcpy(h_cov, d_dist, Pcols * Qcols * sizeof(double), cudaMemcpyDeviceToHost);
+    double *h_cov = (double *)malloc(Rcols * sizeof(double));
+    cudaMemcpy(h_cov, d_R, Rcols * sizeof(double), cudaMemcpyDeviceToHost);
     auto COV = CPUMatrix(h_cov, Qcols, Pcols);
 
     std::cerr << "RefCOV:" << std::endl;
