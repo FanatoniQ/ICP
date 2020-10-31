@@ -15,63 +15,27 @@
 
 void test_euclidist(double *d_Pt, double *d_Qt, size_t pitch, size_t width, size_t height)
 {
-    // SETUP
-    double *d_res;
-    size_t reducepitch;
     int threads = 4;
-    while (!is_power_of_2(threads))
-        threads++;
-    int nbblocksPerLine = std::ceil((float)width / threads);
-    dim3 blocks(nbblocksPerLine, height);
-
-    // ALLOCATING DEVICE MEMORY
-    cudaMallocPitch(&d_res, &reducepitch, nbblocksPerLine * sizeof(double), height);
-    cudaCheckError();
-    cudaMemset2D(d_res, reducepitch, 0, nbblocksPerLine * sizeof(double), height);
-    cudaCheckError();
-
-    // LAUNCHING KERNEL
-    std::cerr << "reducepitch: " << reducepitch << "pitch: " << pitch << std::endl;
-    std::cerr << "nbthreads: " << threads << " nbblocksPerLine: " << blocks.x << " nbLines: " << blocks.y << std::endl;
-    euclidist_kernel<<<blocks, threads, threads * sizeof(double)>>>(d_Pt, d_Qt, d_res, pitch, width, height, reducepitch);
-    cudaDeviceSynchronize();
-    cudaCheckError();
-
-    double *h_res = (double*)malloc(height * reducepitch);
-    runtime_assert(h_res != nullptr, "Alloc error !");
-
-    // COPY TO HOST
-    cudaMemcpy(h_res, d_res, height * reducepitch, cudaMemcpyDeviceToHost);
-    cudaCheckError();
-
-    // FREEING DEVICE MEMORY
-    cudaFree(d_res);
-    cudaCheckError();
-
-    double euclidist = 0;
-    for (size_t i = 0; i < height; ++i)
-    {
-        double* h_resline = (double*)((char*)h_res + i * reducepitch);
-        for (size_t j = 0; j < nbblocksPerLine; ++j)
-        {
-            euclidist += h_resline[j];
-        }
-    }
-
-    std::cerr << "GPU squared mean diff: " << sqrt(euclidist) << std::endl;
-    free(h_res);
+    double dist = sqrt(cuda_squared_norm_2(d_Pt, d_Qt, width, height, pitch, threads));
+    std::cerr << "GPU squared mean diff: " << dist << std::endl;
 }
 
-int main(int argc, char **argv)
+void test_euclidist_0(double *d_P, double *d_Q, size_t pitch, size_t width, size_t height)
 {
-    runtime_assert(argc == 3, "Usage: ./testgpueuclid file1, file2");
+    int threads = 4;
+    double dist = sqrt(cuda_squared_norm_2_0(d_P, d_Q, width, height, pitch, threads));
+    std::cerr << "GPU squared mean diff: " << dist << std::endl;
+}
 
+int main_axis1(char **argv)
+{
     std::string h{};
     size_t Plines, Pcols, Qlines, Qcols;
     double *h_P = readCSV(argv[1], h, Plines, Pcols);
     double *h_Pt = transpose(h_P, Plines, Pcols);
     double *h_Q = readCSV(argv[2], h, Qlines, Qcols);
     double *h_Qt = transpose(h_Q, Qlines, Qcols);
+    runtime_assert(Pcols == Qcols, "Not same dimension !");
 
     print_matrix(std::cerr, h_P, Pcols, Plines);
     print_matrix(std::cerr, h_Q, Qcols, Qlines);
@@ -103,4 +67,57 @@ int main(int argc, char **argv)
     std::cerr << "SUCCESS" << std::endl;
     cudaFree(d_Pt);
     cudaCheckError();
+    return EXIT_SUCCESS;
+}
+
+int main_axis0(char **argv)
+{
+    std::string h{};
+    size_t Plines, Pcols, Qlines, Qcols;
+    double *h_P = readCSV(argv[1], h, Plines, Pcols);
+    double *h_Q = readCSV(argv[2], h, Qlines, Qcols);
+    runtime_assert(Pcols == Qcols, "Not same dimension !");
+
+    print_matrix(std::cerr, h_P, Pcols, Plines);
+    print_matrix(std::cerr, h_Q, Qcols, Qlines);
+
+    auto P = CPUMatrix(h_P, Plines, Pcols);
+    auto Q = CPUMatrix(h_Q, Qlines, Qcols);
+
+    auto cpuEuclid = P.euclidianDistance(Q);
+
+    // device memory
+    double *d_P;
+    size_t pitch;
+    size_t width = Pcols, height = Plines;
+    cudaMallocPitch(&d_P, &pitch, width * sizeof(double), height * sizeof(double));
+    cudaCheckError();
+    cudaMemcpy2D(d_P, pitch, h_P, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
+    cudaCheckError();
+
+    double *d_Q;
+    width = Qcols, height = Qlines;
+    cudaMallocPitch(&d_Q, &pitch, width * sizeof(double), height * sizeof(double));
+    cudaCheckError();
+    cudaMemcpy2D(d_Q, pitch, h_Q, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
+    cudaCheckError();
+
+    test_euclidist_0(d_P, d_Q, pitch, width, height);
+
+    std::cerr << "CPU squared mean diff: " << cpuEuclid << std::endl;
+    std::cerr << "SUCCESS" << std::endl;
+    cudaFree(d_P);
+    cudaCheckError();
+    return EXIT_SUCCESS;
+}
+
+int main(int argc, char **argv)
+{
+    runtime_assert(argc == 4, "Usage: ./testgpueuclid file1, file2 [axis]");
+    if (strcmp(argv[3], "1") == 0)
+        return main_axis1(argv);
+    if (strcmp(argv[3], "0") == 0)
+        return main_axis0(argv);
+    std::cerr << "Usage: axis = 0 | 1" << std::endl;
+    return EXIT_FAILURE;
 }

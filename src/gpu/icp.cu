@@ -13,6 +13,8 @@
 
 #include "gpu/icp.cuh"
 #include "libgpualg/mult.cuh"
+#include "libgpualg/euclidist.cuh"
+#include "error.cuh"
 
 #define Tile_size 2
 
@@ -29,8 +31,10 @@ __host__ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double 
         for (size_t j = 0; j < Q_r; j++)
         {
             double *q_point = Q + j * Q_c;
+
             double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
                                     squared_norm_2, add, add)); //norm 2 between 2 vectors
+
             if (dist < min_dist)
             {
                 min_dist = dist;
