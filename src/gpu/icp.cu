@@ -22,35 +22,18 @@
 __host__ std::vector<std::tuple<size_t, int>> get_correspondence_indices(double *P, double *Q,
                                                                 size_t P_r, size_t P_c, size_t Q_r, size_t Q_c)
 {
-    double *d_P;
-    size_t pitch;
-    cudaMallocPitch(&d_P, &pitch, P_r * sizeof(double), P_c * sizeof(double));
-    cudaCheckError();
-
-    double *d_Q;
-    cudaMallocPitch(&d_Q, &pitch, P_r * sizeof(double), P_c * sizeof(double));
-    cudaCheckError();
-
-    int threads = 4;
-
     std::vector<std::tuple<size_t, int>> correspondances = {};
     for (size_t i = 0; i < P_r; i++)
     {
         double *p_point = P + i * P_c;
         double min_dist = std::numeric_limits<double>::max();
         int chosen_idx = -1;
-        cudaMemcpy2D(d_P, pitch, p_point, P_r * sizeof(double), P_r * sizeof(double), P_c, cudaMemcpyHostToDevice);
-        cudaCheckError();
         for (size_t j = 0; j < Q_r; j++)
         {
             double *q_point = Q + j * Q_c;
-            cudaMemcpy2D(d_Q, pitch, q_point, Q_r * sizeof(double), Q_r * sizeof(double), Q_c, cudaMemcpyHostToDevice);
-            cudaCheckError();
 
-            double dist = sqrt(cuda_squared_norm_2(d_P, d_Q, Q_r, Q_c, pitch, threads));
-
-            //double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
-            //                        squared_norm_2, add, add)); //norm 2 between 2 vectors
+            double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
+                                    squared_norm_2, add, add)); //norm 2 between 2 vectors
 
             if (dist < min_dist)
             {
