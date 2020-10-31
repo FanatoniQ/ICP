@@ -114,7 +114,7 @@ int main(int argc, char **argv)
         nblines = std::min(Plines - Pstartindex, DISTS_LINES);
 
         // DISTS
-        get_distances(d_P + Pstartindex * p_pitch, d_Q, &d_dist, nblines, Pcols, p_pitch, nblines, Qcols, q_pitch, Qlines, dist_1, &dist_pitch, true);
+        get_distances(d_P + Pstartindex * Pcols, d_Q, &d_dist, nblines, Pcols, p_pitch, nblines, Qcols, q_pitch, Qlines, dist_1, &dist_pitch, true);
         std::cerr << "DISTS DONE" << std::endl;
 
         // CORRESPS
@@ -180,15 +180,6 @@ int main(int argc, char **argv)
 
     std::cerr << "COV:" << std::endl;
     std::cerr << COV << std::endl;
-    /**
-    for (size_t i = 0; i < Qcols; ++i)
-    {
-        for (size_t j = 0; j < Pcols; ++j)
-        {
-            std::cerr << h_cov[i * Pcols + j] << "\t";
-        }
-	std::cerr << std::endl;
-    }**/
     
     free(h_r);
     free(h_ref_cross_covs);
