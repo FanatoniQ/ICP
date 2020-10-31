@@ -147,7 +147,7 @@ int main(int argc, char **argv)
     // COVS SUM
     //reduce_0(MatrixReduceOP::SUM, d_dist, double **d_sum, Pcols * Qcols, Plines, dist_pitch, size_t *reducepitch, int threads);
     // TODO: FIXME: implement sum over axis=0 with ICPCorresp...
-    reduce_0(MatrixReduceOP::SUM, d_dist, &d_dist, Pcols * Qcols, Plines, dist_pitch, &dist_pitch, 32);
+    reduce_0(MatrixReduceOP::SUM, d_R, &d_R, Pcols * Qcols, Plines, r_pitch, &r_pitch, 32);
 
     /** testing covs-sum **/
     auto RefCOV = CPUMatrix(Qcols, Pcols);
