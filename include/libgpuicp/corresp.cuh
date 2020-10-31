@@ -9,8 +9,8 @@ typedef struct
 /**
  ** \brief get_correspondences_kernel is a destructive in-place min distance axis=1 reduction kernel
  ** it should be called with <<<gridsize, blocksize, blockdim.x * sizeof(double)>>>
- ** must be called with gridsize.y = dist_0 and gridsize.x == 1, since this is an inplace destructive operation
- ** blocksize.x == dist_1 and blocksize.y == 1
+ ** must be called with gridsize.y = dist_0, since this is an inplace destructive operation
+ ** blocksize.x * gridsize.x >= dist_1 and blocksize.y == 1. blocksize.x must be a power of 2, 1024 is a good choice
  ** each block treats a line min reduction using shared memory and stores the result at its line start
  **
  ** \param d_dist the struct Correps matrix to be in place min reduced
