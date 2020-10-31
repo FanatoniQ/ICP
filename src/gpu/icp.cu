@@ -19,9 +19,9 @@
 #include "libgpualg/mean.cuh"
 #include "libgpualg/ope.cuh"
 #include "libgpualg/svd.cuh"
-#include "gpu/dist.cuh"
-#include "gpu/corresp.cuh"
-#include "gpu/crosscov.cuh"
+#include "libgpuicp/dist.cuh"
+#include "libgpuicp/corresp.cuh"
+#include "libgpuicp/crosscov.cuh"
 
 #define Tile_size 2
 

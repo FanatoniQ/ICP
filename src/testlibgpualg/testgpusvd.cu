@@ -35,11 +35,26 @@ int main(int argc, char** argv)
 	// U (m * m)
 	// S (n)
 	// VT (m * n)
-	double* dS, * dU, * dVt;
+	double *dA, 
+		*dS, *dU, *dVt, 
+		*S, *U, *VT;
+	U = (double*)malloc(P.getDim1() * P.getDim1() * sizeof(double));
+	S = (double*)malloc(P.getDim1() * P.getDim1() * sizeof(double));
+	VT = (double*)malloc(P.getDim1() * P.getDim1() * sizeof(double));
+	cudaMalloc(&dA, P.getDim0() * P.getDim1() * sizeof(double));
+	cudaMalloc(&dU, P.getDim1() * P.getDim1() * sizeof(double));
+	cudaMalloc(&dS, P.getDim1() * P.getDim1() * sizeof(double)); // FIXME is it rly the good shape
+	cudaMalloc(&dVt, P.getDim1() * P.getDim1() * sizeof(double));
 
-	auto [U, S, V_T] = svd(array, Pdim0, Pdim1);
+	cudaMemcpy(dA, array, P.getDim0() * P.getDim1() * sizeof(double), cudaMemcpyHostToDevice);
+
+	svd_gpu(dA, Pdim0, Pdim1, dU, dS, dVt);
 
 	std::cout << "Done GPU!";
+
+	cudaMemcpy(U, dU, P.getDim1() * P.getDim1() * sizeof(double), cudaMemcpyDeviceToHost);
+	cudaMemcpy(S, dS, P.getDim1() * P.getDim1() * sizeof(double), cudaMemcpyDeviceToHost);
+	cudaMemcpy(VT, dVt, P.getDim1() * P.getDim1() * sizeof(double), cudaMemcpyDeviceToHost);
 
 	auto [V_T_cpu, S_cpu, U_cpu] = P.svd();
 
@@ -49,9 +64,13 @@ int main(int argc, char** argv)
 
 	runtime_assert(checkMatrix(U, U_cpu.getArray(), Pdim0, Pdim0), "Check matrix U failed \n");
 	runtime_assert(checkMatrix(S, S_cpu.getArray(), Pdim1, 1), "Check matrix S failed \n");
-	runtime_assert(checkMatrix(V_T, V_T_cpu.getArray(), Pdim0, Pdim1), "Check matrix VT failed \n");
+	runtime_assert(checkMatrix(VT, V_T_cpu.getArray(), Pdim0, Pdim1), "Check matrix VT failed \n");
 
+	cudaFree(dA);
+	cudaFree(dS);
+	cudaFree(dU);
+	cudaFree(dVt);
 	free(U);
 	free(S);
-	free(V_T);
+	free(VT);
 }
