@@ -39,13 +39,13 @@ __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
                 //printf("line:%u| %lu: %lf,%d < %u: %lf,%d \n", lineid, threadid + stride, s_data[threadid + stride].dist, s_data[threadid + stride].id, threadid, s_data[threadid].dist, s_data[threadid].id);
                 //s_data[threadid].dist = s_data[threadid + stride].dist;
                 //s_data[threadid].id = s_data[threadid + stride].id;
-	    }
+            }
         }
         __syncthreads();
     }
     if (threadid == 0) {
         d_distline[blockIdx.x] = s_data[0]; // or [0] since gridsize.x should be 1
-	//printf("FINAL: %u: %lf,%d \n", lineid, d_distline[blockIdx.x].dist, d_distline[blockIdx.x].id);
+        //printf("FINAL: %u: %lf,%d \n", lineid, d_distline[blockIdx.x].dist, d_distline[blockIdx.x].id);
     }
 }
 
@@ -94,5 +94,26 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
         get_correspondences_kernel<<<blocks, threads, threads * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
         cudaDeviceSynchronize();
         cudaCheckError();
+    }
+}
+
+__global__ void get_array_correspondences(unsigned short int **d_dist,
+    size_t pitch, size_t dist_0, size_t dist_1)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index < dist_0)
+    {
+        d_dist[index] = [0, 0, 0]; // TODO : change me
+        double dist = get_distances(//put args);
+
+        for (int i = 1; i < dist_1; ++i)
+        {
+            double d = 0;
+            if (dist > d)
+            {
+                dist = d;
+                d_dist[index] = [0, 0, 0]; // TODO : change me
+            }
+        }
     }
 }
