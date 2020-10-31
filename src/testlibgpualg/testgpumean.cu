@@ -115,7 +115,7 @@ void test_tree_reduce_sum(const CPUMatrix &cpuSum, double *d_pT, size_t pitch, s
     // SETUP
     double *d_sum;
     size_t reducepitch;
-    int threads = 4; // TODO: change this
+    int threads = 1024; // TODO: change this
     threads = get_next_power_of_2(threads);
     int nbblocksPerLine = std::ceil((float)width / threads); // each block line treats partial one line sum
     dim3 blocks(nbblocksPerLine, height); // we have height lines of nbblocksPerLine
@@ -203,7 +203,7 @@ void test_tree_reduce_sum_0(const CPUMatrix &cpuSum, double *d_p, size_t pitch, 
     // SETUP
     double *d_sum;
     size_t reducepitch;
-    int threads = 4; // TODO: change this
+    int threads = 1024; // TODO: change this
     threads = get_next_power_of_2(threads);
     int nbblocksPerColumn = std::ceil((float)height / threads); // each block column treats partial one column sum
     dim3 blocks(width, nbblocksPerColumn); // we have width columns of nbblocksPerColumn

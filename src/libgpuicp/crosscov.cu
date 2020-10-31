@@ -74,7 +74,7 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
         cudaCheckError();
     }
 
-    dim3 blocksize(8, 1); // TODO: change nb threads
+    dim3 blocksize(1024, 1); // TODO: change nb threads
     dim3 gridsize(std::ceil((float)dist_0 / blocksize.x), 1);
     std::cerr << blocksize.x << " èè " << gridsize.x << std::endl;
     

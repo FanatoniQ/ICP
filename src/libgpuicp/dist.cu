@@ -50,7 +50,7 @@ __host__ void get_distances(const double *d_P, const double *d_Q, ICPCorresp **d
     }
     
     dim3 blocksize(32, 32); // TODO: chanhe size
-    dim3 gridsize(std::ceil((float)p_0 / blocksize.x), std::ceil((float)p_1 / blocksize.y));
+    dim3 gridsize(std::ceil((float)q_0 / blocksize.x), std::ceil((float)p_0 / blocksize.y));
 
     std::cerr << "gridsize.y: " << gridsize.y << " blocksize.y: " << blocksize.y << std::endl;
     std::cerr << "gridsize.x: " << gridsize.x << " blocksize.x: " << blocksize.x << std::endl;
