@@ -58,7 +58,6 @@ __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
     return h_ref;
 }
 
-#ifdef TOTO
 int main(int argc, char **argv)
 {
     runtime_assert(argc == 3, "./bin file1 file2");
@@ -156,4 +155,3 @@ int main(int argc, char **argv)
     cudaFree(d_dist);
     cudaCheckError();
 }
-#endif // TOTO
