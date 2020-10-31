@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 
     while (Pstartindex < Plines)
     {
-        nblines = std::min(Plines - Pstartindex, DISTS_LINES);
+        nblines = MIN(Plines - Pstartindex, DISTS_LINES);
 
         // DISTS
         get_distances(d_P + Pstartindex * p_pitch / sizeof(double), d_Q, &d_dist, nblines, Pcols, p_pitch, Qlines, Qcols, q_pitch, nblines, dist_1, &dist_pitch, true);
