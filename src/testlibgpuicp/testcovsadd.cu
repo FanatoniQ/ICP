@@ -26,6 +26,8 @@
 #include "libgpuicp/corresp.cuh"
 #include "libgpuicp/crosscov.cuh"
 
+#define DISTS_LINES 4
+
 __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
     CPUMatrix &Q, size_t q_0, size_t q_1,
     ICPCorresp *d_dist, size_t dist_0, size_t dist_1, size_t dist_pitch)
@@ -86,8 +88,12 @@ int main(int argc, char **argv)
     cudaMemcpy2D(d_Q, q_pitch, Qt, Qcols * sizeof(double), Qcols * sizeof(double), Qlines, cudaMemcpyHostToDevice);
     cudaCheckError();
 
+    //size_t nbiters =  std::ceil((float)Plines / DISTS_LINES);
+    size_t Pstartindex = 0;
+    size_t nblines;
+
     // device dist,id distance and corresp matrix
-    size_t dist_0 = Plines, dist_1 = Qlines;
+    size_t dist_0 = DISTS_LINES, dist_1 = Qlines;
     size_t dist_pitch;
     ICPCorresp *d_dist;
     cudaMallocPitch((void **)&d_dist, &dist_pitch, dist_1 * sizeof(ICPCorresp), dist_0);
@@ -96,34 +102,42 @@ int main(int argc, char **argv)
     //cudaCheckError();
 
     // device cross-covs flattened
-    size_t Rlines = Plines, Rcols = Pcols * Qcols;
+    size_t Rlines = DISTS_LINES, Rcols = Pcols * Qcols;
     size_t r_pitch = Rcols * sizeof(double);
     double *d_R;
     // or 2d...
     cudaMalloc((void**)&d_R, Rlines * r_pitch);
     cudaCheckError();
 
-    // DISTS
-    get_distances(d_P, d_Q, &d_dist, Plines, Pcols, p_pitch, Qlines, Qcols, q_pitch, Plines, Qlines, &dist_pitch, true);
-    std::cerr << "DISTS DONE" << std::endl;
+    while (Pstartindex < Plines)
+    {
+        nblines = std::min(Plines - Pstartindex, DISTS_LINES);
 
-    // CORRESPS
-    get_correspondences(d_dist, dist_pitch, dist_0, dist_1, true);
-    std::cerr << "CORRESPS DONE" << std::endl;
+        // DISTS
+        get_distances(d_P + Pstartindex * p_pitch, d_Q, &d_dist, nblines, Pcols, p_pitch, nblines, Qcols, q_pitch, Qlines, dist_1, &dist_pitch, true);
+        std::cerr << "DISTS DONE" << std::endl;
 
-    /** Testing corresps: **/
-    //ICPCorresp *h_res = (ICPCorresp *)malloc(Plines * Qlines * sizeof(ICPCorresp));
-    //cudaMemcpy2D(h_res, Qlines * sizeof(ICPCorresp), d_dist, dist_pitch, 1 * sizeof(ICPCorresp), Plines, cudaMemcpyDeviceToHost);
-    //cudaCheckError();
+        // CORRESPS
+        get_correspondences(d_dist, dist_pitch, nblines, dist_1, true);
+        std::cerr << "CORRESPS DONE" << std::endl;
 
-    // CROSS-COVS
-    get_cross_cov(d_P, d_Q, &d_R, d_dist,
-        Plines, Pcols, p_pitch,
-        Qlines, Qcols, q_pitch,
-        Rlines, Rcols, &r_pitch,
-        dist_0, dist_1, dist_pitch, true);
-    std::cerr << "CROSS-COVS DONE" << std::endl;
+        /** Testing corresps: **/
+        //ICPCorresp *h_res = (ICPCorresp *)malloc(Plines * Qlines * sizeof(ICPCorresp));
+        //cudaMemcpy2D(h_res, Qlines * sizeof(ICPCorresp), d_dist, dist_pitch, 1 * sizeof(ICPCorresp), Plines, cudaMemcpyDeviceToHost);
+        //cudaCheckError();
 
+        // CROSS-COVS
+        get_cross_cov(d_P, d_Q, &d_R, d_dist,
+            Plines, Pcols, p_pitch,
+            Qlines, Qcols, q_pitch,
+            Rlines, Rcols, &r_pitch,
+            dist_0, dist_1, dist_pitch, true);
+        std::cerr << "CROSS-COVS DONE" << std::endl;
+
+        Pstartindex += nblines;
+    }
+
+    // TODO: move this in loop above
     /** Testing cross-covs: **/
     // h_ref_cross_covs is BUGGED !
     double *h_ref_cross_covs = get_cross_covs_cpu(P, Plines, Pcols, Q, Qlines, Qcols, d_dist, dist_0, dist_1, dist_pitch);
@@ -151,12 +165,12 @@ int main(int argc, char **argv)
 
     /** testing covs-sum **/
     auto RefCOV = CPUMatrix(Qcols, Pcols);
-    for (size_t i = 0; i < Rlines; i++)
+    /**for (size_t i = 0; i < Rlines; i++)
     {
          auto c = CPUMatrix(h_ref_cross_covs + i * (r_pitch / sizeof(double)), Qcols, Pcols);
 	 RefCOV += c;
 	 c.setArray(nullptr,1,1); // avoid freeing
-    }
+    }**/
     double *h_cov = (double *)malloc(Rcols * sizeof(double));
     cudaMemcpy(h_cov, d_R, Rcols * sizeof(double), cudaMemcpyDeviceToHost);
     auto COV = CPUMatrix(h_cov, Qcols, Pcols);
