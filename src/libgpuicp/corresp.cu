@@ -54,7 +54,8 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
 {
     dim3 gridsize(1, dist_0);
     dim3 blocksize(get_next_power_of_2(dist_1), 1);
-    std::cerr << blocksize.x << std::endl;
+    std::cerr << std::endl << "gridsize.y: " << gridsize.y << std::endl;
+    std::cerr << "blocksize.x: " << blocksize.x << std::endl;
     get_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
     if (sync) {
         cudaDeviceSynchronize();
