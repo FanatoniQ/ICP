@@ -11,6 +11,7 @@
 // CPU
 #include "libCSV/csv.hpp"
 #include "libalg/CPUMatrix.hpp"
+#include "libalg/CPUView.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/print.hpp"
 #include "error.hpp"
@@ -19,11 +20,10 @@
 // GPU
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
-#include "gpu/icp.cuh"
-#include "gpu/dist.cuh"
-#include "gpu/corresp.cuh"
+//#include "gpu/icp.cuh"
+#include "libgpuicp/dist.cuh"
+#include "libgpuicp/corresp.cuh"
 
-#ifdef TOTO
 int main(int argc, char **argv)
 {
     std::string f1Header{};
@@ -114,4 +114,3 @@ int main(int argc, char **argv)
     cudaFree(d_dist);
     cudaCheckError();
 }
-#endif

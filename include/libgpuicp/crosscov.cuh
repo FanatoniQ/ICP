@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gpu/corresp.cuh"
-#include "gpu/dist.cuh"
+#include "libgpuicp/corresp.cuh"
+#include "libgpuicp/dist.cuh"
 
 /**
  ** \brief get_cross_cov_kernel computes the cross covariance matrix, which is stored as a flattened array
