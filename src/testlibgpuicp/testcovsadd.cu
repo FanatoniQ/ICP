@@ -195,8 +195,8 @@ int main(int argc, char **argv)
                 ttlerror += error;
             }
         }
-	std::cerr << "Error (batch-reduced cross-cov): " << ttlerror << std::endl;
-        std::cerr << "Mean Error (batch-reduced cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+	std::cout << "Error (batch-reduced cross-cov): " << ttlerror << std::endl;
+        std::cout << "Mean Error (batch-reduced cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
         std::cerr << "BatchRefCOV:" << std::endl;
         std::cerr << BatchRefCOV << std::endl;
@@ -205,6 +205,7 @@ int main(int argc, char **argv)
         std::cerr << BatchCOV << std::endl;
 
 	//assert(BatchRefCOV.getArray() == BatchCOV.getArray());
+	std::cout << "index: " << Pstartindex << "/" << Plines << std::endl;
 
         Pstartindex += nblines;
     }
@@ -218,14 +219,14 @@ int main(int argc, char **argv)
             ttlerror += error;
         }
     }
-    std::cerr << "Error (FINAL cross-cov): " << ttlerror << std::endl;
-    std::cerr << "Mean Error (FINAL cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+    std::cout << "Error (FINAL cross-cov): " << ttlerror << std::endl;
+    std::cout << "Mean Error (FINAL cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
-    std::cerr << "RefCOV:" << std::endl;
-    std::cerr << RefCOV << std::endl;
+    std::cout << "RefCOV:" << std::endl;
+    std::cout << RefCOV << std::endl;
 
-    std::cerr << "COV:" << std::endl;
-    std::cerr << COV << std::endl;
+    std::cout << "COV:" << std::endl;
+    std::cout << COV << std::endl;
     
     cudaFree(d_P);
     cudaCheckError();

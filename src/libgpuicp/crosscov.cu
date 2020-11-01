@@ -42,7 +42,7 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
         }
     }
     **/
-    printf("%u -> %u\n", idp, idq);
+    //printf("%u -> %u\n", idp, idq);
     //printf("P{%u:} %lf %lf %lf, Q{%u:} %lf %lf %lf \n", idp, d_pline[0], d_pline[1], d_pline[2], idq, d_qline[0], d_qline[1], d_qline[2]);
     // loop unrolled version for dim3:
     assert(p_1 == q_1 && p_1 == 3 && "Invalid: only dim3 is supported !");
