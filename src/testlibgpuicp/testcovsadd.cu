@@ -127,9 +127,19 @@ int main(int argc, char **argv)
         std::cerr << "CORRESPS DONE" << std::endl;
 
         /** Testing corresps: **/
-        //ICPCorresp *h_res = (ICPCorresp *)malloc(Plines * Qlines * sizeof(ICPCorresp));
-        //cudaMemcpy2D(h_res, Qlines * sizeof(ICPCorresp), d_dist, dist_pitch, 1 * sizeof(ICPCorresp), Plines, cudaMemcpyDeviceToHost);
-        //cudaCheckError();
+        ICPCorresp *h_corresp = (ICPCorresp *)malloc(nblines * 1 * sizeof(ICPCorresp));
+        cudaMemcpy2D(h_corresp, 1 * sizeof(ICPCorresp), d_dist, dist_pitch, 1 * sizeof(ICPCorresp), nblines, cudaMemcpyDeviceToHost);
+        cudaCheckError();
+	//if (Pstartindex >= Plines - 100)
+	if (Pstartindex < 100)
+{	for (size_t i = 0; i < nblines; ++i)
+	{
+	//if (i + Pstartindex >= Plines - 100)
+            std::cout << i + Pstartindex << " -> " << h_corresp[i].id << " , " << h_corresp[i].dist << std::endl;
+	}
+}
+	free(h_corresp);
+
 
         // CROSS-COVS
         get_cross_cov(d_P + Pstartindex * p_pitch / sizeof(double), d_Q, &d_R, d_dist,
