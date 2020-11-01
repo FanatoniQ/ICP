@@ -77,7 +77,7 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
 
     // LAUNCHING KERNEL
     std::cerr << "nbthreads: " << threads << " nblines: " << blocks.y << " nbblocksPerLine: " << blocks.x << std::endl;
-    get_correspondences_kernel<<<gridsize, threads, threads * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
+    get_correspondences_kernel<<<blocks, threads, threads * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -87,11 +87,11 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
     {
         threads = nbblocksPerLine;
         threads = get_next_power_of_2(threads);
-        dist_1 = nbblockPerLine;
+        dist_1 = nbblocksPerLine;
         blocks = dim3(1, dist_0);
         
         std::cerr << "nbthreads: " << threads << " nblines: " << blocks.y << " nbblocksPerLine: " << blocks.x << std::endl;
-        get_correspondences_kernel<<<gridsize, threads, threads * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
+        get_correspondences_kernel<<<blocks, threads, threads * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
         cudaDeviceSynchronize();
         cudaCheckError();
     }
