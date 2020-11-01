@@ -113,11 +113,18 @@ int main(int argc, char **argv)
     double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
 
+    // FIXME iterations number
+    auto P_res = icp_gpu(P, Q, 5);
+    std::cout << "Squared actual mean diff: " << Q.euclidianDistance(P_res) << std::endl;
+    std::cout << "P resultat matrix: " << P_res;
+    std::cout << "Q ref matrix: " << Q;
+    /*
     auto correspondances = get_correspondence_indices(P.getArray(), Q.getArray(), P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1());
     for (int i = 0; i < 30; i++)
     {
         std::cout << std::get<0>(correspondances.at(i)) << " " << std::get<1>(correspondances.at(i)) << std::endl;
     }
+    */
     //double *B = (double *)calloc(Plines*Pcols, sizeof(double));
     //double *B = calling_transpose_kernel(P.getArray(), Plines, Pcols);
     //for (int i = 0; i < Plines; i++)
