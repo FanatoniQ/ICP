@@ -119,7 +119,6 @@ __global__ void get_array_correspondences_kernel(unsigned int *d_array_correspon
         double *q_point = d_Q + y * Q_col;
 
         double dist = std::sqrt((p_point[0] - q_point[0]) * (p_point[0] - q_point[0]) + (p_point[1] - q_point[1])* (p_point[1] - q_point[1]) + (p_point[2] - q_point[2])* (p_point[2] - q_point[2]));
-        printf("qpoint et ppoint sont : %f , %f , %f\n", p_point[0], q_point[0], dist);
 
         if (dist < min_dist)
         {
@@ -127,7 +126,6 @@ __global__ void get_array_correspondences_kernel(unsigned int *d_array_correspon
             chosen_idx = y;
         }
 
-        printf("%d et %d\n", index, chosen_idx);
         d_array_correspondances[index] = chosen_idx;
     }
 }

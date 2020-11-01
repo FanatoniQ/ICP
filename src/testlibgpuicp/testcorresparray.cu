@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 
     get_array_correspondences(d_array_correspondances, d_P, d_Q, Plines, Pcols, Qlines, Qcols);
 
-    cudaMemcpy(Qt, d_Q, sizeof(double) * Qcols, cudaMemcpyDeviceToHost);
+    cudaMemcpy(Qt, d_array_correspondances, sizeof(unsigned int) * Qcols, cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < 30; i++)
         std::cout << Qt[i] << std::endl;
