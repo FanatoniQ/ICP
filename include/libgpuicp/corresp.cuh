@@ -32,7 +32,7 @@ __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
  ** \param threads minimum number of threads (rounded to next power of two)
  **/
 __host__ void get_correspondences(ICPCorresp *d_dist,
-    size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync);
+    size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync = true, size_t threads = 1024);
 
 /**
  ** \brief get_array_correspondences wrapper around get_array_correspondences_kernel

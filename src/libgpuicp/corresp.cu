@@ -103,31 +103,25 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
 __global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-
-    if (!(P_col == Q_col && P_col == 3)) //device code does not support exception handling
-        return;
-
     if (index >= P_row)
         return;
-
+    assert(P_col == Q_col && P_col == 3);
     double *p_point = d_P + index * P_col;
-    double min_dist = DBL_MAX;
-        unsigned int chosen_idx = 0;
 
-    for (unsigned int y = 0; y < P_row; y++) //make sure this is nb rows
+    double min_dist = DBL_MAX;
+    unsigned int chosen_idx = 0;
+
+    for (unsigned int y = 0; y < P_row; y++)
     {
         double *q_point = d_Q + y * Q_col;
-
         double dist = std::sqrt((p_point[0] - q_point[0]) * (p_point[0] - q_point[0]) + (p_point[1] - q_point[1])* (p_point[1] - q_point[1]) + (p_point[2] - q_point[2])* (p_point[2] - q_point[2]));
-
         if (dist < min_dist)
         {
             min_dist = dist;
             chosen_idx = y;
         }
-
-        d_array_correspondances[index] = chosen_idx;
     }
+    d_array_correspondances[index] = chosen_idx;
 }
 
 __host__ void get_array_correspondences(unsigned int* d_array_correspondances, double *d_P, double *d_Q,
