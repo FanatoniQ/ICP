@@ -18,6 +18,7 @@
 
 
 // GPU
+#include "libgpualg/ope.cuh"
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
 //#include "gpu/icp.cuh"
@@ -191,7 +192,7 @@ int main(int argc, char **argv)
 
         // COV += COVS SUM
         assert(covCols == 3 && covLines == 3);
-        matrix_op<double>(gridsize(1, 1), dim3(covCols * covLines,1), d_cov, d_R, d_cov, MatrixOP::ADD,
+        matrix_op<double>(dim3(1, 1), dim3(covCols * covLines,1), d_cov, d_R, d_cov, MatrixOP::ADD,
              1, covCols * covLines, cov_pitch,
              1, Rcols, r_pitch,
              1, covCols * covLines, cov_pitch);
