@@ -34,7 +34,7 @@ __host__ void get_batch_cov(double *d_P, size_t Plines, size_t Pcols, size_t p_p
 {
     runtime_assert(dist_0 == batchsize, "Invalid d_dist shape for batch !");
     runtime_assert(Rlines == batchsize, "Invalid d_R shape for batch !");
-    runtime_assert(covCols == 3 && covLines == 3); // only dim 3 points are supported
+    runtime_assert(covCols == 3 && covLines == 3, "only dim 3 points are supported !");
     cudaMemset(d_cov, 0, cov_pitch);
     cudaCheckError();
     size_t Pstartindex = 0;

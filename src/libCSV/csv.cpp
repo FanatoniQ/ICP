@@ -114,7 +114,7 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
     {
         if (h.empty())
             h = std::string{line};
-        std::cerr << "Line " << nblines << " read: " << line << std::endl;
+        //std::cerr << "Line " << nblines << " read: " << line << std::endl;
         cols_num = 0;
         token = strtok(line, ",");
         while (token != NULL)

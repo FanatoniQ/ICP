@@ -84,8 +84,9 @@ int main(int argc, char **argv)
         d_Q, Qlines, Qcols, q_pitch,
         d_dist, dist_0, dist_1, dist_pitch,
         d_R, Rlines, Rcols, r_pitch,
-        d_cov, covLines, covCols, cov_pitch
-    )
+        d_cov, covLines, covCols, cov_pitch,
+	batchsize
+    );
 
     double *h_cov = (double *)malloc(covLines * covCols * sizeof(double));
     cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(double), cudaMemcpyDeviceToHost);
