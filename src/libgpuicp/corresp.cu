@@ -129,7 +129,7 @@ __global__ void get_array_correspondences_kernel(double *P, double *Q, //r_dist[
     }
 }
 
-__device__ void get_array_correspondences(double *P, double *Q,
+__host__ void get_array_correspondences(double *P, double *Q,
     size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
 {
     dim3 blocksize(1024, 1);
@@ -137,7 +137,7 @@ __device__ void get_array_correspondences(double *P, double *Q,
     std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
     std::cerr << "blocksize.x: " << blocksize.x << std::endl;
 
-    cudaMalloc(&array_correspondances, sizeof(unsigned short int) * P_row)
+    cudaMalloc(&array_correspondances, sizeof(unsigned short int) * P_row);
     get_array_correspondences_kernel<<<gridsize, blocksize>>>(P, Q, P_row, P_col, Q_row, Q_col);
     cudaDeviceSynchronize();
     cudaCheckError();
