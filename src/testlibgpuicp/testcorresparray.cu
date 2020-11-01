@@ -28,8 +28,6 @@ int main(int argc, char **argv)
     //size_t Plines, Pcols;
     //___readCSV(f, f1Header);
     double* Pt = readCSV(argv[1], f1Header, Plines, Pcols);
-    for (int i = 0; i < 30; i++)
-        std::cout << Pt[i] << std::endl;
     double* Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
 
     double* d_P, * d_Q;
@@ -45,14 +43,16 @@ int main(int argc, char **argv)
 
     get_array_correspondences(d_array_correspondances, d_P, d_Q, Plines, Pcols, Qlines, Qcols);
 
-    cudaMemcpy(Qt, d_array_correspondances, sizeof(unsigned int) * Qcols, cudaMemcpyDeviceToHost);
+    unsigned int* h_array_correspondances = (unsigned int *)malloc(Plines * sizeof(unsigned int));
+    cudaMemcpy(h_array_correspondances, d_array_correspondances, Plines * sizeof(unsigned int), cudaMemcpyDeviceToHost);
 
-    for (int i = 0; i < 30; i++)
-        std::cout << Qt[i] << std::endl;
+    for (int i = 0; i < Plines; i++)
+        std::cout << i << " ->" << h_array_correspondances[i] << std::endl;
 
     cudaFree(d_P);
     cudaFree(d_Q);
     cudaFree(d_array_correspondances);
+    free(h_array_correspondances);
     free(Pt);
     free(Qt);
 }
