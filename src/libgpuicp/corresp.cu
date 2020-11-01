@@ -100,46 +100,47 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
 }
 
 
-__global__ void get_array_correspondences_kernel(short unsigned int*d_array_correspondances, double *P, double *Q, size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
+__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (!(P_col == Q_col && P_col == 3)) //device code does not support exception handling
         return;
+
     if (index >= P_row)
         return;
 
-    double *p_point = P + index * P_col;
+    double *p_point = d_P + index * P_col;
     double min_dist = DBL_MAX;
-    size_t chosen_idx = 0;
+        unsigned int chosen_idx = 0;
 
-    for (size_t y = 0; y < P_row; y++) //make sure this is nb rows
+    for (unsigned int y = 0; y < P_row; y++) //make sure this is nb rows
     {
-        double *q_point = Q + y * Q_col;
-        double dist = std::sqrt(std::pow(p_point[0] - q_point[0], 2) + std::pow(p_point[1] - q_point[1], 2) + std::pow(p_point[2] - q_point[2], 2));
-        
+        double *q_point = d_Q + y * Q_col;
+
+        double dist = std::sqrt((p_point[0] - q_point[0]) * (p_point[0] - q_point[0]) + (p_point[1] - q_point[1])* (p_point[1] - q_point[1]) + (p_point[2] - q_point[2])* (p_point[2] - q_point[2]));
+        printf("qpoint et ppoint sont : %f , %f , %f\n", p_point[0], q_point[0], dist);
+
         if (dist < min_dist)
         {
             min_dist = dist;
             chosen_idx = y;
         }
-        printf("%d et %d", index, chosen_idx);
-        d_array_correspondances[index] = (short unsigned int)chosen_idx;
+
+        printf("%d et %d\n", index, chosen_idx);
+        d_array_correspondances[index] = chosen_idx;
     }
 }
 
-__host__ short unsigned int *get_array_correspondences(double *P, double *Q,
-    size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
+__host__ void get_array_correspondences(unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     dim3 blocksize(1024, 1);
     dim3 gridsize(std::ceil((float)P_row / blocksize.x), 1);
     std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
     std::cerr << "blocksize.x: " << blocksize.x << std::endl;
-    
-    short unsigned int* d_array_correspondances = nullptr;
-    cudaMalloc(&d_array_correspondances, sizeof(short unsigned int) * P_row);
-    get_array_correspondences_kernel<<<gridsize, blocksize>>>(d_array_correspondances, P, Q, P_row, P_col, Q_row, Q_col);
+
+    get_array_correspondences_kernel<<<gridsize, blocksize>>>(d_array_correspondances, d_P, d_Q, P_row, P_col, Q_row, Q_col);
     cudaDeviceSynchronize();
     cudaCheckError();
-    return d_array_correspondances;
 }

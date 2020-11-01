@@ -46,8 +46,8 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
  ** \param Q_row the number of rows in Q
  ** \param Q_col the number of columns in Q
  **/
-__host__ short unsigned int *get_array_correspondences(double *P, double *Q,
-    size_t P_row, size_t P_col, size_t Q_row, size_t Q_col);
+__host__ void get_array_correspondences(unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
 
 
 /**
@@ -61,5 +61,4 @@ __host__ short unsigned int *get_array_correspondences(double *P, double *Q,
  ** \param Q_row the number of rows in Q
  ** \param Q_col the number of columns in Q
  **/
-__global__ void get_array_correspondences_kernel(size_t *d_array_correspondances,
-    double *P, double *Q, size_t P_row, size_t P_col, size_t Q_row, size_t Q_col);
+__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
