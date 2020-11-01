@@ -17,6 +17,7 @@
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
 #include "gpu/icp.cuh"
+#include "gpu/gputimer.cuh"
 
 
 __global__ void print_kernel()
@@ -34,7 +35,7 @@ __global__ void print_matrix_kernel(char *d_A, int pitch, int nbvals)
     for (j = 0; j < nbvals; ++j) {
         //printf("%6.2f\t", (double)(d_A[idx * pitch + j * sizeof(double)]));
         printf("%6.2f\t", line[j]);
-	__syncthreads();
+        __syncthreads();
     }
     printf("\n");
 }
@@ -128,6 +129,16 @@ int main(int argc, char **argv)
         std::cout << std::get<0>(correspondances.at(i)) << " " << std::get<1>(correspondances.at(i)) << std::endl;
     }
     */
+
+    // GPUTimer Example code
+    /*
+    GPUTimer gputimer;
+    gputimer.Start();
+    // call to kernel function here
+    gputimer.Stop();
+    std::cerr << "Execution time: " << gputimer.ElapsedTime() << " ms" << std::endl;
+    */
+
     //double *B = (double *)calloc(Plines*Pcols, sizeof(double));
     //double *B = calling_transpose_kernel(P.getArray(), Plines, Pcols);
     //for (int i = 0; i < Plines; i++)
@@ -155,7 +166,7 @@ int main(int argc, char **argv)
     auto cov = calling_dot_kernel(A, B, 3, 3, 3, 3);
     for (int i = 0; i < 9; i++)
         std::cout << *(cov + i) << std::endl;
-    
+
     free(cov);
     */
 
@@ -174,7 +185,7 @@ int main(int argc, char **argv)
 
     cudaMalloc((void **)&d_source, size);
     cudaMalloc((void **)&d_dest, size);
-    
+
     for (int i = 0; i < row; ++i) {
         for (int j = 0; j < column; ++j) {
             Pt[i*column+j] = values;
@@ -182,13 +193,13 @@ int main(int argc, char **argv)
         }
     }
 
-    
+
     cudaMemcpy(d_source, source, size, cudaMemcpyHostToDevice);
 
     gpuTranspose(d_source, d_dest, row, column);
 
     cudaMemcpy(dest, d_dest, size, cudaMemcpyDeviceToHost);
-   
+
 
     double *B = calling_transpose_kernel(P.getArray(), Plines, Pcols);
 
@@ -199,7 +210,7 @@ int main(int argc, char **argv)
         std::cout<<std::endl;
     }
     //double *Qt = (double*)malloc(sizeof(double) * Plines * Pcols);
-    
+
     free(source);
     free(dest);
     cudaFree(d_source);
