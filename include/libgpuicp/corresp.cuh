@@ -29,6 +29,7 @@ __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
  ** \param dist_0 the number of lines in d_dist (== gridsize.y)
  ** \param dist_1 the number of columns in d_dist (== blocksize.x)
  ** \param sync wether to wait for device to finish or not
+ ** \param threads minimum number of threads (rounded to next power of two)
  **/
 __host__ void get_correspondences(ICPCorresp *d_dist,
-    size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync);
+    size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync = true, size_t threads = 1024);
