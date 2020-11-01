@@ -97,23 +97,47 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
     }
 }
 
-__global__ void get_array_correspondences(unsigned short int **d_dist,
-    size_t pitch, size_t dist_0, size_t dist_1)
+//d_corresp declarer en global
+unsigned short int *array_correspondances;
+
+__global__ void get_array_correspondences_kernel(double *P, double *Q, //r_dist[0] est l'index dans q[0] associé à p[0]
+    size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if (index < dist_0)
-    {
-        d_dist[index] = [0, 0, 0]; // TODO : change me
-        double dist = get_distances(//put args);
+    (void *)Q_row; //unused
 
-        for (int i = 1; i < dist_1; ++i)
+    runtime_assert(P_col == Q_col && P_col == 3, "Invalid dimension! Only works with 3");
+    if (index >= P_row)
+        return;
+
+    double *p_point = P + i * P_col;
+    double mindist = DBL_MAX;
+    size_t chosen_idx = 0;
+
+    for (int y = 1; y < dist_1; ++y) //make sure this is nb rows
+    {
+        double *q_point = Q + y * Q_col;
+        double dist = std::sqrt(std::pow(p_point[0] - q_point[0], 2) + std::pow(p_point[1] - q_point[1], 2) + std::pow(p_point[2] - q_point[2], 2));
+        
+        if (dist < min_dist)
         {
-            double d = 0;
-            if (dist > d)
-            {
-                dist = d;
-                d_dist[index] = [0, 0, 0]; // TODO : change me
-            }
+            min_dist = dist;
+            chosen_idx = y;
         }
+        array_correspondances[index] = chosen_idx;
     }
+}
+
+__device__ void get_array_correspondences(double *P, double *Q,
+    size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
+{
+    dim3 blocksize(1024, 1);
+    dim3 gridsize(std::ceil((float)P_row / blocksize.x), 1);
+    std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
+    std::cerr << "blocksize.x: " << blocksize.x << std::endl;
+
+    cudaMalloc(&array_correspondances, sizeof(unsigned short int) * P_row)
+    get_array_correspondences_kernel<<<gridsize, blocksize>>>(P, Q, P_row, P_col, Q_row, Q_col);
+    cudaDeviceSynchronize();
+    cudaCheckError();
 }
