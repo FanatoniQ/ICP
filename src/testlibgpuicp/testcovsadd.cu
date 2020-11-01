@@ -26,7 +26,7 @@
 #include "libgpuicp/corresp.cuh"
 #include "libgpuicp/crosscov.cuh"
 
-#define DISTS_LINES 4
+#define DISTS_LINES 128
 
 __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
     CPUMatrix &Q, size_t q_0, size_t q_1,
@@ -47,8 +47,8 @@ __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
         size_t idq = h_dist[i * dist_1].id;
         std::cerr << "idq: " << idq << "idp: " << idp << std::endl;
         auto cov = Q.getLine(idq).transpose().dot(P.getLine(idp)); // since getLine returns line vector
-        std::cerr << ref_pitch << std::endl;
-        std::cerr << cov.getDim0() * cov.getDim1() * sizeof(double) << std::endl;
+        //std::cerr << ref_pitch << std::endl;
+        //std::cerr << cov.getDim0() * cov.getDim1() * sizeof(double) << std::endl;
         assert(ref_pitch == (cov.getDim0() * cov.getDim1() * sizeof(double)));
         memcpy(h_ref + i * ref_pitch / sizeof(double), cov.getArray(), cov.getDim0() * cov.getDim1() * sizeof(double));
         for (size_t a = 0; a < q_1 * p_1; ++a)
@@ -110,6 +110,7 @@ int main(int argc, char **argv)
     cudaMalloc((void**)&d_R, Rlines * r_pitch);
     cudaCheckError();
 
+    double ttlerror = 0;
     auto COV = CPUMatrix(Qcols, Pcols);
     auto RefCOV = CPUMatrix(Qcols, Pcols);
 
@@ -143,8 +144,10 @@ int main(int argc, char **argv)
         double *h_r = (double*)malloc(nblines * Rcols * sizeof(double));
         cudaMemcpy2D(h_r, Rcols * sizeof(double), d_R, r_pitch, Rcols * sizeof(double), nblines, cudaMemcpyDeviceToHost);
         cudaCheckError();
+        //auto BatchRefCOV = CPUMatrix(h_ref_cross_covs, Qcols, Pcols);
+        auto BatchRefCOV = CPUMatrix(Qcols, Pcols);
         //assert(memcmp(h_ref_cross_covs, h_r, Rlines * Rcols * sizeof(double)) == 0);
-        double ttlerror = 0;
+	ttlerror = 0;
         for (size_t i = 0; i < nblines; i++)
         {
             for (size_t j = 0; j < Rcols; ++j)
@@ -153,17 +156,20 @@ int main(int argc, char **argv)
                 std::cerr << h_r[i * (r_pitch / sizeof(double)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j] << std::endl;
                 ttlerror += error;
             }
+	    auto LineRefCOV = CPUMatrix(h_ref_cross_covs + i * (r_pitch / sizeof(double)), Qcols, Pcols);
+	    BatchRefCOV += LineRefCOV;
+	    LineRefCOV.setArray(nullptr,1,1);
         }
-        std::cerr << "Error: " << ttlerror << std::endl;
-        std::cerr << "Mean Error: " << ttlerror / nblines * Rcols << std::endl;
-        auto BatchRefCOV = CPUMatrix(h_ref_cross_covs, Qcols, Pcols);
+        std::cerr << "Error (batch cross-covs): " << ttlerror << std::endl;
+        std::cerr << "Mean Error (batch cross-covs): " << ttlerror / nblines * Rcols << std::endl;
+	//assert(Qcols * Pcols == nblines * Rcols); // should break
         RefCOV += BatchRefCOV;
         free(h_r);
 
         // COVS SUM
+	//cudaMemset(d_R, 0, r_pitch * Rlines);
         //reduce_0(MatrixReduceOP::SUM, d_dist, double **d_sum, Pcols * Qcols, Plines, dist_pitch, size_t *reducepitch, int threads);
-        // TODO: FIXME: implement sum over axis=0 with ICPCorresp...
-        reduce_0(MatrixReduceOP::SUM, d_R, &d_R, Rcols, nblines, r_pitch, &r_pitch, 32);
+        reduce_0(MatrixReduceOP::SUM, d_R, &d_R, Rcols, nblines, r_pitch, &r_pitch, nblines);
 
         /** testing covs-sum **/
         /**for (size_t i = 0; i < Rlines; i++)
@@ -178,15 +184,42 @@ int main(int argc, char **argv)
         auto BatchCOV = CPUMatrix(h_cov, Qcols, Pcols);
         COV += BatchCOV;
 
+	ttlerror = 0;
+        for (size_t i = 0; i < Qcols; ++i)
+        {
+            for (size_t j = 0; j < Pcols; ++j)
+            {
+                double error = std::fabs(BatchCOV(i,j) - BatchRefCOV(i,j));
+				//h_cov[i * Pcols + j] - h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j]); // Weird not having to divide by sizeof double...
+                //std::cerr << h_r[i * (r_pitch / sizeof(double)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j] << std::endl;
+                ttlerror += error;
+            }
+        }
+	std::cerr << "Error (batch-reduced cross-cov): " << ttlerror << std::endl;
+        std::cerr << "Mean Error (batch-reduced cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+
         std::cerr << "BatchRefCOV:" << std::endl;
         std::cerr << BatchRefCOV << std::endl;
 
         std::cerr << "BatchCOV:" << std::endl;
         std::cerr << BatchCOV << std::endl;
 
+	//assert(BatchRefCOV.getArray() == BatchCOV.getArray());
+
         Pstartindex += nblines;
     }
     //auto COV = CPUMatrix(h_cov, Qcols, Pcols);
+    ttlerror = 0;
+    for (size_t i = 0; i < Qcols; ++i)
+    {
+        for (size_t j = 0; j < Pcols; ++j)
+        {
+            double error = std::fabs(RefCOV(i,j) - COV(i,j));
+            ttlerror += error;
+        }
+    }
+    std::cerr << "Error (FINAL cross-cov): " << ttlerror << std::endl;
+    std::cerr << "Mean Error (FINAL cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
     std::cerr << "RefCOV:" << std::endl;
     std::cerr << RefCOV << std::endl;
