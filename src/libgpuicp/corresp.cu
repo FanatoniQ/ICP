@@ -49,6 +49,8 @@ __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
     }
 }
 
+/**
+// deprecated
 __host__ void get_correspondences(ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync)
 {
@@ -61,6 +63,35 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
     std::cerr << "blocksize.x: " << blocksize.x << std::endl;
     get_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
     if (sync) {
+        cudaDeviceSynchronize();
+        cudaCheckError();
+    }
+}**/
+
+__host__ void get_correspondences(ICPCorresp *d_dist,
+    size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync, size_t threads)
+{
+    threads = get_next_power_of_2(threads);
+    int nbblocksPerLine = std::ceil((float)dist_1 / threads); // each block column treats partial one line sum
+    dim3 blocks(nbblocksPerLine, dist_0); // we have dist_0 lines of nbblocksPerLine
+
+    // LAUNCHING KERNEL
+    std::cerr << "nbthreads: " << threads << " nblines: " << blocks.y << " nbblocksPerLine: " << blocks.x << std::endl;
+    get_correspondences_kernel<<<gridsize, threads, threads * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
+    cudaDeviceSynchronize();
+    cudaCheckError();
+
+    // We call the kernel a second time instead if multiple blocks per line
+    // second call to reduce d_dist, nbthreads is nbblockPerLine, dist_0 is nbblocksPerLine
+    if (nbblocksPerLine > 1)
+    {
+        threads = nbblocksPerLine;
+        threads = get_next_power_of_2(threads);
+        dist_1 = nbblockPerLine;
+        blocks = dim3(1, dist_0);
+        
+        std::cerr << "nbthreads: " << threads << " nblines: " << blocks.y << " nbblocksPerLine: " << blocks.x << std::endl;
+        get_correspondences_kernel<<<gridsize, threads, threads * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
         cudaDeviceSynchronize();
         cudaCheckError();
     }
