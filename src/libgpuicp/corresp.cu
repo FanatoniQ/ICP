@@ -100,22 +100,23 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
 }
 
 //d_corresp declarer en global
-__global__ unsigned short int *array_correspondances;
+__device__ unsigned short int *d_array_correspondances;
 
 __global__ void get_array_correspondences_kernel(double *P, double *Q, //r_dist[0] est l'index dans q[0] associé à p[0]
-    size_t P_row, size_t P_col, size_t Q_col)
+    size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    runtime_assert(P_col == Q_col && P_row == Q_row && P_col == 3, "Invalid dimension! Only works with 3");
+    if (!(P_col == Q_col && P_row == Q_row && P_col == 3)) //device code does not support exception handling
+        return;
     if (index >= P_row)
         return;
 
     double *p_point = P + index * P_col;
-    double mind_ist = DBL_MAX;
+    double min_dist = DBL_MAX;
     size_t chosen_idx = 0;
 
-    for (int y = 0; y < dist_1; ++y) //make sure this is nb rows
+    for (int y = 0; y < Q_Row; ++y) //make sure this is nb rows
     {
         double *q_point = Q + y * Q_col;
         double dist = std::sqrt(std::pow(p_point[0] - q_point[0], 2) + std::pow(p_point[1] - q_point[1], 2) + std::pow(p_point[2] - q_point[2], 2));
@@ -137,7 +138,7 @@ __host__ void get_array_correspondences(double *P, double *Q,
     std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
     std::cerr << "blocksize.x: " << blocksize.x << std::endl;
 
-    cudaMalloc(&array_correspondances, sizeof(unsigned short int) * P_row);
+    cudaMalloc(&d_array_correspondances, sizeof(unsigned short int) * P_row);
     get_array_correspondences_kernel<<<gridsize, blocksize>>>(P, Q, P_row, P_col, Q_row, Q_col);
     cudaDeviceSynchronize();
     cudaCheckError();
