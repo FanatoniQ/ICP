@@ -8,6 +8,8 @@
 #include "libgpuicp/corresp.cuh"
 #include "error.cuh"
 
+#include "error.hpp"
+
 #define is_power_of_2(x) (x & (x-1)) == 0
 
 __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
@@ -98,23 +100,22 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
 }
 
 //d_corresp declarer en global
-unsigned short int *array_correspondances;
+__global__ unsigned short int *array_correspondances;
 
 __global__ void get_array_correspondences_kernel(double *P, double *Q, //r_dist[0] est l'index dans q[0] associé à p[0]
-    size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
+    size_t P_row, size_t P_col, size_t Q_col)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    (void *)Q_row; //unused
 
-    runtime_assert(P_col == Q_col && P_col == 3, "Invalid dimension! Only works with 3");
+    runtime_assert(P_col == Q_col && P_row == Q_row && P_col == 3, "Invalid dimension! Only works with 3");
     if (index >= P_row)
         return;
 
-    double *p_point = P + i * P_col;
-    double mindist = DBL_MAX;
+    double *p_point = P + index * P_col;
+    double mind_ist = DBL_MAX;
     size_t chosen_idx = 0;
 
-    for (int y = 1; y < dist_1; ++y) //make sure this is nb rows
+    for (int y = 0; y < dist_1; ++y) //make sure this is nb rows
     {
         double *q_point = Q + y * Q_col;
         double dist = std::sqrt(std::pow(p_point[0] - q_point[0], 2) + std::pow(p_point[1] - q_point[1], 2) + std::pow(p_point[2] - q_point[2], 2));
