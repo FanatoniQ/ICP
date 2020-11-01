@@ -257,6 +257,18 @@ int main(int argc, char **argv)
     double *h_cov = (double *)malloc(covLines * covCols * sizeof(double));
     cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(double), cudaMemcpyDeviceToHost);
     auto FULLGPUCOV = CPUMatrix(h_cov, covLines, covCols);
+    
+    ttlerror = 0;
+    for (size_t i = 0; i < Qcols; ++i)
+    {
+        for (size_t j = 0; j < Pcols; ++j)
+        {
+            double error = std::fabs(RefCOV(i,j) - FULLGPUCOV(i,j));
+            ttlerror += error;
+        }
+    }
+    std::cout << "Error (FINAL FULLGPU cross-cov): " << ttlerror << std::endl;
+    std::cout << "Mean Error (FINAL FULLGPU cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
     std::cout << "FULL GPUCOV:" << std::endl;
     std::cout << FULLGPUCOV << std::endl;
