@@ -110,6 +110,14 @@ int main(int argc, char **argv)
     cudaMalloc((void**)&d_R, Rlines * r_pitch);
     cudaCheckError();
 
+    // device FINAL cross-cov (flattened)
+    size_t covLines = Qcols, covCols = Pcols;
+    size_t cov_pitch = covCols * covLines * sizeof(double);
+    double *d_cov;
+    cudaMalloc((void**)&d_cov, 1 * cov_pitch);
+    cudaMemset(d_cov, 0, cov_pitch);
+    cudaCheckError();
+
     double ttlerror = 0;
     auto COV = CPUMatrix(Qcols, Pcols);
     auto RefCOV = CPUMatrix(Qcols, Pcols);
@@ -181,6 +189,13 @@ int main(int argc, char **argv)
         //reduce_0(MatrixReduceOP::SUM, d_dist, double **d_sum, Pcols * Qcols, Plines, dist_pitch, size_t *reducepitch, int threads);
         reduce_0(MatrixReduceOP::SUM, d_R, &d_R, Rcols, nblines, r_pitch, &r_pitch, nblines);
 
+        // COV += COVS SUM
+        assert(covCols == 3 && covLines == 3);
+        matrix_op<double>(gridsize(1, 1), dim3(covCols * covLines,1), d_cov, d_R, d_cov, MatrixOP::ADD,
+             1, covCols * covLines, cov_pitch,
+             1, Rcols, r_pitch,
+             1, covCols * covLines, cov_pitch);
+
         /** testing covs-sum **/
         /**for (size_t i = 0; i < Rlines; i++)
         {
@@ -229,15 +244,24 @@ int main(int argc, char **argv)
             ttlerror += error;
         }
     }
-    std::cout << "Error (FINAL cross-cov): " << ttlerror << std::endl;
-    std::cout << "Mean Error (FINAL cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+    std::cout << "Error (FINAL CPU summed cross-cov): " << ttlerror << std::endl;
+    std::cout << "Mean Error (FINAL CPU summed cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
-    std::cout << "RefCOV:" << std::endl;
+    std::cout << "CPURefCOV:" << std::endl;
     std::cout << RefCOV << std::endl;
 
-    std::cout << "COV:" << std::endl;
+    std::cout << "CPUsummed GPUCOVs:" << std::endl;
     std::cout << COV << std::endl;
+
+    double *h_cov = (double *)malloc(covLines * covCols * sizeof(double));
+    cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(double), cudaMemcpyDeviceToHost);
+    auto FULLGPUCOV = CPUMatrix(h_cov, covLines, covCols);
+
+    std::cout << "FULL GPUCOV:" << std::endl;
+    std::cout << FULLGPUCOV << std::endl;
     
+    cudaFree(d_cov);
+    cudaCheckError();
     cudaFree(d_P);
     cudaCheckError();
     cudaFree(d_Q);
