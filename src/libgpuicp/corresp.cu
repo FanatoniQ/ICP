@@ -99,14 +99,12 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
     }
 }
 
-//d_corresp declarer en global
-__device__ size_t *d_array_correspondances;
 
-__global__ void get_array_correspondences_kernel(double *P, double *Q, size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
+__global__ void get_array_correspondences_kernel(short unsigned int*d_array_correspondances, double *P, double *Q, size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (!(P_col == Q_col && P_row == Q_row && P_col == 3)) //device code does not support exception handling
+    if (!(P_col == Q_col && P_col == 3)) //device code does not support exception handling
         return;
     if (index >= P_row)
         return;
@@ -125,20 +123,23 @@ __global__ void get_array_correspondences_kernel(double *P, double *Q, size_t P_
             min_dist = dist;
             chosen_idx = y;
         }
-        d_array_correspondances[index] = chosen_idx;
+        printf("%d et %d", index, chosen_idx);
+        d_array_correspondances[index] = (short unsigned int)chosen_idx;
     }
 }
 
-__host__ void get_array_correspondences(double *P, double *Q,
+__host__ short unsigned int *get_array_correspondences(double *P, double *Q,
     size_t P_row, size_t P_col, size_t Q_row, size_t Q_col)
 {
     dim3 blocksize(1024, 1);
     dim3 gridsize(std::ceil((float)P_row / blocksize.x), 1);
     std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
     std::cerr << "blocksize.x: " << blocksize.x << std::endl;
-
-    cudaMalloc(&d_array_correspondances, sizeof(unsigned short int) * P_row);
-    get_array_correspondences_kernel<<<gridsize, blocksize>>>(P, Q, P_row, P_col, Q_row, Q_col);
+    
+    short unsigned int* d_array_correspondances = nullptr;
+    cudaMalloc(&d_array_correspondances, sizeof(short unsigned int) * P_row);
+    get_array_correspondences_kernel<<<gridsize, blocksize>>>(d_array_correspondances, P, Q, P_row, P_col, Q_row, Q_col);
     cudaDeviceSynchronize();
     cudaCheckError();
+    return d_array_correspondances;
 }
