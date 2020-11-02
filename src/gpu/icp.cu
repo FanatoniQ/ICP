@@ -295,7 +295,7 @@ CPUMatrix icp_gpu(CPUMatrix& P, CPUMatrix& Q, unsigned iterations)
     size_t r_pitch = P.getDim1() * Q.getDim1() * sizeof(double);
     size_t cov_pitch = P.getDim1() * Q.getDim1() * sizeof(double);
 
-    size_t threads_num = 4;
+    size_t threads_num = 1024;
     size_t batchsize = 16;
 
     cudaMalloc(&dQ_center, Q.getDim1() * sizeof(double));
