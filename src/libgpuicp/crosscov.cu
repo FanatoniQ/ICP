@@ -171,15 +171,13 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
         return;
     auto idq = d_array_correspondances[idp];
 
-    printf("idp: %u / idq: %u\n", idp, idq);
-
     // data accesses with idq are random... => bad strided access
     double *d_rcov = (double *)((char *)d_R + idp * r_pitch);
     double *d_ppoint =(double *)((char *)d_P + idp * p_pitch); // d_P + idp * P_col;
     double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch); // d_Q + idq * Q_col;
     //double *d_rcov = (double *)((char *)d_R + idp * r_pitch);
     //double *d_ppoint = (double *)((char *)d_P + idp * p_pitch);
-    //double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch);
+    //double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch); 
 
     // optim : shared memory for d_ppoint[0,1,2] an d_qpoint[0,1,2]
     d_rcov[0] = d_qpoint[0] * d_ppoint[0];
@@ -193,6 +191,15 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
     d_rcov[6] = d_qpoint[2] * d_ppoint[0];
     d_rcov[7] = d_qpoint[2] * d_ppoint[1];
     d_rcov[8] = d_qpoint[2] * d_ppoint[2];
+    /**
+    printf("idp: %u / idq: %u\n", idp, idq);
+	    printf("P{%u}: %lf %lf %lf\n", idp, d_ppoint[0],d_ppoint[1],d_ppoint[2]);
+	    printf("Q{%u}: %lf %lf %lf\n", idq, d_qpoint[0],d_qpoint[1],d_qpoint[2]);
+    if (idp == 0)
+    {
+	    printf("%lf %lf %lf | %lf %lf %lf | %lf %lf %lf\n", d_rcov[0], d_rcov[1], d_rcov[2], d_rcov[3], d_rcov[4], d_rcov[5], d_rcov[6], d_rcov[7], d_rcov[8]);
+    }
+    **/
 }
 
 __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_Q, double **d_R, const unsigned int* d_array_correspondances,

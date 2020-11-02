@@ -585,7 +585,7 @@ cudaMalloc(corresps) dim(P
             P.getDim0(), P.getDim1(), 
             Q.getDim0(), Q.getDim1());
         print_Mat_gpu(dcorresps, 1, P.getDim0(), "Csp");
-        get_array_cross_covs_flattened(dP_centered, dP_centered, &dcross_var, dcorresps,
+        get_array_cross_covs_flattened(dP_centered, dQ_centered, &dcross_var, dcorresps,
             P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double),
             Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double),
             d_r0, d_r1, &r_pitch,
