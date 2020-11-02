@@ -93,6 +93,7 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
 __device__ void increment_cov(double *d_cov, double *d_pline, double *d_qline)
 {
     // This will not work : (race condition)
+
     d_cov[0] = d_cov[0] + d_qline[0] * d_pline[0];
     d_cov[1] = d_cov[1] + d_qline[0] * d_pline[1];
     d_cov[2] = d_cov[2] + d_qline[0] * d_pline[2];
