@@ -249,9 +249,9 @@ __host__ void reduce_0(enum MatrixReduceOP op, double *d_A, double **d_sum, size
         cudaCheckError();
 	**/
         *reducepitch = width * sizeof(double);
-        cudaMalloc(d_sum, *reducepitch);// * nbblocksPerColumn);
+        cudaMalloc(d_sum, *reducepitch * nbblocksPerColumn);
         cudaCheckError();
-	cudaMemset(*d_sum, 0, *reducepitch);// * nbblocksPerColumn);
+	cudaMemset(*d_sum, 0, *reducepitch * nbblocksPerColumn);
         cudaCheckError();
     }
 
