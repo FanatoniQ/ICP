@@ -245,6 +245,21 @@ void print_Mat_gpu(double *dmat, int m, int n, const char* name)
     free(Mat);
 }
 
+void print_Mat_gpu(unsigned int* dmat, int m, int n, const char* name)
+{
+    unsigned int* Mat = (unsigned int*)malloc(m * n * sizeof(unsigned int));
+    cudaMemcpy(Mat, dmat, m * n * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+    cudaDeviceSynchronize();
+    for (int row = 0; row < m; row++) {
+        for (int col = 0; col < n; col++) {
+            unsigned int Areg = Mat[col + row * n];
+            printf("%s(%d,%d) = %u ", name, row, col, Areg);
+        }
+        printf("\n");
+    }
+    free(Mat);
+}
+
 void print_corresp_gpu(ICPCorresp* dmat, int m, int n, const char* name)
 {
     ICPCorresp* Mat = (ICPCorresp*)malloc(m * n * sizeof(ICPCorresp));
@@ -461,4 +476,184 @@ void gpuTranspose(double* A, double* B, int numRows, int numColumns) {
 
     //@@ Launch the GPU Kernel here
     naiveGPUTranspose<<<numBlocks, threadPerBlock>>>(A, B, numRows, numColumns);
+}
+
+CPUMatrix icp_gpu_optimized(CPUMatrix& P, CPUMatrix& Q, unsigned iterations) {
+    // Assuming most of the time P.getdim1() == Q.getdim1()
+//----- MALLOC -----/
+/*
+cudaMalloc(Q_center) dim(Q.dim1)
+cudaMalloc(Q_centered) dim(Q.dim0 * Q.dim1)
+cudaMalloc(P_copy) // the size won't change
+cudaMalloc(P_centered) dim(P.dim0 * P.dim1)
+cudaMalloc(P_center) (axis = 0) (sizeof * dim1)?
+cudaMalloc(cross_var) (3*3) aka (dim1 * dim1)
+cudaMalloc(U) and V_T ? S is not used
+// U dim(cov.dim0 * cov.dim0) and V (cov.dim1 * cov.dim1)
+cudaMalloc(R) rotation matrix dim(U.dim0 * VT.dim1)
+cudaMalloc(t) translation matrix dim(Qcenter.Dim0 * Qcenter.dim1)
+cudaMalloc(corresps) dim(P
+*/
+// Device pointers
+    double* dQ_center, * dQ_centered,
+        * dP_copy, * dP_centered, * dP_center,
+        * dDot_temp,
+        * dU, * dS, * dV_T,
+        * dR, * dR_transpose, * dt;
+
+    // Corresps device pointers
+    unsigned int* dcorresps;
+    double* dcross_var = nullptr;
+    //double* d_R = nullptr;
+    unsigned int d_r0 = P.getDim0(), d_r1 = P.getDim1() * Q.getDim1();
+
+    size_t cross_var_pitch = P.getDim1() * Q.getDim1() * sizeof(double);
+    size_t reducepitch = Q.getDim1() * sizeof(double);
+    size_t r_pitch;
+    size_t cov_pitch = P.getDim1() * Q.getDim1() * sizeof(double);
+
+    size_t threads_num = 1024;
+
+    std::cerr << "==== Init ====" << std::endl;
+    dQ_center = nullptr; // reduce_0 function does the allocation if nullptr
+    //cudaMalloc(&dQ_center, Q.getDim1() * sizeof(double)); // FIXME: should be Q.getDim1() * nbblocksPerColumn * sizeof(double)
+    cudaMalloc(&dQ_centered, Q.getDim0() * Q.getDim1() * sizeof(double));
+    cudaMalloc(&dP_copy, P.getDim0() * P.getDim1() * sizeof(double));
+    cudaMalloc(&dP_centered, P.getDim0() * P.getDim1() * sizeof(double));
+    dP_center = nullptr; // reduce_0 function does the allocation if nullptr
+    //cudaMalloc(&dP_center, P.getDim1() * sizeof(double)); // FIXME: should be P.getDim1() * nbblocksPerColumn * sizeof(double)
+    cudaMalloc(&dDot_temp, P.getDim1() * P.getDim1() * sizeof(double));
+    cudaMalloc(&dU, P.getDim1() * P.getDim1() * sizeof(double));
+    cudaMalloc(&dS, P.getDim1() * P.getDim1() * sizeof(double)); // FIXME shape?
+    cudaMalloc(&dV_T, P.getDim1() * P.getDim1() * sizeof(double));
+    cudaMalloc(&dR, P.getDim1() * P.getDim1() * sizeof(double));
+    cudaMalloc(&dR_transpose, P.getDim1() * P.getDim1() * sizeof(double));
+    cudaMalloc(&dt, Q.getDim1() * sizeof(double));
+
+    cudaMalloc((void**)&dcorresps, P.getDim0() * sizeof(unsigned int));
+    cudaCheckError();
+    //cudaMalloc((void**)&dcross_var, 1 * cov_pitch);
+    //cudaCheckError();
+
+    //----- MEMSET -----/
+    // Needs to be zero init (no need since reduce_0 will do when nullptr)
+    //cudaMemset(dQ_center, 0, Q.getDim1() * sizeof(double));
+    //cudaMemset(dP_center, 0, P.getDim1() * sizeof(double));
+
+    //----- MEMCPY -----/
+    cudaMemcpy(dQ_centered, Q.getArray(), Q.getDim0() * Q.getDim1() * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMemcpy(dP_copy, P.getArray(), P.getDim0() * P.getDim1() * sizeof(double), cudaMemcpyHostToDevice);
+
+    // Center data P and Q
+    // Q_center cuda malloc and mean
+    // Move Q to device and call it Q_centered, apply Q_centered = Q_centered - Q_center
+
+    //------COMPUTATION------/
+    // pitch = dim1 * sizeof()
+    // Mean Q_center = Q.mean(0)
+    reduce_0(MatrixReduceOP::MEAN, dQ_centered, &dQ_center, Q.getDim1(), Q.getDim0(), Q.getDim1() * sizeof(double), &reducepitch, threads_num);
+
+    // Subtract Q -= Q_center
+    dim3 blocksize(32, 32);
+    auto gridsize = get_gridsize(Q.getDim0(), Q.getDim1(), 1, Q.getDim1(), blocksize);
+    matrix_op<double>(gridsize, blocksize, dQ_centered, dQ_center, dQ_centered, MatrixOP::SUBTRACT,
+        Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double),
+        1, Q.getDim1(), Q.getDim1() * sizeof(double),
+        Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double));
+
+    ////std::vector<std::tuple<size_t, int>> correps_values; // Might need device to host move in for loop
+    ////std::vector<double> norm_values; // Might need device to host move in for loop
+    // cuda memcpy device to device to put equal P_centered and P_copy
+    for (unsigned i = 0; i < iterations; ++i)
+    {
+        // Mean calculation, pass P_center pointer directly as result
+        mean_0(dP_copy, &dP_center, P.getDim1(), P.getDim0(), P.getDim1() * sizeof(double), &reducepitch, threads_num);
+
+        // Center P
+        // Substract and put result in P_centered
+        // but first compute new gridsize
+        gridsize = get_gridsize(P.getDim0(), P.getDim1(), 1, P.getDim1(), blocksize);
+        matrix_op<double>(gridsize, blocksize, dP_copy, dP_center, dP_centered, MatrixOP::SUBTRACT,
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double),
+            1, P.getDim1(), P.getDim1() * sizeof(double),
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double));
+
+        // Compute correspondences indices
+        // Call correspondence indices gpu with (P_centered, Q_centered)
+        // Compute cross var GPU, call with (P_centered, Q_centered, corresps, default_kernel)
+        get_array_correspondences(dcorresps, dP_centered, dQ_centered, 
+            P.getDim0(), P.getDim1(), 
+            Q.getDim0(), Q.getDim1());
+        print_Mat_gpu(dcorresps, 1, P.getDim0(), "Csp");
+        get_array_cross_covs_flattened(dP_centered, dP_centered, &dcross_var, dcorresps,
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double),
+            Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double),
+            d_r0, d_r1, &r_pitch,
+            P.getDim0(), true);
+        reduce_0(MatrixReduceOP::SUM, dcross_var, &dcross_var, (size_t) d_r1, (size_t) d_r0, r_pitch, &r_pitch, threads_num);
+        print_Mat_gpu(dcross_var, P.getDim1(), P.getDim1(), "cov");
+        // cross_var is here 3*3 mat
+
+        svd_gpu(dcross_var, P.getDim1(), P.getDim1(), dV_T, dS, dU);
+
+        // Rotation matrix
+        matrixMultiplication(dU, dV_T, dR,
+            P.getDim1(), P.getDim1(),
+            P.getDim1(), P.getDim1(),
+            P.getDim1(), P.getDim1());
+
+        // Translation Matrix
+        // 3 different calculations
+        // transpose
+        gpuTranspose(dR, dR_transpose, P.getDim1(), P.getDim1());
+        // dot product
+        // Normally dt should fit the right dimension
+        matrixMultiplication(dP_center, dR_transpose, dt,
+            1, P.getDim1(),
+            P.getDim1(), P.getDim1(),
+            1, P.getDim1());
+        // subtract
+        gridsize = get_gridsize(1, Q.getDim1(), 1, P.getDim1(), blocksize);
+        matrix_op<double>(gridsize, blocksize, dQ_center, dt, dt, MatrixOP::SUBTRACT,
+            1, Q.getDim1(), Q.getDim1() * sizeof(double),
+            1, P.getDim1(), P.getDim1() * sizeof(double),
+            1, P.getDim1(), P.getDim1() * sizeof(double));
+
+        // Update P
+        // use same device pointer for the dot product both dimensions being the same
+        // first transpose - already done with R transpose
+        // dot product / use P_centered to store the result bc no need of the data anymore
+        matrixMultiplication(dP_copy, dR_transpose, dP_centered,
+            P.getDim0(), P.getDim1(),
+            P.getDim1(), P.getDim1(),
+            P.getDim0(), P.getDim1());
+        // plus
+        gridsize = get_gridsize(P.getDim0(), P.getDim1(), 1, P.getDim1(), blocksize);
+        matrix_op<double>(gridsize, blocksize, dP_centered, dt, dP_copy, MatrixOP::ADD,
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double),
+            1, P.getDim1(), P.getDim1() * sizeof(double),
+            P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double));
+
+    }
+    cudaDeviceSynchronize();
+    double* P_result = (double*)malloc(P.getDim0() * P.getDim1() * sizeof(double));
+    cudaMemcpy(P_result, dP_copy, P.getDim0() * P.getDim1() * sizeof(double), cudaMemcpyDeviceToHost);
+
+    cudaFree(dQ_center);
+    cudaFree(dQ_centered);
+    cudaFree(dP_copy);
+    cudaFree(dP_centered);
+    cudaFree(dP_center);
+    cudaFree(dDot_temp);
+    cudaFree(dcross_var);
+    cudaFree(dcorresps);
+    cudaFree(dU);
+    cudaFree(dV_T);
+    cudaFree(dR);
+    cudaFree(dR_transpose);
+    cudaFree(dt);
+    cudaDeviceReset();
+    cudaCheckError();
+
+    return CPUMatrix(P_result, P.getDim0(), P.getDim1());
 }

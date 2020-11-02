@@ -162,7 +162,7 @@ __host__ void get_array_cross_cov(double* d_cov, unsigned int* d_array_correspon
 }
 
 __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_array_correspondances,
-    double *d_R, unsigned int r_0, unsigned int r_1, unsigned int r_pitch,
+    double *d_R, unsigned int r_0, unsigned int r_1, size_t r_pitch,
     const double *d_P, unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
     const double *d_Q, unsigned int q_0, unsigned int q_1, unsigned int q_pitch)
 {
@@ -170,6 +170,8 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
     if(idp >= r_0)
         return;
     auto idq = d_array_correspondances[idp];
+
+    printf("idp: %u / idq: %u\n", idp, idq);
 
     // data accesses with idq are random... => bad strided access
     double *d_rcov = (double *)((char *)d_R + idp * r_pitch);
@@ -196,7 +198,7 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
 __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_Q, double **d_R, const unsigned int* d_array_correspondances,
     unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
     unsigned int q_0, unsigned int q_1, unsigned int q_pitch,
-    unsigned int r_0, unsigned int r_1, unsigned int *r_pitch,
+    unsigned int r_0, unsigned int r_1, size_t *r_pitch,
     unsigned int corresp_0, bool sync)
 {
     runtime_assert(p_1 == q_1 && corresp_0 == p_0 && corresp_0 == r_0, "Invalid shapes !");

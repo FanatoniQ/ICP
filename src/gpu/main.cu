@@ -117,7 +117,8 @@ int main(int argc, char **argv)
     unsigned int nbiters = std::stoi(argv[3]);
 
     // FIXME iterations number
-    auto P_res = icp_gpu(P, Q, nbiters);
+    //auto P_res = icp_gpu(P, Q, nbiters);
+    auto P_res = icp_gpu_optimized(P, Q, nbiters);
     std::cout << "Squared actual mean diff: " << Q.euclidianDistance(P_res) << std::endl;
     //std::cout << "P resultat matrix: " << P_res;
     //std::cout << "Q ref matrix: " << Q;
