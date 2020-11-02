@@ -45,7 +45,7 @@ __global__ void get_distances_kernel(const double *d_P, const double *d_Q, ICPCo
     dist += tmp * tmp;
     // TODO: remove sqrt for quicker
     ICPCorresp *d_distLine = (ICPCorresp *)((char*)d_dist + lineid * dist_pitch);
-    d_distLine[colid] = { sqrt(dist), colid };
+    d_distLine[colid] = { dist, colid }; //{ sqrt(dist), colid };
 }
 
 __host__ void get_distances(const double *d_P, const double *d_Q, ICPCorresp **d_dist,
