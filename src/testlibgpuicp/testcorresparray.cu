@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 
     unsigned int r_0 = Plines, r_1 = Pcols * Qcols;
     double* d_R = nullptr;
-    unsigned int r_pitch;
+    size_t r_pitch;
 
     get_array_cross_covs_flattened(d_P, d_Q, &d_R, d_array_correspondances,
         Plines, Pcols, p_pitch,
