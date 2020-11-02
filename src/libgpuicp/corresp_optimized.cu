@@ -177,7 +177,7 @@ __host__ void get_array_correspondences_optimized_one_iter(ICPCorresp **d_dist, 
     unsigned int nbblocksPerLine = std::ceil((float)Q_row / blocksize.x);
     dim3 gridsize(nbblocksPerLine,P_row); // \todo: maybe swap (see above)
 
-    if (*dist == nullptr)
+    if (*d_dist == nullptr)
     {
         *dist_1 = nbblocksPerLine;
         cudaMalloc(d_dist, *dist_1 * P_row * sizeof(ICPCorresp));

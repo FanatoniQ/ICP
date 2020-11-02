@@ -1,5 +1,7 @@
 #pragma once
 
+#include "libgpuicp/corresp.cuh"
+
 /**
  ** \brief optimized version of get_array_correspondences_kernel, we have one block per point in p, 1024 threads blocks
  ** which loops if more than 1024 points in q. ICPCorresp structure is used for storing dist,idq, this kernel min reduces
