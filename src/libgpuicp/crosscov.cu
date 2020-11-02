@@ -109,19 +109,23 @@ __global__ void get_array_cross_cov_kernel(double * d_cov, unsigned int* d_array
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
-    if(index > P_row)
+    if(index >= P_row)
         return;
     
     auto i = index;
     auto j = d_array_correspondances[index];
+    //printf("i vaut %d et j vaut %d\n", i, j);
     double *d_ppoint = d_P + i * P_col;
     double *d_qpoint = d_Q + j * Q_col;
 
-    printf("%lf et %lf", *d_ppoint, *d_qpoint);
-    //for (int i = 0; i < P_col * P_col; i++)
-    //   printf("%lf\n", d_cov[i]);
+    //printf("%lf et %lf", *d_ppoint, *d_qpoint);
+    //for (int i = 0; i < 3; i++)
+    //   printf("%lf and %lf\n", d_ppoint[i], d_qpoint[i]);
 
     increment_cov(d_cov, d_ppoint, d_qpoint);
+
+    //for (int i = 0; i < 9; i++)
+    //    printf(" %lf \n", d_cov[i]);
 }
 
 __host__ void get_array_cross_cov(double* d_cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
