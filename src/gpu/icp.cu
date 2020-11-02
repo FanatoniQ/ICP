@@ -298,11 +298,14 @@ CPUMatrix icp_gpu(CPUMatrix& P, CPUMatrix& Q, unsigned iterations)
     size_t threads_num = 1024;
     size_t batchsize = 16;
 
-    cudaMalloc(&dQ_center, Q.getDim1() * sizeof(double)); // FIXME: should be Q.getDim1() * nbblocksPerColumn * sizeof(double)
+    std::cerr << "==== Init ====" << std::endl;
+    dQ_center = nullptr; // reduce_0 function does the allocation if nullptr
+    //cudaMalloc(&dQ_center, Q.getDim1() * sizeof(double)); // FIXME: should be Q.getDim1() * nbblocksPerColumn * sizeof(double)
     cudaMalloc(&dQ_centered, Q.getDim0() * Q.getDim1() * sizeof(double));
     cudaMalloc(&dP_copy, P.getDim0() * P.getDim1() * sizeof(double));
-    cudaMalloc(&dP_centered, P.getDim0() * P.getDim1() * sizeof(double)); // FIXME: should be P.getDim1() * nbblocksPerColumn * sizeof(double)
-    cudaMalloc(&dP_center, P.getDim1() * sizeof(double));
+    cudaMalloc(&dP_centered, P.getDim0() * P.getDim1() * sizeof(double));
+    dP_center = nullptr; // reduce_0 function does the allocation if nullptr
+    //cudaMalloc(&dP_center, P.getDim1() * sizeof(double)); // FIXME: should be P.getDim1() * nbblocksPerColumn * sizeof(double)
     cudaMalloc(&dDot_temp, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dU, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dS, P.getDim1() * P.getDim1() * sizeof(double)); // FIXME shape?
@@ -319,9 +322,9 @@ CPUMatrix icp_gpu(CPUMatrix& P, CPUMatrix& Q, unsigned iterations)
     cudaCheckError();
 
     //----- MEMSET -----/
-    // Needs to be zero init
-    cudaMemset(dQ_center, 0, Q.getDim1() * sizeof(double));
-    cudaMemset(dP_center, 0, P.getDim1() * sizeof(double));
+    // Needs to be zero init (no need since reduce_0 will do when nullptr)
+    //cudaMemset(dQ_center, 0, Q.getDim1() * sizeof(double));
+    //cudaMemset(dP_center, 0, P.getDim1() * sizeof(double));
 
     //----- MEMCPY -----/
     cudaMemcpy(dQ_centered, Q.getArray(), Q.getDim0() * Q.getDim1() * sizeof(double), cudaMemcpyHostToDevice);
