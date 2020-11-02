@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
 
     // FIXME iterations number
-    auto P_res = icp_gpu(P, Q, 5);
+    auto P_res = icp_gpu(P, Q, 10);
     std::cout << "Squared actual mean diff: " << Q.euclidianDistance(P_res) << std::endl;
     std::cout << "P resultat matrix: " << P_res;
     std::cout << "Q ref matrix: " << Q;
