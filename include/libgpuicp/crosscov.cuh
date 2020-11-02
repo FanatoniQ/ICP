@@ -62,3 +62,23 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t r_0, size_t r_1, size_t *r_pitch,
     size_t dist_0, size_t dist_1, size_t dist_pitch, bool sync);
+
+/**
+ ** \brief increment_cov, increment the cov by dotproduct of d_pline and d_qline
+ ** 
+ **/
+__device__ void increment_cov(double *d_cov, double *d_pline, double *d_qline);
+
+/**
+ ** \brief get_array_cross_cov_kernel return cov of d_P and d_Q
+ **
+ **/
+__global__ void get_array_cross_cov_kernel(double *cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
+
+/**
+ ** \brief get_array_cross_cov wrapper around get_array_cross_cov_kernel
+ **
+ **/
+__host__ void get_array_cross_cov(double* cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);

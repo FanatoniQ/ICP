@@ -89,3 +89,48 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
         cudaCheckError();
     }
 }
+
+__device__ void increment_cov(double *d_cov, double *d_pline, double *d_qline)
+{
+    d_cov[0] = d_cov[0] + d_qline[0] * d_pline[0];
+    d_cov[1] = d_cov[1] + d_qline[0] * d_pline[1];
+    d_cov[2] = d_cov[2] + d_qline[0] * d_pline[2];
+
+    d_cov[3] = d_cov[3] + d_qline[1] * d_pline[0];
+    d_cov[4] = d_cov[4] + d_qline[1] * d_pline[1];
+    d_cov[5] = d_cov[5] + d_qline[1] * d_pline[2];
+
+    d_cov[6] = d_cov[6] + d_qline[2] * d_pline[0];
+    d_cov[7] = d_cov[7] + d_qline[2] * d_pline[1];
+    d_cov[8] = d_cov[8] + d_qline[2] * d_pline[2];
+}
+
+__global__ void get_array_cross_cov_kernel(double * d_cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if(index > P_row)
+        return;
+    
+    auto i = index;
+    auto j = d_array_correspondances[index];
+    double *d_ppoint = d_P + i * P_col;
+    double *d_qpoint = d_Q + j * Q_col;
+
+    increment_cov(d_cov, d_ppoint, d_qpoint);
+}
+
+__host__ void get_array_cross_cov(double* d_cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
+{
+    runtime_assert(P_col == Q_col && Q_col == 3, "Only works in dim 3 !");
+
+    dim3 blocksize(1024, 1);
+    dim3 gridsize(std::ceil((float)P_row / blocksize.x), 1);
+    std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
+    std::cerr << "blocksize.x: " << blocksize.x << std::endl;
+
+    get_array_cross_cov_kernel<<<gridsize, blocksize>>>(d_cov, d_array_correspondances, d_P, d_Q, P_row, P_col, Q_row, Q_col);
+    cudaDeviceSynchronize();
+    cudaCheckError();
+}

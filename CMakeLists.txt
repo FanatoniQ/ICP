@@ -141,6 +141,10 @@ if (CUDA_FOUND)
  cuda_add_executable(testgpucrosscov "src/testlibgpuicp/testcrosscov.cu")
  target_link_libraries(testgpucrosscov CSV alg gpualg gpuicp)
 
+ CUDA_COMPILE(testgpucrosscovarray "src/testlibgpuicp/testcrosscovarray.cu")
+ cuda_add_executable(testgpucrosscovarray "src/testlibgpuicp/testcrosscovarray.cu")
+ target_link_libraries(testgpucrosscovarray CSV alg gpualg gpuicp)
+
  CUDA_COMPILE(testgpudist "src/testlibgpuicp/testdist.cu")
  cuda_add_executable(testgpudist "src/testlibgpuicp/testdist.cu")
  target_link_libraries(testgpudist CSV alg gpualg gpuicp)
