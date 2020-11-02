@@ -242,9 +242,16 @@ __host__ void reduce_0(enum MatrixReduceOP op, double *d_A, double **d_sum, size
     {
         // ALLOCATING DEVICE MEMORY
         // TODO: This is too much memory we should use cudaMalloc when we have a high number of lines
+        /**
         cudaMallocPitch(d_sum, reducepitch, width * sizeof(double), nbblocksPerColumn);
         cudaCheckError();
         cudaMemset2D(*d_sum, *reducepitch, 0, width * sizeof(double), nbblocksPerColumn);
+        cudaCheckError();
+	**/
+        *reducepitch = width * sizeof(double);
+        cudaMalloc(d_sum, *reducepitch);// * nbblocksPerColumn);
+        cudaCheckError();
+	cudaMemset(*d_sum, 0, *reducepitch);// * nbblocksPerColumn);
         cudaCheckError();
     }
 
