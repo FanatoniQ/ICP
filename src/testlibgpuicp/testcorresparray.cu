@@ -20,6 +20,7 @@
 #include "error.cuh"
 //#include "gpu/icp.cuh"
 #include "libgpuicp/corresp.cuh"
+#include "libgpuicp/crosscov.cuh"
 
 int main(int argc, char **argv)
 {
@@ -29,7 +30,9 @@ int main(int argc, char **argv)
     double* Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     double* d_P, * d_Q;
 
+    unsigned int p_pitch = Pcols * sizeof(double);
     cudaMalloc(&d_P, sizeof(double) * Plines * Pcols);
+    unsigned int q_pitch = Qcols * sizeof(double);
     cudaMalloc(&d_Q, sizeof(double) * Qlines * Qcols);
 
     cudaMemcpy(d_P, Pt, sizeof(double) * Pcols * Plines, cudaMemcpyHostToDevice);
@@ -40,6 +43,7 @@ int main(int argc, char **argv)
 
     get_array_correspondences(d_array_correspondances, d_P, d_Q, Plines, Pcols, Qlines, Qcols);
 
+    unsigned int r_0 = Plines, r_1 = Pcols * Qcols;
     double* d_R = nullptr;
     unsigned int r_pitch;
 
