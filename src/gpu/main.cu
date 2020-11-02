@@ -103,6 +103,7 @@ std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, 
 
 int main(int argc, char **argv)
 {
+    runtime_assert(argc == 4, "Usage: ./GPUICP file1 file2 nbiters");
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
     //size_t Plines, Pcols;
@@ -113,11 +114,13 @@ int main(int argc, char **argv)
     double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
 
+    unsigned int nbiters = std::stoi(argv[3]);
+
     // FIXME iterations number
-    auto P_res = icp_gpu(P, Q, 10);
+    auto P_res = icp_gpu(P, Q, nbiters);
     std::cout << "Squared actual mean diff: " << Q.euclidianDistance(P_res) << std::endl;
-    std::cout << "P resultat matrix: " << P_res;
-    std::cout << "Q ref matrix: " << Q;
+    //std::cout << "P resultat matrix: " << P_res;
+    //std::cout << "Q ref matrix: " << Q;
     /*
     auto correspondances = get_correspondence_indices(P.getArray(), Q.getArray(), P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1());
     for (int i = 0; i < 30; i++)

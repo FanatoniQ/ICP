@@ -298,10 +298,10 @@ CPUMatrix icp_gpu(CPUMatrix& P, CPUMatrix& Q, unsigned iterations)
     size_t threads_num = 1024;
     size_t batchsize = 16;
 
-    cudaMalloc(&dQ_center, Q.getDim1() * sizeof(double));
+    cudaMalloc(&dQ_center, Q.getDim1() * sizeof(double)); // FIXME: should be Q.getDim1() * nbblocksPerColumn * sizeof(double)
     cudaMalloc(&dQ_centered, Q.getDim0() * Q.getDim1() * sizeof(double));
     cudaMalloc(&dP_copy, P.getDim0() * P.getDim1() * sizeof(double));
-    cudaMalloc(&dP_centered, P.getDim0() * P.getDim1() * sizeof(double));
+    cudaMalloc(&dP_centered, P.getDim0() * P.getDim1() * sizeof(double)); // FIXME: should be P.getDim1() * nbblocksPerColumn * sizeof(double)
     cudaMalloc(&dP_center, P.getDim1() * sizeof(double));
     cudaMalloc(&dDot_temp, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dU, P.getDim1() * P.getDim1() * sizeof(double));
