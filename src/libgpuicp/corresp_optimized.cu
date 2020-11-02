@@ -28,8 +28,8 @@ __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array
     unsigned int nbiters)
 {
     assert(P_col == Q_col && P_col == 3);
-    extern __shared__ double s_data[]; // first 3 * sizeof(double) bytes are used to store p_point[0,1,2], then we have 1024 ICPCorresps
-    ICPCorresp *s_min_point = ((ICPCorresp*)s_data) + 3; // last is final min
+    extern __shared__ double s_data[]; // first 3 * sizeof(double) bytes are used to store p_point[0,1,2], then we have 1025 ICPCorresps
+    ICPCorresp *s_min_point = (ICPCorresp*)(s_data + 3); // last is final min
     ICPCorresp *s_corresp = s_min_point + 1; // pointer to ICPCorresp structure
     unsigned int qid = threadIdx.x; //blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int pid = blockIdx.x; // * blockDim.x + threadIdx.y; // blockDim.y == 1 and blockDim.x == 1024
@@ -48,7 +48,7 @@ __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array
     __syncthreads(); // wait for x,y and z of p_point (should be done at first iter only)
     do {
         if (qid >= Q_row) {
-            s_corresp[qid] = { DBL_MAX, 0 };
+            s_corresp[threadIdx.x] = { DBL_MAX, 0 };
             return;
         }
         q_point = d_Q + qid * Q_col;
