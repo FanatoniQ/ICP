@@ -6,10 +6,12 @@
 #include <iostream>
 #include <limits>
 #include <float.h>
+#include <assert.h>
 
 // CPU
 #include "libCSV/csv.hpp"
 #include "libalg/CPUMatrix.hpp"
+#include "libalg/CPUView.hpp"
 #include "libalg/alg.hpp"
 #include "libalg/print.hpp"
 #include "error.hpp"
@@ -20,19 +22,23 @@
 #include "error.cuh"
 //#include "gpu/icp.cuh"
 #include "libgpuicp/corresp.cuh"
+#include "libgpuicp/dist.cuh"
+#include "libgpuicp/corresp.cuh"
 #include "libgpuicp/crosscov.cuh"
+
 
 int main(int argc, char **argv)
 {
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
+    //size_t Plines, Pcols;
+    //___readCSV(f, f1Header);
     double* Pt = readCSV(argv[1], f1Header, Plines, Pcols);
     double* Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
-    double* d_P, * d_Q;
 
-    unsigned int p_pitch = Pcols * sizeof(double);
+    double* d_P, * d_Q, *d_cov;
+
     cudaMalloc(&d_P, sizeof(double) * Plines * Pcols);
-    unsigned int q_pitch = Qcols * sizeof(double);
     cudaMalloc(&d_Q, sizeof(double) * Qlines * Qcols);
 
     cudaMemcpy(d_P, Pt, sizeof(double) * Pcols * Plines, cudaMemcpyHostToDevice);
@@ -43,29 +49,30 @@ int main(int argc, char **argv)
 
     get_array_correspondences(d_array_correspondances, d_P, d_Q, Plines, Pcols, Qlines, Qcols);
 
-    unsigned int r_0 = Plines, r_1 = Pcols * Qcols;
-    double* d_R = nullptr;
-    unsigned int r_pitch;
-
-    get_array_cross_covs_flattened(d_P, d_Q, &d_R, d_array_correspondances,
-        Plines, Pcols, p_pitch,
-        Qlines, Qcols, q_pitch,
-        r_0, r_1, &r_pitch,
-        Pcols, true);
-
-    /**
-    // Testing h_array_correspondances
-    unsigned int* h_array_correspondances = (unsigned int *)malloc(Plines * sizeof(unsigned int));
+    /*
+    unsigned int* h_array_correspondances = (unsigned int*)malloc(Plines * sizeof(unsigned int));
     cudaMemcpy(h_array_correspondances, d_array_correspondances, Plines * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
     for (int i = 0; i < Plines; i++)
         std::cout << i << " ->" << h_array_correspondances[i] << std::endl;
-    free(h_array_correspondances);
-    **/
+    */
 
-    cudaFree(d_R);
+    cudaMalloc(&d_cov, sizeof(double) * Qcols * Pcols);
+    get_array_cross_cov(d_cov, d_array_correspondances, d_P, d_Q, Plines, Pcols, Qlines, Qcols);
+    double* h_cov = (double*)malloc(Pcols * Qcols * sizeof(double));
+    cudaMemcpy(h_cov, d_cov, Pcols * Qcols * sizeof(unsigned int), cudaMemcpyDeviceToHost);
+
+    for (int i = 0; i < Pcols * Qcols; i++)
+    {
+        std::cout << h_cov[i] << " ";
+        if (i % 3)
+            std::cout << std::endl;
+    }
+
     cudaFree(d_P);
     cudaFree(d_Q);
     cudaFree(d_array_correspondances);
+    free(h_cov);
     free(Pt);
     free(Qt);
 }
