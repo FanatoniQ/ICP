@@ -133,6 +133,10 @@ if (CUDA_FOUND)
  cuda_add_executable(testgpucorresp "src/testlibgpuicp/testcorresp.cu")
  target_link_libraries(testgpucorresp CSV alg gpualg gpuicp)
 
+ CUDA_COMPILE(testgpucorresparray "src/testlibgpuicp/testcorresparray.cu")
+ cuda_add_executable(testgpucorresparray "src/testlibgpuicp/testcorresparray.cu")
+ target_link_libraries(testgpucorresparray CSV alg gpualg gpuicp)
+
  CUDA_COMPILE(testgpucrosscov "src/testlibgpuicp/testcrosscov.cu")
  cuda_add_executable(testgpucrosscov "src/testlibgpuicp/testcrosscov.cu")
  target_link_libraries(testgpucrosscov CSV alg gpualg gpuicp)

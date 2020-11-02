@@ -33,3 +33,32 @@ __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
  **/
 __host__ void get_correspondences(ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync = true, size_t threads = 1024);
+
+/**
+ ** \brief get_array_correspondences wrapper around get_array_correspondences_kernel
+ ** P and Q and stores them in d_array_correspondances
+ **
+ ** \param d_array_correspondances the resulting array
+ ** \param P the first matrix
+ ** \param Q the second matrix
+ ** \param P_row the number of rows in P
+ ** \param P_col the number of columns in P
+ ** \param Q_row the number of rows in Q
+ ** \param Q_col the number of columns in Q
+ **/
+__host__ void get_array_correspondences(unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
+
+
+/**
+ ** \brief get_correspondences_kernel computes correspondances between
+ **
+ ** \param d_array_correspondances the resulting array
+ ** \param P the first matrix
+ ** \param Q the second matrix
+ ** \param P_row the number of rows in P
+ ** \param P_col the number of columns in P
+ ** \param Q_row the number of rows in Q
+ ** \param Q_col the number of columns in Q
+ **/
+__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);

@@ -8,6 +8,8 @@
 #include "libgpuicp/corresp.cuh"
 #include "error.cuh"
 
+#include "error.hpp"
+
 #define is_power_of_2(x) (x & (x-1)) == 0
 
 __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
@@ -39,13 +41,13 @@ __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
                 //printf("line:%u| %lu: %lf,%d < %u: %lf,%d \n", lineid, threadid + stride, s_data[threadid + stride].dist, s_data[threadid + stride].id, threadid, s_data[threadid].dist, s_data[threadid].id);
                 //s_data[threadid].dist = s_data[threadid + stride].dist;
                 //s_data[threadid].id = s_data[threadid + stride].id;
-	    }
+            }
         }
         __syncthreads();
     }
     if (threadid == 0) {
         d_distline[blockIdx.x] = s_data[0]; // or [0] since gridsize.x should be 1
-	//printf("FINAL: %u: %lf,%d \n", lineid, d_distline[blockIdx.x].dist, d_distline[blockIdx.x].id);
+        //printf("FINAL: %u: %lf,%d \n", lineid, d_distline[blockIdx.x].dist, d_distline[blockIdx.x].id);
     }
 }
 
@@ -95,4 +97,42 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
         cudaDeviceSynchronize();
         cudaCheckError();
     }
+}
+
+
+__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
+{
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= P_row)
+        return;
+    assert(P_col == Q_col && P_col == 3);
+    double *p_point = d_P + index * P_col;
+
+    double min_dist = DBL_MAX;
+    unsigned int chosen_idx = 0;
+
+    for (unsigned int y = 0; y < P_row; y++)
+    {
+        double *q_point = d_Q + y * Q_col;
+        double dist = std::sqrt((p_point[0] - q_point[0]) * (p_point[0] - q_point[0]) + (p_point[1] - q_point[1])* (p_point[1] - q_point[1]) + (p_point[2] - q_point[2])* (p_point[2] - q_point[2]));
+        if (dist < min_dist)
+        {
+            min_dist = dist;
+            chosen_idx = y;
+        }
+    }
+    d_array_correspondances[index] = chosen_idx;
+}
+
+__host__ void get_array_correspondences(unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
+{
+    dim3 blocksize(1024, 1);
+    dim3 gridsize(std::ceil((float)P_row / blocksize.x), 1);
+    std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
+    std::cerr << "blocksize.x: " << blocksize.x << std::endl;
+
+    get_array_correspondences_kernel<<<gridsize, blocksize>>>(d_array_correspondances, d_P, d_Q, P_row, P_col, Q_row, Q_col);
+    cudaDeviceSynchronize();
+    cudaCheckError();
 }
