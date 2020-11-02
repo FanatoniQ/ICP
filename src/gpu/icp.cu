@@ -584,14 +584,14 @@ cudaMalloc(corresps) dim(P
         get_array_correspondences(dcorresps, dP_centered, dQ_centered, 
             P.getDim0(), P.getDim1(), 
             Q.getDim0(), Q.getDim1());
-        print_Mat_gpu(dcorresps, 1, P.getDim0(), "Csp");
+        //print_Mat_gpu(dcorresps, 1, P.getDim0(), "Csp");
         get_array_cross_covs_flattened(dP_centered, dQ_centered, &dcross_var, dcorresps,
             P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double),
             Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double),
             d_r0, d_r1, &r_pitch,
             P.getDim0(), true);
         reduce_0(MatrixReduceOP::SUM, dcross_var, &dcross_var, (size_t) d_r1, (size_t) d_r0, r_pitch, &r_pitch, threads_num);
-        print_Mat_gpu(dcross_var, P.getDim1(), P.getDim1(), "cov");
+        //print_Mat_gpu(dcross_var, P.getDim1(), P.getDim1(), "cov");
         // cross_var is here 3*3 mat
 
         svd_gpu(dcross_var, P.getDim1(), P.getDim1(), dV_T, dS, dU);
