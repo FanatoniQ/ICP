@@ -102,7 +102,7 @@ __host__ void get_array_cross_cov(double* cov, unsigned int* d_array_corresponda
  ** \param q_pitch pitch IN bytes of d_Q matrix
  **/
 __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_array_correspondances,
-    double *d_R, unsigned int r_0, unsigned int r_1, unsigned int r_pitch,
+    double *d_R, unsigned int r_0, unsigned int r_1, size_t r_pitch,
     const double *d_P, unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
     const double *d_Q, unsigned int q_0, unsigned int q_1, unsigned int q_pitch);
 
@@ -112,5 +112,5 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
 __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_Q, double **d_R, const unsigned int* d_array_correspondances,
     unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
     unsigned int q_0, unsigned int q_1, unsigned int q_pitch,
-    unsigned int r_0, unsigned int r_1, unsigned int *r_pitch,
+    unsigned int r_0, unsigned int r_1, size_t *r_pitch,
     unsigned int corresp_0, bool sync);

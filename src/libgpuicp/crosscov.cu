@@ -162,7 +162,7 @@ __host__ void get_array_cross_cov(double* d_cov, unsigned int* d_array_correspon
 }
 
 __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_array_correspondances,
-    double *d_R, unsigned int r_0, unsigned int r_1, unsigned int r_pitch,
+    double *d_R, unsigned int r_0, unsigned int r_1, size_t r_pitch,
     const double *d_P, unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
     const double *d_Q, unsigned int q_0, unsigned int q_1, unsigned int q_pitch)
 {
@@ -177,7 +177,7 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
     double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch); // d_Q + idq * Q_col;
     //double *d_rcov = (double *)((char *)d_R + idp * r_pitch);
     //double *d_ppoint = (double *)((char *)d_P + idp * p_pitch);
-    //double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch);
+    //double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch); 
 
     // optim : shared memory for d_ppoint[0,1,2] an d_qpoint[0,1,2]
     d_rcov[0] = d_qpoint[0] * d_ppoint[0];
@@ -191,12 +191,21 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
     d_rcov[6] = d_qpoint[2] * d_ppoint[0];
     d_rcov[7] = d_qpoint[2] * d_ppoint[1];
     d_rcov[8] = d_qpoint[2] * d_ppoint[2];
+    /**
+    printf("idp: %u / idq: %u\n", idp, idq);
+	    printf("P{%u}: %lf %lf %lf\n", idp, d_ppoint[0],d_ppoint[1],d_ppoint[2]);
+	    printf("Q{%u}: %lf %lf %lf\n", idq, d_qpoint[0],d_qpoint[1],d_qpoint[2]);
+    if (idp == 0)
+    {
+	    printf("%lf %lf %lf | %lf %lf %lf | %lf %lf %lf\n", d_rcov[0], d_rcov[1], d_rcov[2], d_rcov[3], d_rcov[4], d_rcov[5], d_rcov[6], d_rcov[7], d_rcov[8]);
+    }
+    **/
 }
 
 __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_Q, double **d_R, const unsigned int* d_array_correspondances,
     unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
     unsigned int q_0, unsigned int q_1, unsigned int q_pitch,
-    unsigned int r_0, unsigned int r_1, unsigned int *r_pitch,
+    unsigned int r_0, unsigned int r_1, size_t *r_pitch,
     unsigned int corresp_0, bool sync)
 {
     runtime_assert(p_1 == q_1 && corresp_0 == p_0 && corresp_0 == r_0, "Invalid shapes !");

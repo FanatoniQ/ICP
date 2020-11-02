@@ -107,14 +107,28 @@ __global__ void get_array_correspondences_kernel(unsigned int *d_array_correspon
         return;
     assert(P_col == Q_col && P_col == 3);
     double *p_point = d_P + index * P_col;
+    double *q_point;
+    double p_pointarr[3];
+    double dist;
+    double tmp;
+    p_pointarr[0] = p_point[0];
+    p_pointarr[1] = p_point[1];
+    p_pointarr[2] = p_point[2];
 
     double min_dist = DBL_MAX;
     unsigned int chosen_idx = 0;
 
     for (unsigned int y = 0; y < P_row; y++)
     {
-        double *q_point = d_Q + y * Q_col;
-        double dist = std::sqrt((p_point[0] - q_point[0]) * (p_point[0] - q_point[0]) + (p_point[1] - q_point[1])* (p_point[1] - q_point[1]) + (p_point[2] - q_point[2])* (p_point[2] - q_point[2]));
+        q_point = d_Q + y * Q_col;
+        dist = 0;
+	tmp = p_pointarr[0] - q_point[0];
+	dist += tmp * tmp;
+	tmp = p_pointarr[1] - q_point[1];
+	dist += tmp * tmp;
+	tmp = p_pointarr[2] - q_point[2];
+	dist += tmp * tmp;
+       	//* (p_pointarr[0] - q_point[0]) + (p_pointarr[1] - q_point[1]) * (p_pointarr[1] - q_point[1]) + (p_pointarr[2] - q_point[2])* (p_pointarr[2] - q_point[2]);
         if (dist < min_dist)
         {
             min_dist = dist;
