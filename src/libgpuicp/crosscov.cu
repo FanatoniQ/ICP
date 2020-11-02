@@ -200,13 +200,13 @@ __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_
     unsigned int corresp_0, bool sync)
 {
     runtime_assert(p_1 == q_1 && corresp_1 == 2 && corresp_0 == p_0 && corresp_0 == r_0, "Invalid shapes !");
-    runtime_assert(P_col == Q_col && Q_col == 3, "Only dim 3 is supported !");
+    runtime_assert(q_1 == 3, "Only dim 3 is supported !");
     runtime_assert(r_1 == 9, "Flattened cross covs");
     if (*d_R == nullptr)
     {
         //cudaMallocPitch(d_R, r_pitch, r1 * sizeof(double), r_0);
         //cudaCheckError();
-        *r_pitch = r1 * sizeof(double);
+        *r_pitch = r_1 * sizeof(double);
         cudaMalloc(d_R, *r_pitch * r_0);
         cudaCheckError();
     }
@@ -216,7 +216,7 @@ __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_
     std::cerr << blocksize.x << " -- " << gridsize.x << std::endl;
     
     get_array_cross_covs_flattened_kernel<<<gridsize, blocksize>>>(d_array_correspondances,
-        *d_R, r_0, r_1, r_pitch,
+        *d_R, r_0, r_1, *r_pitch,
         d_P, p_0, p_1, p_pitch,
         d_Q, q_0, q_1, q_pitch);
     
