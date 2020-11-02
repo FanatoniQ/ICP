@@ -19,6 +19,7 @@
 #include "libgpualg/mean.cuh"
 #include "libgpualg/ope.cuh"
 #include "libgpualg/svd.cuh"
+#include "libgpuicp/corresp_optimized.cuh"
 #include "libgpuicp/dist.cuh"
 #include "libgpuicp/batchcovs.cuh"
 
@@ -560,6 +561,11 @@ cudaMalloc(corresps) dim(P
         get_array_correspondences(dcorresps, dP_centered, dQ_centered, 
             P.getDim0(), P.getDim1(), 
             Q.getDim0(), Q.getDim1());
+	/**
+	get_array_correspondences_optimized(dcorresps, dP_centered, dQ_centered,
+            P.getDim0(), P.getDim1(),
+            Q.getDim0(), Q.getDim1());
+	**/
         //print_Mat_gpu(dcorresps, 1, P.getDim0(), "Csp");
         get_array_cross_covs_flattened(dP_centered, dQ_centered, &dcross_var, dcorresps,
             P.getDim0(), P.getDim1(), P.getDim1() * sizeof(double),
