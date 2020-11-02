@@ -12,6 +12,7 @@ NSIGHT_CLI='/opt/cuda/nsight_compute/nv-nsight-cu-cli'
 
 FILE1='../data/30points_notebook_P.txt'
 FILE2='../data/30points_notebook_Q.txt'
+NB_ITERS='5'
 
 # Profiling Summary
 if [ $# -eq 0 ]; then
@@ -27,7 +28,7 @@ fi
 # ICP
 # TODO : not working
 if [ "$1" = "icp" ]; then
-    nvprof ./GPUICP $FILE1 $FILE2
+    nvprof ./GPUICP $FILE1 $FILE2 $NB_ITERS
 fi
 
 
