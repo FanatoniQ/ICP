@@ -6,6 +6,7 @@
 
 #include "libgpualg/mean.cuh"
 #include "libgpuicp/corresp.cuh"
+#include "libgpuicp/corresp_optimized.cuh"
 #include "error.cuh"
 
 #include "error.hpp"
@@ -86,7 +87,7 @@ __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array
         d_array_correspondances[pid] = s_min_point[0].id;
 }
 
-__host__ void get_array_correspondences_optimized(unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+__host__ void get_array_correspondences_optimized(unsigned int* d_array_correspondances, const double *d_P, const double *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     dim3 gridsize(P_row,1);
