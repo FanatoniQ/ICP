@@ -20,3 +20,9 @@ __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array
 
 __host__ void get_array_correspondences_optimized(unsigned int* d_array_correspondances, const double *d_P, const double *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
+
+__global__ void get_array_correspondences_optimized_one_iter_kernel(ICPCorresp *d_dists, unsigned int dist_1,
+    const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
+
+__host__ void get_array_correspondences_optimized_one_iter(ICPCorresp **d_dist, unsigned int *dist_1, const double *d_P, const double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
