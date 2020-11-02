@@ -92,6 +92,7 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
 
 __device__ void increment_cov(double *d_cov, double *d_pline, double *d_qline)
 {
+    /*
     d_cov[0] = d_cov[0] + d_qline[0] * d_pline[0];
     d_cov[1] = d_cov[1] + d_qline[0] * d_pline[1];
     d_cov[2] = d_cov[2] + d_qline[0] * d_pline[2];
@@ -103,6 +104,19 @@ __device__ void increment_cov(double *d_cov, double *d_pline, double *d_qline)
     d_cov[6] = d_cov[6] + d_qline[2] * d_pline[0];
     d_cov[7] = d_cov[7] + d_qline[2] * d_pline[1];
     d_cov[8] = d_cov[8] + d_qline[2] * d_pline[2];
+    */
+    atomicAdd(d_cov, d_qline[0] * d_pline[0]);
+    atomicAdd(d_cov + 1, d_qline[0] * d_pline[1]);
+    atomicAdd(d_cov + 2, d_qline[0] * d_pline[2]);
+
+    atomicAdd(d_cov + 3, d_qline[1] * d_pline[0]);
+    atomicAdd(d_cov + 4, d_qline[1] * d_pline[1]);
+    atomicAdd(d_cov + 5, d_qline[1] * d_pline[2]);
+
+    atomicAdd(d_cov + 6, d_qline[2] * d_pline[0]);
+    atomicAdd(d_cov + 7, d_qline[2] * d_pline[1]);
+    atomicAdd(d_cov + 8, d_qline[2] * d_pline[2]);
+
 }
 
 __global__ void get_array_cross_cov_kernel(double * d_cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
