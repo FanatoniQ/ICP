@@ -28,14 +28,14 @@ __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array
     unsigned int nbiters)
 {
     assert(P_col == Q_col && P_col == 3);
-    extern __shared__ double *s_data[]; // first 3 * sizeof(double) bytes are used to store p_point[0,1,2], then we have 1024 ICPCorresps
-    ICPCorresp *s_min_point = s_data + 3; // last is final min
-    ICPCorresp *s_corresp = d_min_point + 1; // pointer to ICPCorresp structure
-    int qid = threadIdx.x; //blockIdx.x * blockDim.x + threadIdx.x;
-    int pid = blockIdx.x; // * blockDim.x + threadIdx.y; // blockDim.y == 1 and blockDim.x == 1024
+    extern __shared__ double s_data[]; // first 3 * sizeof(double) bytes are used to store p_point[0,1,2], then we have 1024 ICPCorresps
+    ICPCorresp *s_min_point = ((ICPCorresp*)s_data) + 3; // last is final min
+    ICPCorresp *s_corresp = s_min_point + 1; // pointer to ICPCorresp structure
+    unsigned int qid = threadIdx.x; //blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned int pid = blockIdx.x; // * blockDim.x + threadIdx.y; // blockDim.y == 1 and blockDim.x == 1024
     double dist, tmp;
-    double *q_point;
-    double *p_point = d_P + pid * P_col;
+    const double *q_point;
+    const double *p_point = d_P + pid * P_col;
     unsigned int iter = 0;
     if (qid == 0)
     {
