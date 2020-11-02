@@ -197,7 +197,7 @@ __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_
     unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
     unsigned int q_0, unsigned int q_1, unsigned int q_pitch,
     unsigned int r_0, unsigned int r_1, unsigned int *r_pitch,
-    unsigned int corresp_0, unsigned int corresp_1, unsigned int corresp_pitch, bool sync)
+    unsigned int corresp_0, bool sync)
 {
     runtime_assert(p_1 == q_1 && corresp_1 == 2 && corresp_0 == p_0 && corresp_0 == r_0, "Invalid shapes !");
     runtime_assert(P_col == Q_col && Q_col == 3, "Only dim 3 is supported !");
