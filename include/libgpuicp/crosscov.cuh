@@ -82,3 +82,35 @@ __global__ void get_array_cross_cov_kernel(double *cov, unsigned int* d_array_co
  **/
 __host__ void get_array_cross_cov(double* cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
+
+/**
+ ** \brief get_array_cross_covs_flattened_kernel fills the d_R matrix (p_0 x 9) by flattened cross covariance
+ ** between a point p and the corresponding closest q point
+ **
+ ** \param d_array_correspondances the correspondance list (d_array_correspondances[idp] = idq)
+ ** \param d_R the filled resulting (p_0 x 9) by flattened cross covariance matrix
+ ** \param r_0 number of lines in d_R (== p_0)
+ ** \param r_1 number of columns in d_R (== 9 && == p_1 * q_1)
+ ** \param r_pitch pitch IN bytes of d_R matrix
+ ** \param d_P P matrix
+ ** \param p_0 number of lines in d_P
+ ** \param p_1 number of columns in d_P (==3)
+ ** \param p_pitch pitch IN bytes of d_P matrix
+ ** \param d_Q Q matrix
+ ** \param q_0 number of lines in d_Q
+ ** \param q_1 number of columns in d_Q (==3)
+ ** \param q_pitch pitch IN bytes of d_Q matrix
+ **/
+__global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_array_correspondances,
+    double *d_R, unsigned int r_0, unsigned int r_1, unsigned int r_pitch,
+    const double *d_P, unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
+    const double *d_Q, unsigned int q_0, unsigned int q_1, unsigned int q_pitch);
+
+/**
+ ** \brief get_array_cross_covs_flattened wrapper around get_array_cross_covs_flattened_kernel
+ **/
+__host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_Q, double **d_R, const unsigned int* d_array_correspondances,
+    unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
+    unsigned int q_0, unsigned int q_1, unsigned int q_pitch,
+    unsigned int r_0, unsigned int r_1, unsigned int *r_pitch,
+    unsigned int corresp_0, unsigned int corresp_1, unsigned int corresp_pitch, bool sync);
