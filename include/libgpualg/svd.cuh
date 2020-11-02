@@ -12,4 +12,4 @@
 * S (n)
 * VT (m * n)
 **/
-std::tuple<double*, double*, double*> svd(double* A, size_t r_A, size_t c_A);
+void svd_gpu(double* d_A, size_t r_A, size_t c_A, double* d_U, double* d_S, double* d_VT);

@@ -147,6 +147,7 @@ __global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int
  ** \param op the MatrixReduceOP member (either MEAN or SUM)
  ** \param d_A the device matrix pointer
  ** \param d_sum a pointer to the resulting mean line vector, or nullptr (in that case this function performs allocation)
+ ** WARNING: d_sum ELEMENTS SHOULD BE ZERO INITIALIZED IF ALREADY ALLOCATED
  ** \param width the width of d_A
  ** \param height the height of d_A
  ** \param pitch the pitch of d_A IN bytes

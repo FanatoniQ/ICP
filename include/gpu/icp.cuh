@@ -34,3 +34,5 @@ void compute_cross_variance_array(double * cov, double *P, double *Q, std::tuple
 
 void gpuTranspose(double *A, double *B, int numRows, int numColumns);
 __global__ void naiveGPUTranspose(const double *d_a, double *d_b, const int rows, const int cols);
+
+CPUMatrix icp_gpu(CPUMatrix& P, CPUMatrix& Q, unsigned iterations);
