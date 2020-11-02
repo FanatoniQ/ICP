@@ -117,6 +117,10 @@ __global__ void get_array_cross_cov_kernel(double * d_cov, unsigned int* d_array
     double *d_ppoint = d_P + i * P_col;
     double *d_qpoint = d_Q + j * Q_col;
 
+    printf("%lf et %lf", *d_ppoint, *d_qpoint);
+    //for (int i = 0; i < P_col * P_col; i++)
+    //   printf("%lf\n", d_cov[i]);
+
     increment_cov(d_cov, d_ppoint, d_qpoint);
 }
 
@@ -129,6 +133,8 @@ __host__ void get_array_cross_cov(double* d_cov, unsigned int* d_array_correspon
     dim3 gridsize(std::ceil((float)P_row / blocksize.x), 1);
     std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
     std::cerr << "blocksize.x: " << blocksize.x << std::endl;
+    
+    cudaMemset(d_cov, 0, sizeof(double) * P_col * Q_col);
 
     get_array_cross_cov_kernel<<<gridsize, blocksize>>>(d_cov, d_array_correspondances, d_P, d_Q, P_row, P_col, Q_row, Q_col);
     cudaDeviceSynchronize();
