@@ -513,6 +513,10 @@ cudaMalloc(corresps) dim(P
     size_t r_pitch;
     size_t cov_pitch = P.getDim1() * Q.getDim1() * sizeof(double);
 
+    // for new optimized version private use
+    unsigned int dist_1;
+    ICPCorresp *d_dist = nullptr;
+
     size_t threads_num = 1024;
 
     std::cerr << "==== Init ====" << std::endl;
@@ -582,9 +586,12 @@ cudaMalloc(corresps) dim(P
         // Compute correspondences indices
         // Call correspondence indices gpu with (P_centered, Q_centered)
         // Compute cross var GPU, call with (P_centered, Q_centered, corresps, default_kernel)
+	/**
         get_array_correspondences(dcorresps, dP_centered, dQ_centered, 
             P.getDim0(), P.getDim1(), 
             Q.getDim0(), Q.getDim1());
+	**/
+	get_array_correspondences_optimized_one_iter(dcorresps, &d_dist, &dist_1, dP_centered, dQ_centered, P.getDim0(), P.getDim1(), Q.getDim0(), Q.getDim1());
 	/**
 	get_array_correspondences_optimized(dcorresps, dP_centered, dQ_centered,
             P.getDim0(), P.getDim1(),
@@ -656,6 +663,7 @@ cudaMalloc(corresps) dim(P
     cudaFree(dU);
     cudaFree(dV_T);
     cudaFree(dR);
+    cudaFree(d_dist);
     cudaFree(dR_transpose);
     cudaFree(dt);
     cudaDeviceReset();
