@@ -166,8 +166,10 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
         }
         __syncthreads();
     }
+    //if (threadIdx.x == 0)
+    //    printf("%u = [%u %u]  = [%u] \n", s_corresp[0].id, pid, blockIdx.x, pid + dist_1 * blockIdx.x); 
     if (threadIdx.x == 0)
-        d_dists[pid * dist_1 + blockIdx.x] = s_corresp[0]; // partial reduce
+        d_dists[pid + dist_1 * blockIdx.x] = s_corresp[0]; // partial reduce
 }
 
 __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_correspondances, ICPCorresp *d_dist,
@@ -184,9 +186,9 @@ __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_c
     ICPCorresp *d_distline = (ICPCorresp *)((char *)d_dist + lineid * dist_pitch);
     s_reducedata[threadid] = d_distline[dataid];
     __syncthreads();
+    assert(is_power_of_2(blockDim.x / 2)); // if not power of 2 ...
     for (size_t stride = blockDim.x / 2; stride > 0; stride = stride >> 1)
     {
-        assert(is_power_of_2(stride)); // if not power of 2 ...
         if (threadid < stride) { // a lot of threads are idle...
             if (s_reducedata[threadid + stride].dist < s_reducedata[threadid].dist) {
                 s_reducedata[threadid] = s_reducedata[threadid + stride];
@@ -194,6 +196,8 @@ __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_c
         }
         __syncthreads();
     }
+    if (threadid == 0)
+          printf("lineid: %u: %d\n", lineid, s_reducedata[0].id);
     if (threadid == 0)
         d_array_correspondances[lineid] = s_reducedata[0].id;
 }
