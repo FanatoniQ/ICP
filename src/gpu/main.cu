@@ -118,12 +118,18 @@ int main(int argc, char **argv)
     unsigned int nbiters = std::stoi(argv[3]);
     CPUMatrix P_res;
 
+    //GPUTimer gputimer;
+    //gputimer.Start();
     // FIXME iterations number
     if (argc == 5 && strcmp(argv[4], "-batch") == 0)
          P_res = icp_gpu(P, Q, nbiters);
     else
          P_res = icp_gpu_optimized(P, Q, nbiters);
+    //gputimer.Stop();
+
     std::cout << "Squared actual mean diff: " << Q.euclidianDistance(P_res) << std::endl;
+
+    //std::cout << "Execution time: " << exectime << " ms" << std::endl;
     //std::cout << "P resultat matrix: " << P_res;
     //std::cout << "Q ref matrix: " << Q;
     /*
