@@ -100,13 +100,15 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
 }
 
 
-__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
+__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q,
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col size_t p_pitch, size_t q_pitch)
+    // pitches not IN bytes
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= P_row)
         return;
     assert(P_col == Q_col && P_col == 3);
-    double *p_point = d_P + index * P_col;
+    double *p_point = d_P + index * p_pitch;
     double *q_point;
     double p_pointarr[3];
     double dist;
@@ -120,7 +122,7 @@ __global__ void get_array_correspondences_kernel(unsigned int *d_array_correspon
 
     for (unsigned int y = 0; y < P_row; y++)
     {
-        q_point = d_Q + y * Q_col;
+        q_point = d_Q + y * q_pitch;
         dist = 0;
 	tmp = p_pointarr[0] - q_point[0];
 	dist += tmp * tmp;
@@ -146,7 +148,8 @@ __host__ void get_array_correspondences(unsigned int* d_array_correspondances, d
     std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
     std::cerr << "blocksize.x: " << blocksize.x << std::endl;
 
-    get_array_correspondences_kernel<<<gridsize, blocksize>>>(d_array_correspondances, d_P, d_Q, P_row, P_col, Q_row, Q_col);
+    get_array_correspondences_kernel<<<gridsize, blocksize>>>(d_array_correspondances, d_P, d_Q, P_row, P_col, Q_row, Q_col,
+        p_pitch / sizeof(double), q_pitch / sizeof(double));
     cudaDeviceSynchronize();
     cudaCheckError();
 }
