@@ -196,8 +196,8 @@ __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_c
         }
         __syncthreads();
     }
-    if (threadid == 0)
-          printf("lineid: %u: %d\n", lineid, s_reducedata[0].id);
+    //if (threadid == 0)
+    //      printf("lineid: %u: %d\n", lineid, s_reducedata[0].id);
     if (threadid == 0)
         d_array_correspondances[lineid] = s_reducedata[0].id;
 }
@@ -206,7 +206,7 @@ __host__ void get_array_correspondences_optimized_one_iter(unsigned int *d_array
     ICPCorresp **d_dist, unsigned int *dist_1, const double *d_P, const double *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
-    dim3 blocksize(1024,1);
+    dim3 blocksize(1024,1); // FIXME: changing this from 1024 to 4 got rid of cross_cov mem access error
     unsigned int nbblocksPerLine = std::ceil((float)Q_row / blocksize.x);
     dim3 gridsize(nbblocksPerLine,P_row); // \todo: maybe swap (see above)
 
@@ -228,14 +228,15 @@ __host__ void get_array_correspondences_optimized_one_iter(unsigned int *d_array
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    if (nbblocksPerLine > 1)
-    {
-        blocksize = dim3(get_next_power_of_2(nbblocksPerLine), 1);
+    //if (nbblocksPerLine > 1)
+    //{
+        //blocksize = dim3(get_next_power_of_2(nbblocksPerLine), 1);
+        blocksize = dim3(1024, 1);
         gridsize = dim3(1, P_row);
         
         std::cerr << "nbthreads: " << blocksize.x << " nblines: " << gridsize.y << " nbblocksPerLine: " << gridsize.x << std::endl;
-        get_array_reduced_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_array_correspondances, *d_dist, sizeof(double) * nbblocksPerLine, P_row, nbblocksPerLine);
+        get_array_reduced_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_array_correspondances, *d_dist, sizeof(ICPCorresp) * nbblocksPerLine, P_row, nbblocksPerLine);
         cudaDeviceSynchronize();
         cudaCheckError();
-    }
+    //}
 }
