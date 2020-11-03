@@ -87,7 +87,7 @@ void svd_gpu(float* d_A, size_t r_A, size_t c_A, float *d_U, float *d_S, float *
     assert(cudaSuccess == cudaStat1);
 
     // step 3: query working space of SVD
-    cusolver_status = cusolverDnDgesvd_bufferSize(
+    cusolver_status = cusolverDnSgesvd_bufferSize(
         cusolverH,
         m,
         n,
@@ -100,7 +100,7 @@ void svd_gpu(float* d_A, size_t r_A, size_t c_A, float *d_U, float *d_S, float *
     // step 4: compute SVD
     signed char jobu = 'A'; // all m columns of U
     signed char jobvt = 'A'; // all n columns of VT
-    cusolver_status = cusolverDnDgesvd(
+    cusolver_status = cusolverDnSgesvd(
         cusolverH,
         jobu,
         jobvt,
