@@ -39,7 +39,7 @@ unsigned int get_next_power_of_2(unsigned int value);
  ** \param width the number of values in a line
  ** \param height the number of lines
  **/
- __global__ void dumb_sum_kernel(const char *d_A, double *d_sumA, int pitch, int width, int height);
+ __global__ void dumb_sum_kernel(const char *d_A, float *d_sumA, int pitch, int width, int height);
 
  /**
  ** \brief dumb_mean_kernel a dummy kernel to compute axis=1 mean
@@ -53,7 +53,7 @@ unsigned int get_next_power_of_2(unsigned int value);
  ** \param width the number of values in a line
  ** \param height the number of lines
  **/
-__global__ void dumb_mean_kernel(const char *d_A, double *d_meanA, int pitch, int width, int height);
+__global__ void dumb_mean_kernel(const char *d_A, float *d_meanA, int pitch, int width, int height);
 
 /**
  ** \brief tree_reduce_sum_kernel computes axis=1 sum, each block of threads handles a partial
@@ -73,14 +73,14 @@ __global__ void dumb_mean_kernel(const char *d_A, double *d_meanA, int pitch, in
  ** \param height the number of lines
  ** \param reducepitch the pitch of d_sumA array in bytes
  **/
-__global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);
+__global__ void tree_reduce_sum_kernel(const float *d_A, float *d_sumA, int pitch, int width, int height, int reducepitch);
 
 /**
  ** \brief tree_reduce_mean_kernel is the same as tree_reduce_mean_kernel except than we divide the last block sum
  ** by the width of the d_A matrix. Be sure to call this function on last reduce iteration.
  ** \see tree_reduce_sum_kernel
  **/
-__global__ void tree_reduce_mean_kernel(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);
+__global__ void tree_reduce_mean_kernel(const float *d_A, float *d_sumA, int pitch, int width, int height, int reducepitch);
 
 /** AXIS = 0 REDUCTION **/
 
@@ -98,13 +98,13 @@ __global__ void tree_reduce_mean_kernel(const double *d_A, double *d_sumA, int p
  ** \param width the number of columns in d_A
  ** \param height the number of lines in d_A
  **/
-__global__ void dumb_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height);
+__global__ void dumb_sum_kernel_0(const float *d_A, float *d_sumA, int pitch, int width, int height);
 
 /**
  ** \brief dumb_mean_kernel_0 is the same as dumb_sum_kernel_0 but for mean computation
  ** \see dumb_sum_kernel_0
  **/
-__global__ void dumb_sum_kernel_0(const double *d_A, double *d_meanA, int pitch, int width, int height);
+__global__ void dumb_sum_kernel_0(const float *d_A, float *d_meanA, int pitch, int width, int height);
 
 /**
  ** \brief tree_reduce_sum_kernel_0 computes axis=1 sum, each block of threads handles a partial
@@ -130,14 +130,14 @@ __global__ void dumb_sum_kernel_0(const double *d_A, double *d_meanA, int pitch,
  ** \param height the number of lines
  ** \param reducepitch the pitch of d_sumA array in bytes
  **/
-__global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch);
+__global__ void tree_reduce_sum_kernel_0(const float *d_A, float *d_sumA, int pitch, int width, int height, int reducepitch);
 
 /**
  ** \brief tree_reduce_mean_kernel_0 is the same as tree_reduce_sum_kernel_0 except than we divide the last block sum
  ** by the height of the d_A matrix. Be sure to call this function on last reduce iteration. denom is the denominator (total height)
  ** \see tree_reduce_sum_kernel_0
  **/
-__global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch, unsigned int denom);
+__global__ void tree_reduce_mean_kernel_0(const float *d_A, float *d_sumA, int pitch, int width, int height, int reducepitch, unsigned int denom);
 
 /**
  ** \brief reduce_0 wrapper around tree_reduce_sum_kernel_0 and tree_reduce_mean_kernel_0 kernel functions
@@ -154,10 +154,10 @@ __global__ void tree_reduce_mean_kernel_0(const double *d_A, double *d_sumA, int
  ** \param reducepitch a pointer to the reduce d_sum matrix pitch (IN bytes)
  ** \param threads the minimal number of threads to be used in a block
  **/
-__host__ void reduce_0(enum MatrixReduceOP op, double *d_A, double **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads);
+__host__ void reduce_0(enum MatrixReduceOP op, float *d_A, float **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads);
 
 
 /**
  ** \deprecated use reduce_0 instead
  **/
-__host__ void mean_0(double *d_A, double **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads);
+__host__ void mean_0(float *d_A, float **d_sum, size_t width, size_t height, size_t pitch, size_t *reducepitch, int threads);

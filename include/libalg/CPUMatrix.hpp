@@ -9,14 +9,14 @@ class CPUView;
 class CPUMatrix
 {
 protected:
-    double *array;
+    float *array;
     size_t dim0;
     size_t dim1;
 
 public:
     // Constructors
     CPUMatrix();
-    CPUMatrix(double *array, size_t dim0, size_t dim1);
+    CPUMatrix(float *array, size_t dim0, size_t dim1);
     /**
      * Initialize matrix of dim0*dim1 with 0s
      * Throws std::bad_alloc on failed malloc
@@ -24,12 +24,12 @@ public:
      * @param dim1
      */
     CPUMatrix(size_t dim0, size_t dim1);
-    CPUMatrix(CPUMatrix const &mat) = delete; // avoid double free
+    CPUMatrix(CPUMatrix const &mat) = delete; // avoid float free
     CPUMatrix(CPUMatrix &&mat) noexcept;      // move constructor
     ~CPUMatrix();
 
     // Getters and setters
-    double *getArray() const;
+    float *getArray() const;
 
     /**
      * Replace the array pointer and returns the previous one
@@ -38,7 +38,7 @@ public:
      * @param dim1_
      * @return CPUMatrix::array
     */
-    double *setArray(double *array, size_t dim0_, size_t dim1_);
+    float *setArray(float *array, size_t dim0_, size_t dim1_);
     size_t getDim0() const;
     size_t getDim1() const;
 
@@ -50,7 +50,7 @@ public:
     bool operator!=(const CPUMatrix &rhs) const;
     CPUMatrix sum(int axis = 0);
     CPUMatrix mean(int axis = 0);
-    double euclidianDistance(const CPUMatrix &rhs);
+    float euclidianDistance(const CPUMatrix &rhs);
 
     // prefer using euclidianDistance when possible
     CPUMatrix squared_norm(int axis = -1);
@@ -68,14 +68,14 @@ public:
     CPUMatrix operator/(const CPUMatrix &rhs);
     CPUMatrix &operator/=(const CPUMatrix &rhs);
 
-    CPUMatrix operator+(const double &rhs);
-    CPUMatrix &operator+=(const double &rhs);
-    CPUMatrix operator-(const double &rhs);
-    CPUMatrix &operator-=(const double &rhs);
-    CPUMatrix operator*(const double &rhs);
-    CPUMatrix &operator*=(const double &rhs);
-    CPUMatrix operator/(const double &rhs);
-    CPUMatrix &operator/=(const double &rhs);
+    CPUMatrix operator+(const float &rhs);
+    CPUMatrix &operator+=(const float &rhs);
+    CPUMatrix operator-(const float &rhs);
+    CPUMatrix &operator-=(const float &rhs);
+    CPUMatrix operator*(const float &rhs);
+    CPUMatrix &operator*=(const float &rhs);
+    CPUMatrix operator/(const float &rhs);
+    CPUMatrix &operator/=(const float &rhs);
 
     CPUMatrix transpose();
 
@@ -87,6 +87,6 @@ public:
     CPUMatrix copyLine(unsigned linenum);
 
     // Access the individual elements
-    double &operator()(const unsigned &row, const unsigned &col);
-    const double &operator()(const unsigned &row, const unsigned &col) const;
+    float &operator()(const unsigned &row, const unsigned &col);
+    const float &operator()(const unsigned &row, const unsigned &col) const;
 };

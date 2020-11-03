@@ -1,11 +1,11 @@
 #include "libalg/print.hpp"
 
-void print_matrix(std::ostream &s, double *a, int m, int n)
+void print_matrix(std::ostream &s, float *a, int m, int n)
 {
     print_matrix(s, a, m, n, m);
 }
 
-void print_matrix(std::ostream &s, double *a, int m, int n, int lda)
+void print_matrix(std::ostream &s, float *a, int m, int n, int lda)
 {
     int i, j;
     for (i = 0; i < n; i++)

@@ -100,22 +100,22 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
 }
 
 
-__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
+__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, float *d_P, float *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= P_row)
         return;
     assert(P_col == Q_col && P_col == 3);
-    double *p_point = d_P + index * P_col;
-    double *q_point;
-    double p_pointarr[3];
-    double dist;
-    double tmp;
+    float *p_point = d_P + index * P_col;
+    float *q_point;
+    float p_pointarr[3];
+    float dist;
+    float tmp;
     p_pointarr[0] = p_point[0];
     p_pointarr[1] = p_point[1];
     p_pointarr[2] = p_point[2];
 
-    double min_dist = DBL_MAX;
+    float min_dist = DBL_MAX;
     unsigned int chosen_idx = 0;
 
     for (unsigned int y = 0; y < P_row; y++)
@@ -138,7 +138,7 @@ __global__ void get_array_correspondences_kernel(unsigned int *d_array_correspon
     d_array_correspondances[index] = chosen_idx;
 }
 
-__host__ void get_array_correspondences(unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+__host__ void get_array_correspondences(unsigned int* d_array_correspondances, float *d_P, float *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     dim3 blocksize(1024, 1);

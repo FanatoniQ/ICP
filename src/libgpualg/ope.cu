@@ -70,7 +70,7 @@ __device__ func2_t<T> divide2_op = divide2<T>;
  ** FIXME: remove this in profit of broadcast_op_kernel onces working
  ** WATCH out: pitch is NOT in bytes
  **/
-__global__ void broadcast_subtract_kernel(const double *d_A, double *d_B, double *d_R,
+__global__ void broadcast_subtract_kernel(const float *d_A, float *d_B, float *d_R,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch)
@@ -117,7 +117,7 @@ __global__ void broadcast_op_line_vector_kernel(const T *d_A, T *d_B, T *d_R, fu
 {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x; // column
     unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; // line
-    extern __shared__ T s_vector[]; // double to store vector of size (blockDim.x)
+    extern __shared__ T s_vector[]; // float to store vector of size (blockDim.x)
     assert((b_0 == 1) && "d_B should be a line vector !");
     assert((a_0 == r_0 && a_1 == r_1) && "Invalid shape for line vector op resulting matrix");
     if (idy >= r_0 || idx >= r_1)
@@ -136,7 +136,7 @@ __global__ void broadcast_op_column_vector_kernel(const T *d_A, T *d_B, T *d_R, 
 {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x; // column
     unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; // line
-    extern __shared__ T s_vector[]; // double to store vector of size (blockDim.y)
+    extern __shared__ T s_vector[]; // float to store vector of size (blockDim.y)
     assert((b_1 == 1) && "d_B should be a column vector !");
     assert((a_0 == r_0 && a_1 == r_1) && "Invalid shape for line vector op resulting matrix");
     if (idy >= r_0 || idx >= r_1)
@@ -155,7 +155,7 @@ __global__ void broadcast_op_scalar_kernel(const T *d_A, T *d_B, T *d_R, func2_t
 {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x; // column
     unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; // line
-    __shared__ T s_scalar[1]; // double to store scalar
+    __shared__ T s_scalar[1]; // float to store scalar
     assert((a_0 == r_0 && a_1 == r_1) && "Invalid shape for scalar op resulting matrix");
     if (idy >= r_0 || idx >= r_1)
         return;
@@ -215,31 +215,31 @@ __host__ void matrix_op(dim3 gridsize, dim3 blocksize,
 // explicit instanciation for lib import
 
 template
-__global__ void broadcast_op_kernel<double>(const double *d_A, double *d_B, double *d_R, func2_t<double> op,
+__global__ void broadcast_op_kernel<float>(const float *d_A, float *d_B, float *d_R, func2_t<float> op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
 
 template
-__global__ void broadcast_op_scalar_kernel<double>(const double *d_A, double *d_B, double *d_R, func2_t<double> op,
+__global__ void broadcast_op_scalar_kernel<float>(const float *d_A, float *d_B, float *d_R, func2_t<float> op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
 
 template
-__global__ void broadcast_op_line_vector_kernel<double>(const double *d_A, double *d_B, double *d_R, func2_t<double> op,
-    unsigned int a_0, unsigned int a_1, size_t d_apitch,
-    unsigned int b_0, unsigned int b_1, size_t d_bpitch,
-    unsigned int r_0, unsigned int r_1, size_t d_rpitch);
-
-template
-__global__ void broadcast_op_column_vector_kernel<double>(const double *d_A, double *d_B, double *d_R, func2_t<double> op,
+__global__ void broadcast_op_line_vector_kernel<float>(const float *d_A, float *d_B, float *d_R, func2_t<float> op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);
 
 template
-__host__ void matrix_op<double>(dim3 gridsize, dim3 blocksize,
-    const double *d_A, double *d_B, double *d_R, enum MatrixOP op,
+__global__ void broadcast_op_column_vector_kernel<float>(const float *d_A, float *d_B, float *d_R, func2_t<float> op,
+    unsigned int a_0, unsigned int a_1, size_t d_apitch,
+    unsigned int b_0, unsigned int b_1, size_t d_bpitch,
+    unsigned int r_0, unsigned int r_1, size_t d_rpitch);
+
+template
+__host__ void matrix_op<float>(dim3 gridsize, dim3 blocksize,
+    const float *d_A, float *d_B, float *d_R, enum MatrixOP op,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);

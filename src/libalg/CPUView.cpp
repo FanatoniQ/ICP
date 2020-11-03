@@ -1,6 +1,6 @@
 #include "libalg/CPUView.hpp"
 
-CPUView::CPUView(double *line, size_t dim1)
+CPUView::CPUView(float *line, size_t dim1)
 {
     this->array = line;
     this->dim0 = 1;

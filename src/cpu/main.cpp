@@ -22,10 +22,10 @@ int main(int argc, char *argv[])
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
     //___readCSV(f, f1Header);
-    double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    float *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
     CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
 
-    double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
+    float *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
 
     CPUMatrix refQ;
@@ -34,8 +34,8 @@ int main(int argc, char *argv[])
     if (!argv[1])
         return 1;
     Qlines = Qcols = Plines = Pcols = 2;
-    double P[4] = {-2, -1, 5, 5};
-    double Q[4] = {0, 1, 0, 1};
+    float P[4] = {-2, -1, 5, 5};
+    float Q[4] = {0, 1, 0, 1};
     */
 
     //auto results = icp(P, Q, nbiters);
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     //}
         //std::cout << std::get<1>(res.at(i)) << "  " << std::get<1>(res2.at(i)) << std::endl;
     //free(res2);
-    //double *cov = (double *)calloc(9, sizeof(double));
+    //float *cov = (float *)calloc(9, sizeof(float));
     //compute_cross_variance_array(cov, P.getArray(), Q.getArray(), res2, Plines, Pcols, Qlines, Qcols);
     //free(res2);
     //std::cout << std::get<0>(final); //<< " and "<< std::get<1>(final).at(0);
@@ -85,10 +85,10 @@ int main(int argc, char *argv[])
     std::string f1Header{}, f2Header{};
     std::ifstream file1(argv[1]);
     std::ifstream file2(argv[2]);
-    double *m = readCSV(file1, f1Header, &nbaxis, &nbpoints);
+    float *m = readCSV(file1, f1Header, &nbaxis, &nbpoints);
 
     std::cerr << "nbaxis: " << nbaxis << " nbpoints: " << nbpoints << std::endl;
-    double *mean = mean_axises(m, nbaxis, nbpoints);
+    float *mean = mean_axises(m, nbaxis, nbpoints);
     std::cout << "Mean:" << std::endl;
     for (size_t i = 0; i < nbaxis; ++i)
     {
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
     }
     std::cout << std::endl
               << "Transposed:" << std::endl;
-    double *m_T = transpose(m, nbaxis, nbpoints);
+    float *m_T = transpose(m, nbaxis, nbpoints);
     for (size_t i = 0; i < nbpoints; ++i) // normal aligned access printing
     {
         for (size_t j = 0; j < nbaxis; ++j)
@@ -119,8 +119,8 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
     }
     std::cout << "(|[0,0,0] - P[:, 1]|_2)^2 = \t";
-    double fakePoint = 0;
-    double r = element_wise_reduce(&fakePoint, m_T + 3,
+    float fakePoint = 0;
+    float r = element_wise_reduce(&fakePoint, m_T + 3,
                                    1, 1, 1, nbaxis,
                                    squared_norm_2,
                                    add,
@@ -128,8 +128,8 @@ int main(int argc, char *argv[])
     std::cout << r << std::endl;
 
     std::cout << "P[:,1].dot(P[:,0].T) = ";
-    double P1dotP0_T;
-    double *P1dotP0_T_ptr = &P1dotP0_T; //(double *)calloc(1, sizeof(double));
+    float P1dotP0_T;
+    float *P1dotP0_T_ptr = &P1dotP0_T; //(float *)calloc(1, sizeof(float));
     dot_product(&P1dotP0_T_ptr, m_T + nbaxis, m_T, 1, nbaxis, nbaxis, 1);
     std::cout << P1dotP0_T << std::endl;
     //free(P1dotP0_T);

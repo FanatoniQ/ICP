@@ -2,32 +2,32 @@
 
 #include "libalg/basic_operations.hpp"
 
-double squared_norm_2(double a, double b)
+float squared_norm_2(float a, float b)
 {
     return pow((a - b), 2);
 }
 
-double add(double a, double b)
+float add(float a, float b)
 {
     return a + b;
 }
 
-double subtract(double a, double b)
+float subtract(float a, float b)
 {
     return a - b;
 }
 
-double mult(double a, double b)
+float mult(float a, float b)
 {
     return a * b;
 }
 
-double divide(double a, double b)
+float divide(float a, float b)
 {
     return a / b;
 }
 
-double pow2(double a)
+float pow2(float a)
 {
     return pow(a, 2);
 }

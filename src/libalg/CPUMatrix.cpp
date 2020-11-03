@@ -17,13 +17,13 @@
 CPUMatrix::CPUMatrix() : array(nullptr), dim0(0), dim1(0) {}
 
 // no need to free for user
-CPUMatrix::CPUMatrix(double *array, size_t dim0, size_t dim1) : array(array), dim0(dim0), dim1(dim1) {}
+CPUMatrix::CPUMatrix(float *array, size_t dim0, size_t dim1) : array(array), dim0(dim0), dim1(dim1) {}
 
 // no need to free for user
 CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
 {
     //std::cerr << "Alloc !" << std::endl;
-    this->array = (double *)calloc(dim0 * dim1, sizeof(double));
+    this->array = (float *)calloc(dim0 * dim1, sizeof(float));
     if (this->array == nullptr)
         throw std::bad_alloc();
     this->dim0 = dim0;
@@ -46,7 +46,7 @@ CPUMatrix::~CPUMatrix()
 CPUMatrix CPUMatrix::sum(int axis)
 {
     size_t dimr;
-    double *r = NULL;
+    float *r = NULL;
     ::sum_axises(&r, array, dim0, dim1, dimr, axis);
     return CPUMatrix(r, 1, dimr);
 }
@@ -54,7 +54,7 @@ CPUMatrix CPUMatrix::sum(int axis)
 CPUMatrix CPUMatrix::mean(int axis)
 {
     size_t dimr;
-    double *r = NULL;
+    float *r = NULL;
     ::mean_axises(&r, array, dim0, dim1, dimr, axis);
     return CPUMatrix(r, 1, dimr);
 }
@@ -98,14 +98,14 @@ std::ostream &operator<<(std::ostream &os, const CPUMatrix &matrix)
     //return os;
 }
 
-double *CPUMatrix::getArray() const
+float *CPUMatrix::getArray() const
 {
     return array;
 }
 
-double *CPUMatrix::setArray(double *array_, size_t dim0_, size_t dim1_)
+float *CPUMatrix::setArray(float *array_, size_t dim0_, size_t dim1_)
 {
-    double *tmp = CPUMatrix::array;
+    float *tmp = CPUMatrix::array;
     CPUMatrix::array = array_;
     CPUMatrix::dim0 = dim0_;
     CPUMatrix::dim1 = dim1_;
@@ -132,7 +132,7 @@ size_t CPUMatrix::getDim1() const
     unsigned new_cols = rhs.getDim1();
 
     // Allocate before freeing in case of error
-    auto *new_array = (double *)malloc(new_rows * new_cols * sizeof(double));
+    auto *new_array = (float *)malloc(new_rows * new_cols * sizeof(float));
     if (new_array == nullptr)
     {
         throw std::bad_alloc();
@@ -166,11 +166,11 @@ CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
     {
         if (array != nullptr)
             free(array);
-        this->array = (double *)malloc(dim0 * dim1 * sizeof(double));
+        this->array = (float *)malloc(dim0 * dim1 * sizeof(float));
         if (array == nullptr)
             throw std::bad_alloc();
     }
-    memcpy(array, rhs.array, dim0 * dim1 * sizeof(double));
+    memcpy(array, rhs.array, dim0 * dim1 * sizeof(float));
     return *this;
 }
 
@@ -179,7 +179,7 @@ CPUMatrix CPUMatrix::operator+(const CPUMatrix &rhs)
     //CPUMatrix result(dim0, dim1);
     // Add operation on both matrices
     size_t Rdim0, Rdim1;
-    double *r = nullptr;
+    float *r = nullptr;
     element_wise_op(&r, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, Rdim0, Rdim1, add);
     return CPUMatrix(r, Rdim0, Rdim1);
 }
@@ -192,12 +192,12 @@ CPUMatrix &CPUMatrix::operator+=(const CPUMatrix &rhs)
 }
 
 // FIXME be able to set with the operator / Maybe it's actually already the case
-double &CPUMatrix::operator()(const unsigned int &row, const unsigned int &col)
+float &CPUMatrix::operator()(const unsigned int &row, const unsigned int &col)
 {
     return array[row * dim1 + col];
 }
 
-const double &CPUMatrix::operator()(const unsigned int &row, const unsigned int &col) const
+const float &CPUMatrix::operator()(const unsigned int &row, const unsigned int &col) const
 {
     return array[row * dim1 + col];
 }
@@ -207,7 +207,7 @@ CPUMatrix CPUMatrix::operator-(const CPUMatrix &rhs)
     //CPUMatrix result(dim0, dim1);
     // Subtract operation on both matrices
     size_t Rdim0, Rdim1;
-    double *r = nullptr;
+    float *r = nullptr;
     element_wise_op(&r, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, Rdim0, Rdim1, subtract);
     return CPUMatrix(r, Rdim0, Rdim1);
 }
@@ -231,7 +231,7 @@ CPUMatrix CPUMatrix::operator*(const CPUMatrix &rhs)
     //CPUMatrix result(dim0, dim1);
     // Multiply operation on both matrices
     size_t Rdim0, Rdim1;
-    double *r = nullptr;
+    float *r = nullptr;
     element_wise_op(&r, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, Rdim0, Rdim1, mult);
     return CPUMatrix(r, Rdim0, Rdim1);
 }
@@ -251,7 +251,7 @@ CPUMatrix &CPUMatrix::operator*=(const CPUMatrix &rhs)
 CPUMatrix CPUMatrix::operator/(const CPUMatrix &rhs)
 {
     size_t Rdim0, Rdim1;
-    double *r = nullptr;
+    float *r = nullptr;
     element_wise_op(&r, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, Rdim0, Rdim1, divide);
     return CPUMatrix(r, Rdim0, Rdim1);
 }
@@ -262,45 +262,45 @@ CPUMatrix &CPUMatrix::operator/=(const CPUMatrix &rhs)
     return *this;
 }
 
-CPUMatrix CPUMatrix::operator+(const double &rhs)
+CPUMatrix CPUMatrix::operator+(const float &rhs)
 {
     return *this + CPUNumber(rhs);
 }
 
-CPUMatrix CPUMatrix::operator-(const double &rhs)
+CPUMatrix CPUMatrix::operator-(const float &rhs)
 {
     return *this - CPUNumber(rhs);
 }
 
-CPUMatrix CPUMatrix::operator*(const double &rhs)
+CPUMatrix CPUMatrix::operator*(const float &rhs)
 {
     return *this * CPUNumber(rhs);
 }
 
-CPUMatrix CPUMatrix::operator/(const double &rhs)
+CPUMatrix CPUMatrix::operator/(const float &rhs)
 {
     return *this / CPUNumber(rhs);
 }
 
-CPUMatrix &CPUMatrix::operator+=(const double &rhs)
+CPUMatrix &CPUMatrix::operator+=(const float &rhs)
 {
     *this += CPUNumber(rhs);
     return *this;
 }
 
-CPUMatrix &CPUMatrix::operator-=(const double &rhs)
+CPUMatrix &CPUMatrix::operator-=(const float &rhs)
 {
     *this -= CPUNumber(rhs);
     return *this;
 }
 
-CPUMatrix &CPUMatrix::operator*=(const double &rhs)
+CPUMatrix &CPUMatrix::operator*=(const float &rhs)
 {
     *this *= CPUNumber(rhs);
     return *this;
 }
 
-CPUMatrix &CPUMatrix::operator/=(const double &rhs)
+CPUMatrix &CPUMatrix::operator/=(const float &rhs)
 {
     *this /= CPUNumber(rhs);
     return *this;
@@ -309,7 +309,7 @@ CPUMatrix &CPUMatrix::operator/=(const double &rhs)
 // TODO: FIX the low level transpose function
 CPUMatrix CPUMatrix::transpose()
 {
-    double *r = ::transpose(array, dim0, dim1);
+    float *r = ::transpose(array, dim0, dim1);
     /** Which constructor is called here ? **/
     CPUMatrix result;
     result.setArray(r, dim1, dim0);
@@ -325,21 +325,21 @@ CPUView CPUMatrix::getLine(unsigned linenum)
 CPUMatrix CPUMatrix::copyLine(unsigned linenum)
 {
     auto r = CPUMatrix(1, dim1);
-    memcpy(r.array, array + dim1 * linenum, dim1 * sizeof(double));
+    memcpy(r.array, array + dim1 * linenum, dim1 * sizeof(float));
     return r;
 }
 
 CPUMatrix CPUMatrix::squared_norm(int axis)
 {
-    double *r = nullptr;
+    float *r = nullptr;
     size_t dimr;
     reduce_axises(&r, array, dim0, dim1, dimr, axis, pow2, add);
     return CPUMatrix(r, 1, dimr);
 }
 
-double CPUMatrix::euclidianDistance(const CPUMatrix &rhs)
+float CPUMatrix::euclidianDistance(const CPUMatrix &rhs)
 {
-    double norm = element_wise_reduce(array, rhs.array, dim0, dim1, rhs.dim0, rhs.dim1, squared_norm_2, add, add);
+    float norm = element_wise_reduce(array, rhs.array, dim0, dim1, rhs.dim0, rhs.dim1, squared_norm_2, add, add);
     return sqrt(norm);
 }
 
@@ -347,7 +347,7 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
 {
     size_t nbpoints = dim0, nbaxis = dim1;
     int n = nbpoints, m = nbaxis;
-    double *u = nullptr, *sigma = nullptr, *vt = nullptr;
+    float *u = nullptr, *sigma = nullptr, *vt = nullptr;
     int sizes;
     ::svd(array, &u, &sigma, &vt, m, n, &sizes);
     /**
@@ -356,7 +356,7 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
     {
         // Linearize U
         // nbcols=m, nblines=sizes, ld=m
-        //double *U = ::linearize(u, sizes, nbaxis, nbaxis); // u = shape(m,m)
+        //float *U = ::linearize(u, sizes, nbaxis, nbaxis); // u = shape(m,m)
         ///free(u);
         //u = U;
     }
@@ -365,7 +365,7 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
     {
         // Linearize vt
         // vt nbols=sizes, nblines=n, ld=n
-        double *VT = ::linearize(vt, nbpoints, sizes, nbpoints); // vt = shape(n,n)
+        float *VT = ::linearize(vt, nbpoints, sizes, nbpoints); // vt = shape(n,n)
         free(vt);
         vt = VT;
     }

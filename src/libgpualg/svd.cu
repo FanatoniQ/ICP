@@ -6,17 +6,17 @@
 #include <cassert>
 #include <cstdlib>
 
-void printMatrix(int m, int n, const double* A, int lda, const char* name)
+void printMatrix(int m, int n, const float* A, int lda, const char* name)
 {
     for (int row = 0; row < m; row++) {
         for (int col = 0; col < n; col++) {
-            double Areg = A[row + col * lda];
+            float Areg = A[row + col * lda];
             printf("%s(%d,%d) = %f\n", name, row + 1, col + 1, Areg);
         }
     }
 }
 
-void svd_gpu(double* d_A, size_t r_A, size_t c_A, double *d_U, double *d_S, double *d_VT)
+void svd_gpu(float* d_A, size_t r_A, size_t c_A, float *d_U, float *d_S, float *d_VT)
 {
     // Error checking variables
     cusolverDnHandle_t cusolverH = NULL;
@@ -35,28 +35,28 @@ void svd_gpu(double* d_A, size_t r_A, size_t c_A, double *d_U, double *d_S, doub
     const int lda = m;
     /*
     // Return arrays
-    double* U = (double*)malloc(lda * m * sizeof(double));
+    float* U = (float*)malloc(lda * m * sizeof(float));
     if (U == nullptr)
         throw std::bad_alloc();
-    double* VT = (double*)malloc(lda * n * sizeof(double));
+    float* VT = (float*)malloc(lda * n * sizeof(float));
     if (VT == nullptr)
         throw std::bad_alloc();
-    double* S = (double*)malloc(n * sizeof(double));
+    float* S = (float*)malloc(n * sizeof(float));
     if (S == nullptr)
         throw std::bad_alloc();
-    //double U[lda * m]; // m-by-m unitary matrix 
-    //double VT[lda * n];  // n-by-n unitary matrix
-    //double S[n]; // singular value
+    //float U[lda * m]; // m-by-m unitary matrix 
+    //float VT[lda * n];  // n-by-n unitary matrix
+    //float S[n]; // singular value
     */
 
-    //double* d_A = NULL;
-    //double* d_S = NULL;
-    //double* d_U = NULL;
-    //double* d_VT = NULL;
+    //float* d_A = NULL;
+    //float* d_S = NULL;
+    //float* d_U = NULL;
+    //float* d_VT = NULL;
     int* devInfo = NULL;
-    double* d_work = NULL;
-    double* d_rwork = NULL;
-    //double* d_W = NULL;  // W = S*VT
+    float* d_work = NULL;
+    float* d_rwork = NULL;
+    //float* d_W = NULL;  // W = S*VT
 
     int lwork = 0;
     int info_gpu = 0;
@@ -70,10 +70,10 @@ void svd_gpu(double* d_A, size_t r_A, size_t c_A, double *d_U, double *d_S, doub
     assert(CUSOLVER_STATUS_SUCCESS == cusolver_status);
 
     // step 2: copy A and B to device
-    //cudaStat1 = cudaMalloc((void**)&d_A, sizeof(double) * lda * n);
-    //cudaStat2 = cudaMalloc((void**)&d_S, sizeof(double) * n);
-    //cudaStat3 = cudaMalloc((void**)&d_U, sizeof(double) * lda * m);
-    //cudaStat4 = cudaMalloc((void**)&d_VT, sizeof(double) * lda * n);
+    //cudaStat1 = cudaMalloc((void**)&d_A, sizeof(float) * lda * n);
+    //cudaStat2 = cudaMalloc((void**)&d_S, sizeof(float) * n);
+    //cudaStat3 = cudaMalloc((void**)&d_U, sizeof(float) * lda * m);
+    //cudaStat4 = cudaMalloc((void**)&d_VT, sizeof(float) * lda * n);
     cudaStat5 = cudaMalloc((void**)&devInfo, sizeof(int));
 
     assert(cudaSuccess == cudaStat1);
@@ -83,7 +83,7 @@ void svd_gpu(double* d_A, size_t r_A, size_t c_A, double *d_U, double *d_S, doub
     assert(cudaSuccess == cudaStat5);
     assert(cudaSuccess == cudaStat6);
 
-    //cudaStat1 = cudaMemcpy(d_A, A, sizeof(double) * lda * n, cudaMemcpyHostToDevice);
+    //cudaStat1 = cudaMemcpy(d_A, A, sizeof(float) * lda * n, cudaMemcpyHostToDevice);
     assert(cudaSuccess == cudaStat1);
 
     // step 3: query working space of SVD
@@ -94,7 +94,7 @@ void svd_gpu(double* d_A, size_t r_A, size_t c_A, double *d_U, double *d_S, doub
         &lwork);
     assert(cusolver_status == CUSOLVER_STATUS_SUCCESS);
 
-    cudaStat1 = cudaMalloc((void**)&d_work, sizeof(double) * lwork);
+    cudaStat1 = cudaMalloc((void**)&d_work, sizeof(float) * lwork);
     assert(cudaSuccess == cudaStat1);
 
     // step 4: compute SVD
@@ -122,9 +122,9 @@ void svd_gpu(double* d_A, size_t r_A, size_t c_A, double *d_U, double *d_S, doub
     assert(cudaSuccess == cudaStat1);
 
 
-    //cudaStat1 = cudaMemcpy(U, d_U, sizeof(double) * lda * m, cudaMemcpyDeviceToHost);
-    //cudaStat2 = cudaMemcpy(VT, d_VT, sizeof(double) * lda * n, cudaMemcpyDeviceToHost);
-    //cudaStat3 = cudaMemcpy(S, d_S, sizeof(double) * n, cudaMemcpyDeviceToHost);
+    //cudaStat1 = cudaMemcpy(U, d_U, sizeof(float) * lda * m, cudaMemcpyDeviceToHost);
+    //cudaStat2 = cudaMemcpy(VT, d_VT, sizeof(float) * lda * n, cudaMemcpyDeviceToHost);
+    //cudaStat3 = cudaMemcpy(S, d_S, sizeof(float) * n, cudaMemcpyDeviceToHost);
     cudaStat4 = cudaMemcpy(&info_gpu, devInfo, sizeof(int), cudaMemcpyDeviceToHost);
     assert(cudaSuccess == cudaStat1);
     assert(cudaSuccess == cudaStat2);

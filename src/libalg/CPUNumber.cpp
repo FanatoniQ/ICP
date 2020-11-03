@@ -1,6 +1,6 @@
 #include "libalg/CPUNumber.hpp"
 
-CPUNumber::CPUNumber(double value)
+CPUNumber::CPUNumber(float value)
 {
     this->value = value;
     this->array = &this->value;

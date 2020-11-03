@@ -1,17 +1,17 @@
 #pragma once
 
 //inline
-double squared_norm_2(double a, double b);
+float squared_norm_2(float a, float b);
 
 //inline
-double add(double a, double b);
+float add(float a, float b);
 
 //inline
-double subtract(double a, double b);
+float subtract(float a, float b);
 
 //inline
-double mult(double a, double b);
+float mult(float a, float b);
 
-double divide(double a, double b);
+float divide(float a, float b);
 
-double pow2(double a);
+float pow2(float a);

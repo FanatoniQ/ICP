@@ -11,7 +11,7 @@
 
 //gpu-icp-dist-matrix
 
-__global__ void get_distances_kernel(const double *d_P, const double *d_Q, ICPCorresp *d_dist,
+__global__ void get_distances_kernel(const float *d_P, const float *d_Q, ICPCorresp *d_dist,
     size_t p_0, size_t p_1, size_t p_pitch,
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t dist_0, size_t dist_1, size_t dist_pitch)
@@ -22,10 +22,10 @@ __global__ void get_distances_kernel(const double *d_P, const double *d_Q, ICPCo
     if (colid >= dist_1 || lineid >= dist_0) {
         return;
     }
-    double *d_Pline = (double *)((char*)d_P + lineid * p_pitch);
-    double *d_Qline = (double *)((char*)d_Q + colid * q_pitch);
-    double dist = 0;
-    double tmp;
+    float *d_Pline = (float *)((char*)d_P + lineid * p_pitch);
+    float *d_Qline = (float *)((char*)d_Q + colid * q_pitch);
+    float dist = 0;
+    float tmp;
     // TODO: for higher dimensions than 3, we can improve this by making each thread compute just one subtract^2
     // then reduce sum
     /**
@@ -48,7 +48,7 @@ __global__ void get_distances_kernel(const double *d_P, const double *d_Q, ICPCo
     d_distLine[colid] = { dist, colid }; //{ sqrt(dist), colid };
 }
 
-__host__ void get_distances(const double *d_P, const double *d_Q, ICPCorresp **d_dist,
+__host__ void get_distances(const float *d_P, const float *d_Q, ICPCorresp **d_dist,
     size_t p_0, size_t p_1, size_t p_pitch,
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t dist_0, size_t dist_1, size_t *dist_pitch, bool sync)

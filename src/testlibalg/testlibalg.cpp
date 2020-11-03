@@ -23,9 +23,9 @@ int test_norm(char *file1, char *file2)
     size_t Pdim0, Pdim1;
     size_t Qdim0, Qdim1;
     std::string h{};
-    double *Parray = readCSV(file1, h, Pdim0, Pdim1);
-    double *Qarray = readCSV(file2, h, Qdim0, Qdim1);
-    double dist = element_wise_reduce(Parray, Qarray, Pdim0, Pdim1, Qdim0, Qdim1, squared_norm_2, add, add);
+    float *Parray = readCSV(file1, h, Pdim0, Pdim1);
+    float *Qarray = readCSV(file2, h, Qdim0, Qdim1);
+    float dist = element_wise_reduce(Parray, Qarray, Pdim0, Pdim1, Qdim0, Qdim1, squared_norm_2, add, add);
     std::cout << sqrt(dist) << std::endl;
     free(Parray);
     free(Qarray);
@@ -36,7 +36,7 @@ int test_svd(char *file)
 {
     size_t nbaxis, nbpoints;
     std::string h{};
-    double *a = readCSV(file, h, nbpoints, nbaxis);
+    float *a = readCSV(file, h, nbpoints, nbaxis);
     /** This needs a fix !
     auto R = CPUMatrix(a, nbpoints, nbaxis).svd();
     std::cerr << std::get<0>(R) << std::endl;
@@ -45,7 +45,7 @@ int test_svd(char *file)
     std::cerr << (std::get<0>(R) * std::get<1>(R)).dot(std::get<2>(R)) << std::endl;
     **/
     int n = nbpoints, m = nbaxis;
-    double *u = NULL, *sigma = NULL, *vt = NULL;
+    float *u = NULL, *sigma = NULL, *vt = NULL;
     int sizes;
     svd(a, &u, &sigma, &vt, m, n, &sizes);
 
@@ -71,8 +71,8 @@ int test_sum(char *file, int axis)
     size_t dim0, dim1;
     std::string f1Header{};
 
-    double *m = readCSV(file, f1Header, dim0, dim1);
-    double *mean = nullptr;
+    float *m = readCSV(file, f1Header, dim0, dim1);
+    float *mean = nullptr;
     size_t dimr;
     sum_axises(&mean, m, dim0, dim1, dimr, axis);
     std::cerr << "nbaxis: " << dim1 << " nbpoints: " << dim0 << std::endl;
@@ -88,8 +88,8 @@ int test_mean(char *file, int axis)
     size_t dim0, dim1;
     std::string f1Header{};
 
-    double *m = readCSV(file, f1Header, dim0, dim1);
-    double *mean = nullptr;
+    float *m = readCSV(file, f1Header, dim0, dim1);
+    float *mean = nullptr;
     size_t dimr;
     mean_axises(&mean, m, dim0, dim1, dimr, axis);
     std::cerr << "nbaxis: " << dim1 << " nbpoints: " << dim0 << std::endl;
@@ -100,16 +100,16 @@ int test_mean(char *file, int axis)
     return EXIT_SUCCESS;
 }
 
-int test_op(char *file1, char *file2, double (*op)(double a, double b))
+int test_op(char *file1, char *file2, float (*op)(float a, float b))
 {
     size_t Pdim0, Pdim1;
     size_t Qdim0, Qdim1;
     size_t Rdim0, Rdim1;
     std::string h{};
-    double *Parray = readCSV(file1, h, Pdim0, Pdim1);
-    double *Qarray = readCSV(file2, h, Qdim0, Qdim1);
+    float *Parray = readCSV(file1, h, Pdim0, Pdim1);
+    float *Qarray = readCSV(file2, h, Qdim0, Qdim1);
 
-    double *r = nullptr;
+    float *r = nullptr;
     element_wise_op(&r, Parray, Qarray, Pdim0, Pdim1, Qdim0, Qdim1, Rdim0, Rdim1, op);
     print_matrix(std::cout, r, Rdim1, Rdim0);
 
@@ -123,8 +123,8 @@ int test_transpose(char *file1)
 {
     size_t Pdim0, Pdim1;
     std::string h{};
-    double *Parray = readCSV(file1, h, Pdim0, Pdim1);
-    double *P_Tarray = transpose(Parray, Pdim0, Pdim1);
+    float *Parray = readCSV(file1, h, Pdim0, Pdim1);
+    float *P_Tarray = transpose(Parray, Pdim0, Pdim1);
     print_matrix(std::cout, P_Tarray, Pdim0, Pdim1);
     free(Parray);
     free(P_Tarray);
@@ -136,8 +136,8 @@ int test_dotproduct(char *file1, char *file2)
     size_t Pdim0, Pdim1;
     size_t Qdim0, Qdim1;
     std::string h{};
-    double *Parray = readCSV(file1, h, Pdim0, Pdim1);
-    double *Qarray = readCSV(file2, h, Qdim0, Qdim1);
+    float *Parray = readCSV(file1, h, Pdim0, Pdim1);
+    float *Qarray = readCSV(file2, h, Qdim0, Qdim1);
 
     auto P = CPUMatrix(Parray, Pdim0, Pdim1);
     auto Q = CPUMatrix(Qarray, Qdim0, Qdim1);
@@ -153,10 +153,10 @@ int test_dotproduct(char *file1, char *file2)
     std::string f1Header{}, f2Header{};
     std::ifstream file1(argv[1]);
     std::ifstream file2(argv[2]);
-    double *m = readCSV(file1, f1Header, &nbaxis, &nbpoints);
-    double *m_T = transpose(m, nbaxis, nbpoints);
-    double *n = readCSV(file2, f2Header, &nbaxis, &nbpoints);
-    double *r = NULL;
+    float *m = readCSV(file1, f1Header, &nbaxis, &nbpoints);
+    float *m_T = transpose(m, nbaxis, nbpoints);
+    float *n = readCSV(file2, f2Header, &nbaxis, &nbpoints);
+    float *r = NULL;
     dot_product(&r, m_T, n, nbpoints, nbaxis, nbaxis, nbpoints);
     print_matrix(std::cout, r, nbpoints, nbpoints);
     free(m);

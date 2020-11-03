@@ -18,9 +18,9 @@ int main(int argc, char *argv[])
     std::cout << std::setprecision(15);
     size_t nbaxis, nbpoints;
     std::string f1Header{};
-    double *m = readCSV(argv[1], f1Header, nbpoints, nbaxis);
+    float *m = readCSV(argv[1], f1Header, nbpoints, nbaxis);
     //size_t nbaxis1, nbpoints1;
-    //double *m1 = readCSV(argv[2], f1Header, nbpoints1, nbaxis1);
+    //float *m1 = readCSV(argv[2], f1Header, nbpoints1, nbaxis1);
     auto P = CPUMatrix(m, nbpoints, nbaxis); // * 2;
     //P = P + CPUMatrix(m1, nbpoints1, nbaxis1);
     //P = P * 2;

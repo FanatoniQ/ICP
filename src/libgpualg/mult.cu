@@ -4,18 +4,18 @@
 
 #define Tile_size 2
 
-__global__ void matrixMultiplyShared(double* A, double* B, double* C,
+__global__ void matrixMultiplyShared(float* A, float* B, float* C,
     int matARows, int matAColumns,
     int matBRows, int matBColumns,
     int matCRows, int matCColumns)
 {
     // Tile size to store elements in shared memory
-    __shared__ double sA[Tile_size][Tile_size]; 
-    __shared__ double sB[Tile_size][Tile_size];
+    __shared__ float sA[Tile_size][Tile_size]; 
+    __shared__ float sB[Tile_size][Tile_size];
 
     int Row = blockDim.y * blockIdx.y + threadIdx.y; //To generate ids of threads.
     int Col = blockDim.x * blockIdx.x + threadIdx.x;
-    double Cvalue = 0.0;
+    float Cvalue = 0.0;
     sA[threadIdx.y][threadIdx.x] = 0.0;
     sB[threadIdx.y][threadIdx.x] = 0.0;
 
@@ -52,7 +52,7 @@ __global__ void matrixMultiplyShared(double* A, double* B, double* C,
     }
 }
 
-void matrixMultiplication(double* A, double* B, double* C, 
+void matrixMultiplication(float* A, float* B, float* C, 
     int numARows, int numAColumns,
     int numBRows, int numBColumns,
     int numCRows, int numCColumns) {

@@ -12,4 +12,4 @@
 * S (n)
 * VT (m * n)
 **/
-void svd_gpu(double* d_A, size_t r_A, size_t c_A, double* d_U, double* d_S, double* d_VT);
+void svd_gpu(float* d_A, size_t r_A, size_t c_A, float* d_U, float* d_S, float* d_VT);

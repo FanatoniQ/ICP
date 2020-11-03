@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     runtime_assert(argc == 2, "Usage: ./testlibalgcsvprint file1");
     size_t nbaxis, nbpoints;
     std::string f1Header{};
-    double *m = readCSV(argv[1], f1Header, nbpoints, nbaxis);
+    float *m = readCSV(argv[1], f1Header, nbpoints, nbaxis);
 
     std::cerr << "nbaxis: " << nbaxis << " nbpoints: " << nbpoints << std::endl;
     print_matrix(std::cout, m, nbaxis, nbpoints);

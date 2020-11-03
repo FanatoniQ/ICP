@@ -17,10 +17,10 @@
  **
  ** \return res the parsed converted to C-style array transposed vector of vector
  **/
-double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoints);
+float *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoints);
 
 /**
- ** \brief readCSV C method to return the non transposed double array parsed from
+ ** \brief readCSV C method to return the non transposed float array parsed from
  ** the given CSV file
  **
  ** \param path csv file to be opened for reading
@@ -30,4 +30,4 @@ double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoin
  **
  ** \return r the (nblines x nbcols) shaped array
  **/
-double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcols);
+float *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcols);

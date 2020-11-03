@@ -8,8 +8,8 @@
 class CPUView : public CPUMatrix
 {
 public:
-    CPUView(double *array, size_t dim0, size_t dim1) = delete;
+    CPUView(float *array, size_t dim0, size_t dim1) = delete;
     CPUView(size_t dim0, size_t dim1) = delete;
-    CPUView(double *array, size_t dim1);
+    CPUView(float *array, size_t dim1);
     ~CPUView();
 };

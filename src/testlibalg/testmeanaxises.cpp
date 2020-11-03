@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
     size_t Pdim0, Pdim1;
     size_t Qdim0, Qdim1;
     std::string h{};
-    double *array = readCSV(argv[1], h, Pdim0, Pdim1);
-    double *Qarray = readCSV(argv[2], h, Qdim0, Qdim1);
+    float *array = readCSV(argv[1], h, Pdim0, Pdim1);
+    float *Qarray = readCSV(argv[2], h, Qdim0, Qdim1);
     auto P = CPUMatrix{array, Pdim0, Pdim1};
     auto Q = CPUMatrix{Qarray, Qdim0, Qdim1};
 

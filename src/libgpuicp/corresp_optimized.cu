@@ -16,7 +16,7 @@
  ** which loops if more than 1024 points in q. ICPCorresp structure is used for storing dist,idq, this kernel min reduces
  ** in place this array and repeats the process
  ** we launch with gridsize.x == p_0, gridsize.y == 1; blocksize.x == 1024, blocksize.y == 1
- ** <<<dim3(p_0,1), dim3(1024,1), sizeof(ICPCorresp) * 1024 + sizeof(ICPCorresp) + 3 * sizeof(double)>>>
+ ** <<<dim3(p_0,1), dim3(1024,1), sizeof(ICPCorresp) * 1024 + sizeof(ICPCorresp) + 3 * sizeof(float)>>>
  ** \note C.C. >=3.0 => maximum 2^31 - 1 blocks on x dimension and 65535 on y and z
  ** \note blockIdx.x is used as P index
  ** \note threadIdx.x is not related to blockIdx.x, it is a threadid used for Q index
@@ -24,23 +24,23 @@
  ** \note we do multiple iterations with nbiters since we want to share the data between threads
  **/
 __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array_correspondances,
-    const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col,
+    const float *d_P, const float *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col,
     unsigned int nbiters)
 {
     assert(P_col == Q_col && P_col == 3);
-    //extern __shared__ double s_data[]; // first 3 * sizeof(double) bytes are used to store p_point[0,1,2], then we have 1025 ICPCorresps
-    extern __shared__ double s_corresp[];
+    //extern __shared__ float s_data[]; // first 3 * sizeof(float) bytes are used to store p_point[0,1,2], then we have 1025 ICPCorresps
+    extern __shared__ float s_corresp[];
     
-    double *s_dists = s_corresp;
+    float *s_dists = s_corresp;
     unsigned int *s_ids = (unsigned int *)(s_dists + blockDim.x);
-    double *s_min_dist = (double *)(s_ids + blockDim.x);
+    float *s_min_dist = (float *)(s_ids + blockDim.x);
     unsigned int *s_min_id = (unsigned int *)(s_min_dist + 1);
 
     unsigned int qid = threadIdx.x; //blockIdx.x * blockDim.x + threadIdx.x;
     unsigned int pid = blockIdx.x; // * blockDim.x + threadIdx.y; // blockDim.y == 1 and blockDim.x == 1024
-    double dist, tmp;
-    const double *q_point;
-    const double *p_point = d_P + pid * P_col;
+    float dist, tmp;
+    const float *q_point;
+    const float *p_point = d_P + pid * P_col;
     unsigned int iter = 0;
     if (qid == 0)
     {
@@ -106,7 +106,7 @@ s_ids[threadIdx.x] = s_ids[threadIdx.x + stride];
         d_array_correspondances[pid] = s_min_id[0];//.id;
 }
 
-__host__ void get_array_correspondences_optimized(unsigned int* d_array_correspondances, const double *d_P, const double *d_Q,
+__host__ void get_array_correspondences_optimized(unsigned int* d_array_correspondances, const float *d_P, const float *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     dim3 gridsize(P_row,1);
@@ -129,22 +129,22 @@ __host__ void get_array_correspondences_optimized(unsigned int* d_array_correspo
  ** in place this array and repeats the process
  ** we launch with gridsize.x == nbblocksPerLine, gridsize.y == p_0; blocksize.x == 1024, blocksize.y == 1
  ** nbblocksPerLine == std::ceil((float)q_0 / blocksize.x)
- ** <<<dim3(nbblocksPerLine,p_0), dim3(1024,1), sizeof(ICPCorresp) * 1024 + 3 * sizeof(double)>>>
+ ** <<<dim3(nbblocksPerLine,p_0), dim3(1024,1), sizeof(ICPCorresp) * 1024 + 3 * sizeof(float)>>>
  ** \note C.C. >=3.0 => maximum 2^31 - 1 blocks on x dimension and 65535 on y and z, maybe swap gridsize.y usage
  ** \note x axis is used as Q index
  ** \note gridsize.y == p_0
  **/
 __global__ void get_array_correspondences_optimized_one_iter_kernel(ICPCorresp *d_dists, unsigned int dist_1,
-const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
+const float *d_P, const float *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     assert(P_col == Q_col && P_col == 3);
-    extern __shared__ double s_dists[];
+    extern __shared__ float s_dists[];
     unsigned int *s_ids = (unsigned int *)(s_dists + blockDim.x); // we could use short unsigned int
     unsigned int qid = blockIdx.x * blockDim.x + threadIdx.x; // each x represent a Q point
     unsigned int pid = blockIdx.y; // gridsize.y is the number of points in P
-    double dist, tmp;
-    const double *q_point;
-    const double *p_point = d_P + pid * P_col;
+    float dist, tmp;
+    const float *q_point;
+    const float *p_point = d_P + pid * P_col;
     if (qid >= Q_row) {
         //s_corresp[threadIdx.x] = { DBL_MAX, 0 };
 	s_dists[threadIdx.x] = DBL_MAX;
@@ -195,7 +195,7 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
 __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_correspondances, ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1)
 {
-    extern __shared__ double s_reducedists[]; // s_data is of size blockDim.x
+    extern __shared__ float s_reducedists[]; // s_data is of size blockDim.x
     unsigned int *s_reduceids = (unsigned int *)(s_reducedists + blockDim.x);
     unsigned int threadid = threadIdx.x; // thread id in the block
     unsigned int lineid = blockIdx.y; // line
@@ -231,7 +231,7 @@ __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_c
 }
 
 __host__ void get_array_correspondences_optimized_one_iter(unsigned int *d_array_correspondances,
-    ICPCorresp **d_dist, unsigned int *dist_1, const double *d_P, const double *d_Q,
+    ICPCorresp **d_dist, unsigned int *dist_1, const float *d_P, const float *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     dim3 blocksize(1024,1); // FIXME: changing this from 1024 to 4 got rid of cross_cov mem access error

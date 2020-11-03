@@ -4,7 +4,7 @@
  ** \brief svd computes the singular value decomposition using lapack lib
  ** a = u * sigma * vt where vt is transpose(v)
  ** taken from lapack DGESVD documentation:
- ** http://www.netlib.org/lapack/explore-html/d1/d7e/group__double_g_esing_ga84fdf22a62b12ff364621e4713ce02f2.html
+ ** http://www.netlib.org/lapack/explore-html/d1/d7e/group__float_g_esing_ga84fdf22a62b12ff364621e4713ce02f2.html
  ** 
  ** \note u, sigma and vt are allocated if null pointers
  **
@@ -16,7 +16,7 @@
  ** \param n the number of lines in a 
  ** \param size_s the shape of sigma (min(n,m))
  **/
-void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int *size_s);
+void svd(float *a, float **u, float **sigma, float **vt, int m, int n, int *size_s);
 
 /**
  ** \brief linearize the array a (in case of padding: lda != m)
@@ -28,4 +28,4 @@ void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int *
  **
  ** \return r the resulting no padding matrix
  **/
-double *linearize(const double *a, int n, int m, int lda);
+float *linearize(const float *a, int n, int m, int lda);

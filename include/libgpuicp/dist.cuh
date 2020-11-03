@@ -13,7 +13,7 @@
  ** - p_1 == q_1
  ** pitches are IN bytes
  **/
- __global__ void get_distances_kernel(const double *d_P, const double *d_Q, ICPCorresp *d_dist,
+ __global__ void get_distances_kernel(const float *d_P, const float *d_Q, ICPCorresp *d_dist,
     size_t p_0, size_t p_1, size_t p_pitch,
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t dist_0, size_t dist_1, size_t dist_pitch);
@@ -35,7 +35,7 @@
  ** \param dist_pitch pointer to the pitch of d_dist IN bytes
  ** \param sync wether to wait for kernel or not
  **/
-__host__ void get_distances(const double *d_P, const double *d_Q, ICPCorresp **d_dist,
+__host__ void get_distances(const float *d_P, const float *d_Q, ICPCorresp **d_dist,
     size_t p_0, size_t p_1, size_t p_pitch,
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t dist_0, size_t dist_1, size_t *dist_pitch, bool sync);

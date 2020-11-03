@@ -29,7 +29,7 @@
  ** \param dist_1 number of columns in d_dist (must be == q_0)
  ** \param dist_pitch pointer to the pitch of d_dist IN bytes
  **/
- __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, double *d_R, const ICPCorresp *d_dist,
+ __global__ void get_cross_cov_kernel(const float *d_P, const float *d_Q, float *d_R, const ICPCorresp *d_dist,
     size_t p_0, size_t p_1, size_t p_pitch,
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t r_0, size_t r_1, size_t r_pitch,
@@ -57,7 +57,7 @@
  ** \param dist_pitch pointer to the pitch of d_dist IN bytes
  ** \param sync wether to wait
  **/
-__host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, const ICPCorresp *d_dist,
+__host__ void get_cross_cov(const float *d_P, const float *d_Q, float **d_R, const ICPCorresp *d_dist,
     size_t p_0, size_t p_1, size_t p_pitch,
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t r_0, size_t r_1, size_t *r_pitch,
@@ -67,20 +67,20 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
  ** \brief increment_cov, increment the cov by dotproduct of d_pline and d_qline
  ** 
  **/
-__device__ void increment_cov(double *d_cov, double *d_pline, double *d_qline);
+__device__ void increment_cov(float *d_cov, float *d_pline, float *d_qline);
 
 /**
  ** \brief get_array_cross_cov_kernel return cov of d_P and d_Q
  **
  **/
-__global__ void get_array_cross_cov_kernel(double *cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+__global__ void get_array_cross_cov_kernel(float *cov, unsigned int* d_array_correspondances, float *d_P, float *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
 
 /**
  ** \brief get_array_cross_cov wrapper around get_array_cross_cov_kernel
  **
  **/
-__host__ void get_array_cross_cov(double* cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+__host__ void get_array_cross_cov(float* cov, unsigned int* d_array_correspondances, float *d_P, float *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
 
 /**
@@ -102,14 +102,14 @@ __host__ void get_array_cross_cov(double* cov, unsigned int* d_array_corresponda
  ** \param q_pitch pitch IN bytes of d_Q matrix
  **/
 __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_array_correspondances,
-    double *d_R, unsigned int r_0, unsigned int r_1, size_t r_pitch,
-    const double *d_P, unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
-    const double *d_Q, unsigned int q_0, unsigned int q_1, unsigned int q_pitch);
+    float *d_R, unsigned int r_0, unsigned int r_1, size_t r_pitch,
+    const float *d_P, unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
+    const float *d_Q, unsigned int q_0, unsigned int q_1, unsigned int q_pitch);
 
 /**
  ** \brief get_array_cross_covs_flattened wrapper around get_array_cross_covs_flattened_kernel
  **/
-__host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_Q, double **d_R, const unsigned int* d_array_correspondances,
+__host__ void get_array_cross_covs_flattened(const float *d_P, const float *d_Q, float **d_R, const unsigned int* d_array_correspondances,
     unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
     unsigned int q_0, unsigned int q_1, unsigned int q_pitch,
     unsigned int r_0, unsigned int r_1, size_t *r_pitch,

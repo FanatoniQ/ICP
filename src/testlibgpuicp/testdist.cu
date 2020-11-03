@@ -28,9 +28,9 @@ int main(int argc, char **argv)
 {
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
-    double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    float *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
     CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
-    double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
+    float *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
 
     ICPCorresp *h_ref_dist = (ICPCorresp *)malloc(Plines * Qlines * sizeof(ICPCorresp));
@@ -46,21 +46,21 @@ int main(int argc, char **argv)
     }
 
     // device P matrix
-    size_t p_pitch = Pcols * sizeof(double);
-    double *d_P;
-    //cudaMallocPitch((void **)&d_P, &p_pitch, Pcols * sizeof(double), Plines);
+    size_t p_pitch = Pcols * sizeof(float);
+    float *d_P;
+    //cudaMallocPitch((void **)&d_P, &p_pitch, Pcols * sizeof(float), Plines);
     cudaMalloc((void**)&d_P, Plines * p_pitch);
     cudaCheckError();
-    cudaMemcpy2D(d_P, p_pitch, Pt, Pcols * sizeof(double), Pcols * sizeof(double), Plines, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_P, p_pitch, Pt, Pcols * sizeof(float), Pcols * sizeof(float), Plines, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     // device Q matrix
-    size_t q_pitch = Qcols * sizeof(double);
-    double *d_Q;
-    //cudaMallocPitch((void **)&d_Q, &q_pitch, Qcols * sizeof(double), Qlines);
+    size_t q_pitch = Qcols * sizeof(float);
+    float *d_Q;
+    //cudaMallocPitch((void **)&d_Q, &q_pitch, Qcols * sizeof(float), Qlines);
     cudaMalloc((void**)&d_Q, Qlines * q_pitch);
     cudaCheckError();
-    cudaMemcpy2D(d_Q, q_pitch, Qt, Qcols * sizeof(double), Qcols * sizeof(double), Qlines, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_Q, q_pitch, Qt, Qcols * sizeof(float), Qcols * sizeof(float), Qlines, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     // device dist matrix
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     cudaMemcpy2D(h_dist, Qlines * sizeof(ICPCorresp), d_dist, dist_pitch, Qlines * sizeof(ICPCorresp), Plines, cudaMemcpyDeviceToHost);
     cudaCheckError();
 
-    double ttlerror = 0;
+    float ttlerror = 0;
     for (size_t i = 0; i < Plines; ++i)
     {
          for (size_t j = 0; j < Qlines; ++j)
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 		     std::cerr << "FATAL ID ERROR !" << std::endl;
 		     return EXIT_FAILURE;
 	     }
-	     double err = std::fabs(h_dist[i * Qlines + j].dist - h_ref_dist[i * Qlines + j].dist);
+	     float err = std::fabs(h_dist[i * Qlines + j].dist - h_ref_dist[i * Qlines + j].dist);
 	     ttlerror += err;
              std::cerr << err << "\t";
              //if (memcmp(&h_dist[i * Qlines + j], &h_ref_dist[i * Qlines + j], sizeof(ICPCorresp)) != 0)

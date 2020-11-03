@@ -2,14 +2,14 @@
 
 typedef struct // __align__(16)
 {
-    double dist;
+    float dist;
     unsigned int id;
     //float padding;
 } ICPCorresp;
 
 /**
  ** \brief get_correspondences_kernel is a destructive in-place min distance axis=1 reduction kernel
- ** it should be called with <<<gridsize, blocksize, blockdim.x * sizeof(double)>>>
+ ** it should be called with <<<gridsize, blocksize, blockdim.x * sizeof(float)>>>
  ** must be called with gridsize.y = dist_0, since this is an inplace destructive operation
  ** blocksize.x * gridsize.x >= dist_1 and blocksize.y == 1. blocksize.x must be a power of 2, 1024 is a good choice
  ** each block treats a line min reduction using shared memory and stores the result at its line start
@@ -47,7 +47,7 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
  ** \param Q_row the number of rows in Q
  ** \param Q_col the number of columns in Q
  **/
-__host__ void get_array_correspondences(unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+__host__ void get_array_correspondences(unsigned int* d_array_correspondances, float *d_P, float *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
 
 
@@ -62,4 +62,4 @@ __host__ void get_array_correspondences(unsigned int* d_array_correspondances, d
  ** \param Q_row the number of rows in Q
  ** \param Q_col the number of columns in Q
  **/
-__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
+__global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, float *d_P, float *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);

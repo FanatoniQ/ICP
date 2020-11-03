@@ -34,16 +34,16 @@ size_t get_id_reduce_flattened(size_t i, size_t j, size_t dim0, size_t dim1)
     return 0;
 }
 
-double *mean_axises(double *m, size_t dim0, size_t dim1, int axis)
+float *mean_axises(float *m, size_t dim0, size_t dim1, int axis)
 {
-    double *r = nullptr;
+    float *r = nullptr;
     size_t dimr;
     mean_axises(&r, m, dim0, dim1, dimr, axis);
     return r;
 }
 
-void reduce_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis,
-                   double (*op)(double a), double (*rop)(double a, double b))
+void reduce_axises(float **r, float *m, size_t dim0, size_t dim1, size_t &dimr, int axis,
+                   float (*op)(float a), float (*rop)(float a, float b))
 {
     size_t i, j, id;
     size_t (*get_id_reduce)(size_t i, size_t j, size_t dim0, size_t dim1) = NULL;
@@ -66,7 +66,7 @@ void reduce_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr
         runtime_failure("Invalid dimension !");
     if (*r == nullptr)
     {
-        *r = (double *)calloc(dimr, sizeof(double));
+        *r = (float *)calloc(dimr, sizeof(float));
         runtime_assert(*r != nullptr, "Alloc error !");
     }
     for (i = 0; i < dim0; ++i)
@@ -79,7 +79,7 @@ void reduce_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr
     }
 }
 
-void sum_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis)
+void sum_axises(float **r, float *m, size_t dim0, size_t dim1, size_t &dimr, int axis)
 {
     size_t i, j;
     size_t (*get_id_reduce)(size_t i, size_t j, size_t dim0, size_t dim1) = NULL;
@@ -102,7 +102,7 @@ void sum_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, i
         runtime_failure("Invalid dimension !");
     if (*r == nullptr)
     {
-        *r = (double *)calloc(dimr, sizeof(double));
+        *r = (float *)calloc(dimr, sizeof(float));
         runtime_assert(*r != nullptr, "Alloc error !");
     }
     for (i = 0; i < dim0; ++i)
@@ -114,7 +114,7 @@ void sum_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, i
     }
 }
 
-void mean_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis)
+void mean_axises(float **r, float *m, size_t dim0, size_t dim1, size_t &dimr, int axis)
 {
     sum_axises(r, m, dim0, dim1, dimr, axis);
     size_t i;

@@ -29,10 +29,10 @@ __global__ void print_matrix_kernel(char *d_A, int pitch, int nbvals)
 {
     int j;
     int idx = threadIdx.x;
-    double *line = (double*)(d_A + idx * pitch);
+    float *line = (float*)(d_A + idx * pitch);
     printf("Line %d:\n", idx);
     for (j = 0; j < nbvals; ++j) {
-        //printf("%6.2f\t", (double)(d_A[idx * pitch + j * sizeof(double)]));
+        //printf("%6.2f\t", (float)(d_A[idx * pitch + j * sizeof(float)]));
         printf("%6.2f\t", line[j]);
 	__syncthreads();
     }
@@ -46,12 +46,12 @@ std::vector<std::tuple<size_t, int>> get_correspondence_indices(CPUMatrix &P, CP
     for (size_t i = 0; i < P.getDim0(); i++)
     {
         auto p_point = P.getLine(i);
-        double min_dist = std::numeric_limits<double>::max();
+        float min_dist = std::numeric_limits<float>::max();
         int chosen_idx = -1;
         for (size_t j = 0; j < Q.getDim0(); j++)
         {
             auto q_point = Q.getLine(j);
-            double dist = std::sqrt(p_point.euclidianDistance(q_point));
+            float dist = std::sqrt(p_point.euclidianDistance(q_point));
             if (dist < min_dist)
             {
                 min_dist = dist;
@@ -63,33 +63,33 @@ std::vector<std::tuple<size_t, int>> get_correspondence_indices(CPUMatrix &P, CP
     return correspondances;
 }
 
-double default_kernel(CPUMatrix a)
+float default_kernel(CPUMatrix a)
 {
     UNUSED(a);
     return 1;
 }
 
-double default_kernel(double a)
+float default_kernel(float a)
 {
     UNUSED(a);
     return 1;
 }
 
 // Implementation with CPUMAtrix
-std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, CPUMatrix &Q,
-                                                                  const std::vector<std::tuple<size_t, int>> &correspondences, double (*kernel)(CPUMatrix a))
+std::tuple<CPUMatrix, std::vector<float>> compute_cross_variance(CPUMatrix &P, CPUMatrix &Q,
+                                                                  const std::vector<std::tuple<size_t, int>> &correspondences, float (*kernel)(CPUMatrix a))
 {
     if (kernel == nullptr)
         kernel = &default_kernel;
     CPUMatrix cov = CPUMatrix(P.getDim1(), P.getDim1());
-    std::vector<double> exclude_indices = {};
+    std::vector<float> exclude_indices = {};
     for (auto tup : correspondences)
     {
         auto i = std::get<0>(tup);
         auto j = std::get<1>(tup);
         CPUView q_point = Q.getLine(j);
         CPUView p_point = P.getLine(i);
-        double weight = kernel(p_point - q_point);
+        float weight = kernel(p_point - q_point);
 
         if (weight < 0.01)
             exclude_indices.push_back(i);
@@ -108,10 +108,10 @@ int main(int argc, char **argv)
     size_t Qlines, Qcols, Plines, Pcols;
     //size_t Plines, Pcols;
     //___readCSV(f, f1Header);
-    double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    float *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
     CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
 
-    double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
+    float *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
 
     unsigned int nbiters = std::stoi(argv[3]);
@@ -132,8 +132,8 @@ int main(int argc, char **argv)
         std::cout << std::get<0>(correspondances.at(i)) << " " << std::get<1>(correspondances.at(i)) << std::endl;
     }
     */
-    //double *B = (double *)calloc(Plines*Pcols, sizeof(double));
-    //double *B = calling_transpose_kernel(P.getArray(), Plines, Pcols);
+    //float *B = (float *)calloc(Plines*Pcols, sizeof(float));
+    //float *B = calling_transpose_kernel(P.getArray(), Plines, Pcols);
     //for (int i = 0; i < Plines; i++)
     //{
     //    for (int j = 0; j < Pcols; j++)
@@ -149,8 +149,8 @@ int main(int argc, char **argv)
 
     //std::cout << std::get<0>(finale) << std::endl;
     /*
-    double A[9];
-    double B[9];
+    float A[9];
+    float B[9];
     for (int i = 0; i < 9; i++)
     {
         A[i] = 1;
@@ -163,18 +163,18 @@ int main(int argc, char **argv)
     free(cov);
     */
 
-    //double values = 0;
+    //float values = 0;
     //int row = Plines;
     //int column = Pcols;
     /*
-    double *source, *dest;
-    double *d_source, *d_dest;
+    float *source, *dest;
+    float *d_source, *d_dest;
     int row = 8;
     int column = 4;
-    size_t size = row * column * sizeof(double);
+    size_t size = row * column * sizeof(float);
 
-    source = (double *)malloc(size);
-    dest = (double *)malloc(size);
+    source = (float *)malloc(size);
+    dest = (float *)malloc(size);
 
     cudaMalloc((void **)&d_source, size);
     cudaMalloc((void **)&d_dest, size);
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
     cudaMemcpy(dest, d_dest, size, cudaMemcpyDeviceToHost);
    
 
-    double *B = calling_transpose_kernel(P.getArray(), Plines, Pcols);
+    float *B = calling_transpose_kernel(P.getArray(), Plines, Pcols);
 
     for (int i=0; i < column; ++i) {
         for (int j = 0; j < row; ++j) {
@@ -202,7 +202,7 @@ int main(int argc, char **argv)
         }
         std::cout<<std::endl;
     }
-    //double *Qt = (double*)malloc(sizeof(double) * Plines * Pcols);
+    //float *Qt = (float*)malloc(sizeof(float) * Plines * Pcols);
     
     free(source);
     free(dest);

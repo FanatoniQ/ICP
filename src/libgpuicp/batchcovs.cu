@@ -25,11 +25,11 @@
 #include "libgpuicp/crosscov.cuh"
 #include "libgpuicp/batchcovs.cuh"
 
-__host__ void get_batch_cov(double *d_P, size_t Plines, size_t Pcols, size_t p_pitch,
-    double *d_Q, size_t Qlines, size_t Qcols, size_t q_pitch,
+__host__ void get_batch_cov(float *d_P, size_t Plines, size_t Pcols, size_t p_pitch,
+    float *d_Q, size_t Qlines, size_t Qcols, size_t q_pitch,
     ICPCorresp *d_dist, size_t dist_0, size_t dist_1, size_t dist_pitch,
-    double *d_R, size_t Rlines, size_t Rcols, size_t r_pitch,
-    double *d_cov, size_t covLines, size_t covCols, size_t cov_pitch,
+    float *d_R, size_t Rlines, size_t Rcols, size_t r_pitch,
+    float *d_cov, size_t covLines, size_t covCols, size_t cov_pitch,
     size_t batchsize)
 {
     runtime_assert(dist_0 == batchsize, "Invalid d_dist shape for batch !");
@@ -45,7 +45,7 @@ __host__ void get_batch_cov(double *d_P, size_t Plines, size_t Pcols, size_t p_p
         nblines = MIN(Plines - Pstartindex, batchsize);
 
         // DISTS
-        get_distances(d_P + Pstartindex * p_pitch / sizeof(double), d_Q, &d_dist, nblines, Pcols, p_pitch, Qlines, Qcols, q_pitch, nblines, dist_1, &dist_pitch, true);
+        get_distances(d_P + Pstartindex * p_pitch / sizeof(float), d_Q, &d_dist, nblines, Pcols, p_pitch, Qlines, Qcols, q_pitch, nblines, dist_1, &dist_pitch, true);
         std::cerr << "DISTS DONE" << std::endl;
 
         // CORRESPS
@@ -53,7 +53,7 @@ __host__ void get_batch_cov(double *d_P, size_t Plines, size_t Pcols, size_t p_p
         std::cerr << "CORRESPS DONE" << std::endl;
 
         // CROSS-COVS
-        get_cross_cov(d_P + Pstartindex * p_pitch / sizeof(double), d_Q, &d_R, d_dist,
+        get_cross_cov(d_P + Pstartindex * p_pitch / sizeof(float), d_Q, &d_R, d_dist,
             nblines, Pcols, p_pitch,
             Qlines, Qcols, q_pitch,
             nblines, Rcols, &r_pitch,
@@ -65,7 +65,7 @@ __host__ void get_batch_cov(double *d_P, size_t Plines, size_t Pcols, size_t p_p
         std::cerr << "CROSS-COVS SUM DONE" << std::endl;
 
         // COV += COVS SUM
-        matrix_op<double>(dim3(1, 1), dim3(covCols * covLines,1), d_cov, d_R, d_cov, MatrixOP::ADD,
+        matrix_op<float>(dim3(1, 1), dim3(covCols * covLines,1), d_cov, d_R, d_cov, MatrixOP::ADD,
              1, covCols * covLines, cov_pitch,
              1, Rcols, r_pitch,
              1, covCols * covLines, cov_pitch);

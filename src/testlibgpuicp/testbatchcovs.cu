@@ -30,29 +30,29 @@ int main(int argc, char **argv)
     runtime_assert(argc == 3 || argc == 4, "./batchcov file1 file2 [batchsize]");
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
-    double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
-    double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
+    float *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    float *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
 
     size_t batchsize = 16;
     if (argc == 4)
         batchsize = std::stol(argv[3]);
 
     // device P matrix
-    size_t p_pitch = Pcols * sizeof(double);
-    double *d_P;
-    //cudaMallodist_pitch((void **)&d_P, &p_pitch, Pcols * sizeof(double), Plines);
+    size_t p_pitch = Pcols * sizeof(float);
+    float *d_P;
+    //cudaMallodist_pitch((void **)&d_P, &p_pitch, Pcols * sizeof(float), Plines);
     cudaMalloc((void**)&d_P, Plines * p_pitch);
     cudaCheckError();
-    cudaMemcpy2D(d_P, p_pitch, Pt, Pcols * sizeof(double), Pcols * sizeof(double), Plines, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_P, p_pitch, Pt, Pcols * sizeof(float), Pcols * sizeof(float), Plines, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     // device Q matrix
-    size_t q_pitch = Qcols * sizeof(double);
-    double *d_Q;
-    //cudaMallodist_pitch((void **)&d_Q, &q_pitch, Qcols * sizeof(double), Qlines);
+    size_t q_pitch = Qcols * sizeof(float);
+    float *d_Q;
+    //cudaMallodist_pitch((void **)&d_Q, &q_pitch, Qcols * sizeof(float), Qlines);
     cudaMalloc((void**)&d_Q, Qlines * q_pitch);
     cudaCheckError();
-    cudaMemcpy2D(d_Q, q_pitch, Qt, Qcols * sizeof(double), Qcols * sizeof(double), Qlines, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_Q, q_pitch, Qt, Qcols * sizeof(float), Qcols * sizeof(float), Qlines, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     // device dist,id distance and corresp matrix
@@ -66,16 +66,16 @@ int main(int argc, char **argv)
 
     // device cross-covs flattened
     size_t Rlines = batchsize, Rcols = Pcols * Qcols;
-    size_t r_pitch = Rcols * sizeof(double);
-    double *d_R;
+    size_t r_pitch = Rcols * sizeof(float);
+    float *d_R;
     // or 2d...
     cudaMalloc((void**)&d_R, Rlines * r_pitch);
     cudaCheckError();
 
     // device FINAL cross-cov (flattened)
     size_t covLines = Qcols, covCols = Pcols;
-    size_t cov_pitch = covCols * covLines * sizeof(double);
-    double *d_cov;
+    size_t cov_pitch = covCols * covLines * sizeof(float);
+    float *d_cov;
     cudaMalloc((void**)&d_cov, 1 * cov_pitch);
     cudaCheckError();
 
@@ -88,8 +88,8 @@ int main(int argc, char **argv)
 	batchsize
     );
 
-    double *h_cov = (double *)malloc(covLines * covCols * sizeof(double));
-    cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(double), cudaMemcpyDeviceToHost);
+    float *h_cov = (float *)malloc(covLines * covCols * sizeof(float));
+    cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(float), cudaMemcpyDeviceToHost);
     auto FULLGPUCOV = CPUMatrix(h_cov, covLines, covCols);
     std::cout << FULLGPUCOV << std::endl;
 

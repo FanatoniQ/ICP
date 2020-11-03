@@ -9,7 +9,7 @@
 #include "error.cuh"
 #include "error.hpp"
 
-__global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, double *d_R, const ICPCorresp *d_dist,
+__global__ void get_cross_cov_kernel(const float *d_P, const float *d_Q, float *d_R, const ICPCorresp *d_dist,
     size_t p_0, size_t p_1, size_t p_pitch,
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t r_0, size_t r_1, size_t r_pitch,
@@ -27,9 +27,9 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
     // if pitch not in bytes:
     //unsigned int idq = d_dist[lineid * dist_pitch].id;//d_distline[0].id; // q_point id
 
-    double *d_rline = (double *)((char *)d_R + idp * r_pitch);
-    double *d_pline = (double *)((char *)d_P + idp * p_pitch);
-    double *d_qline = (double *)((char *)d_Q + idq * q_pitch);
+    float *d_rline = (float *)((char *)d_R + idp * r_pitch);
+    float *d_pline = (float *)((char *)d_P + idp * p_pitch);
+    float *d_qline = (float *)((char *)d_Q + idq * q_pitch);
     /**
     // generic case:
     //fake transpose dot between P and Q:
@@ -61,7 +61,7 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
     //printf("P{%u:} %lf %lf %lf, Q{%u:} %lf %lf %lf \n", idp, d_pline[0], d_pline[1], d_pline[2], idq, d_qline[0], d_qline[1], d_qline[2]);
 }
 
-__host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, const ICPCorresp *d_dist,
+__host__ void get_cross_cov(const float *d_P, const float *d_Q, float **d_R, const ICPCorresp *d_dist,
     size_t p_0, size_t p_1, size_t p_pitch,
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t r_0, size_t r_1, size_t *r_pitch,
@@ -70,7 +70,7 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
     runtime_assert(p_1 == q_1 && dist_1 == q_0 && dist_0 == p_0, "Invalid shapes !");
     if (*d_R == nullptr)
     {
-        cudaMallocPitch(d_R, r_pitch, p_1 * q_1 * sizeof(double), dist_0);
+        cudaMallocPitch(d_R, r_pitch, p_1 * q_1 * sizeof(float), dist_0);
         cudaCheckError();
     }
 
@@ -90,7 +90,7 @@ __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, 
     }
 }
 
-__device__ void increment_cov(double *d_cov, double *d_pline, double *d_qline)
+__device__ void increment_cov(float *d_cov, float *d_pline, float *d_qline)
 {
     // This will not work : (race condition)
 
@@ -121,7 +121,7 @@ __device__ void increment_cov(double *d_cov, double *d_pline, double *d_qline)
     **/
 }
 
-__global__ void get_array_cross_cov_kernel(double * d_cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+__global__ void get_array_cross_cov_kernel(float * d_cov, unsigned int* d_array_correspondances, float *d_P, float *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -131,8 +131,8 @@ __global__ void get_array_cross_cov_kernel(double * d_cov, unsigned int* d_array
     auto i = index;
     auto j = d_array_correspondances[index];
     //printf("i vaut %d et j vaut %d\n", i, j);
-    double *d_ppoint = d_P + i * P_col;
-    double *d_qpoint = d_Q + j * Q_col;
+    float *d_ppoint = d_P + i * P_col;
+    float *d_qpoint = d_Q + j * Q_col;
 
     //printf("%lf et %lf", *d_ppoint, *d_qpoint);
     //for (int i = 0; i < 3; i++)
@@ -144,7 +144,7 @@ __global__ void get_array_cross_cov_kernel(double * d_cov, unsigned int* d_array
     //    printf(" %lf \n", d_cov[i]);
 }
 
-__host__ void get_array_cross_cov(double* d_cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
+__host__ void get_array_cross_cov(float* d_cov, unsigned int* d_array_correspondances, float *d_P, float *d_Q,
     unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
 {
     runtime_assert(P_col == Q_col && Q_col == 3, "Only works in dim 3 !");
@@ -154,7 +154,7 @@ __host__ void get_array_cross_cov(double* d_cov, unsigned int* d_array_correspon
     std::cerr << std::endl << "gridsize.x: " << gridsize.x << std::endl;
     std::cerr << "blocksize.x: " << blocksize.x << std::endl;
     
-    cudaMemset(d_cov, 0, sizeof(double) * P_col * Q_col);
+    cudaMemset(d_cov, 0, sizeof(float) * P_col * Q_col);
 
     get_array_cross_cov_kernel<<<gridsize, blocksize>>>(d_cov, d_array_correspondances, d_P, d_Q, P_row, P_col, Q_row, Q_col);
     cudaDeviceSynchronize();
@@ -162,9 +162,9 @@ __host__ void get_array_cross_cov(double* d_cov, unsigned int* d_array_correspon
 }
 
 __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_array_correspondances,
-    double *d_R, unsigned int r_0, unsigned int r_1, size_t r_pitch,
-    const double *d_P, unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
-    const double *d_Q, unsigned int q_0, unsigned int q_1, unsigned int q_pitch)
+    float *d_R, unsigned int r_0, unsigned int r_1, size_t r_pitch,
+    const float *d_P, unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
+    const float *d_Q, unsigned int q_0, unsigned int q_1, unsigned int q_pitch)
 {
     unsigned int idp = blockIdx.x * blockDim.x + threadIdx.x;
     if(idp >= r_0)
@@ -174,12 +174,12 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
     auto idq = d_array_correspondances[idp];
 
     // data accesses with idq are random... => bad strided access
-    double *d_rcov = (double *)((char *)d_R + idp * r_pitch);
-    double *d_ppoint =(double *)((char *)d_P + idp * p_pitch); // d_P + idp * P_col;
-    double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch); // d_Q + idq * Q_col;
-    //double *d_rcov = (double *)((char *)d_R + idp * r_pitch);
-    //double *d_ppoint = (double *)((char *)d_P + idp * p_pitch);
-    //double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch); 
+    float *d_rcov = (float *)((char *)d_R + idp * r_pitch);
+    float *d_ppoint =(float *)((char *)d_P + idp * p_pitch); // d_P + idp * P_col;
+    float *d_qpoint = (float *)((char *)d_Q + idq * q_pitch); // d_Q + idq * Q_col;
+    //float *d_rcov = (float *)((char *)d_R + idp * r_pitch);
+    //float *d_ppoint = (float *)((char *)d_P + idp * p_pitch);
+    //float *d_qpoint = (float *)((char *)d_Q + idq * q_pitch); 
 
     // optim : shared memory for d_ppoint[0,1,2] an d_qpoint[0,1,2]
     d_rcov[0] = d_qpoint[0] * d_ppoint[0];
@@ -204,7 +204,7 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
     **/
 }
 
-__host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_Q, double **d_R, const unsigned int* d_array_correspondances,
+__host__ void get_array_cross_covs_flattened(const float *d_P, const float *d_Q, float **d_R, const unsigned int* d_array_correspondances,
     unsigned int p_0, unsigned int p_1, unsigned int p_pitch,
     unsigned int q_0, unsigned int q_1, unsigned int q_pitch,
     unsigned int r_0, unsigned int r_1, size_t *r_pitch,
@@ -215,9 +215,9 @@ __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_
     runtime_assert(r_1 == 9, "Flattened cross covs");
     if (*d_R == nullptr)
     {
-        //cudaMallocPitch(d_R, r_pitch, r1 * sizeof(double), r_0);
+        //cudaMallocPitch(d_R, r_pitch, r1 * sizeof(float), r_0);
         //cudaCheckError();
-        *r_pitch = r_1 * sizeof(double);
+        *r_pitch = r_1 * sizeof(float);
         cudaMalloc(d_R, *r_pitch * r_0);
         cudaCheckError();
     }

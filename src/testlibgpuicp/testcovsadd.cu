@@ -29,12 +29,12 @@
 
 #define DISTS_LINES 128
 
-__host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
+__host__ float *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
     CPUMatrix &Q, size_t q_0, size_t q_1,
     ICPCorresp *d_dist, size_t dist_0, size_t dist_1, size_t dist_pitch, size_t startindex)
 {
-    size_t ref_pitch = q_1 * p_1 * sizeof(double);
-    double *h_ref = (double*)malloc(p_0 * ref_pitch);
+    size_t ref_pitch = q_1 * p_1 * sizeof(float);
+    float *h_ref = (float*)malloc(p_0 * ref_pitch);
 
     size_t h_dist_pitch = dist_1 * sizeof(ICPCorresp);
     ICPCorresp *h_dist = (ICPCorresp*)malloc(dist_0 * h_dist_pitch);
@@ -49,9 +49,9 @@ __host__ double *get_cross_covs_cpu(CPUMatrix &P, size_t p_0, size_t p_1,
         std::cerr << "idq: " << idq << "idp: " << idp << std::endl;
         auto cov = Q.getLine(idq).transpose().dot(P.getLine(idp)); // since getLine returns line vector
         //std::cerr << ref_pitch << std::endl;
-        //std::cerr << cov.getDim0() * cov.getDim1() * sizeof(double) << std::endl;
-        assert(ref_pitch == (cov.getDim0() * cov.getDim1() * sizeof(double)));
-        memcpy(h_ref + i * ref_pitch / sizeof(double), cov.getArray(), cov.getDim0() * cov.getDim1() * sizeof(double));
+        //std::cerr << cov.getDim0() * cov.getDim1() * sizeof(float) << std::endl;
+        assert(ref_pitch == (cov.getDim0() * cov.getDim1() * sizeof(float)));
+        memcpy(h_ref + i * ref_pitch / sizeof(float), cov.getArray(), cov.getDim0() * cov.getDim1() * sizeof(float));
         for (size_t a = 0; a < q_1 * p_1; ++a)
             std::cerr << cov.getArray()[a] << "\t";
         std::cerr << std::endl;
@@ -67,27 +67,27 @@ int main(int argc, char **argv)
     runtime_assert(argc == 3, "./bin file1 file2");
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
-    double *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    float *Pt = readCSV(argv[1], f1Header, Plines, Pcols);
     CPUMatrix P = CPUMatrix(Pt, Plines, Pcols);
-    double *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
+    float *Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
     CPUMatrix Q = CPUMatrix(Qt, Qlines, Qcols);
 
     // device P matrix
-    size_t p_pitch = Pcols * sizeof(double);
-    double *d_P;
-    //cudaMallodist_pitch((void **)&d_P, &p_pitch, Pcols * sizeof(double), Plines);
+    size_t p_pitch = Pcols * sizeof(float);
+    float *d_P;
+    //cudaMallodist_pitch((void **)&d_P, &p_pitch, Pcols * sizeof(float), Plines);
     cudaMalloc((void**)&d_P, Plines * p_pitch);
     cudaCheckError();
-    cudaMemcpy2D(d_P, p_pitch, Pt, Pcols * sizeof(double), Pcols * sizeof(double), Plines, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_P, p_pitch, Pt, Pcols * sizeof(float), Pcols * sizeof(float), Plines, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     // device Q matrix
-    size_t q_pitch = Qcols * sizeof(double);
-    double *d_Q;
-    //cudaMallodist_pitch((void **)&d_Q, &q_pitch, Qcols * sizeof(double), Qlines);
+    size_t q_pitch = Qcols * sizeof(float);
+    float *d_Q;
+    //cudaMallodist_pitch((void **)&d_Q, &q_pitch, Qcols * sizeof(float), Qlines);
     cudaMalloc((void**)&d_Q, Qlines * q_pitch);
     cudaCheckError();
-    cudaMemcpy2D(d_Q, q_pitch, Qt, Qcols * sizeof(double), Qcols * sizeof(double), Qlines, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_Q, q_pitch, Qt, Qcols * sizeof(float), Qcols * sizeof(float), Qlines, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     //size_t nbiters =  std::ceil((float)Plines / DISTS_LINES);
@@ -105,21 +105,21 @@ int main(int argc, char **argv)
 
     // device cross-covs flattened
     size_t Rlines = DISTS_LINES, Rcols = Pcols * Qcols;
-    size_t r_pitch = Rcols * sizeof(double);
-    double *d_R;
+    size_t r_pitch = Rcols * sizeof(float);
+    float *d_R;
     // or 2d...
     cudaMalloc((void**)&d_R, Rlines * r_pitch);
     cudaCheckError();
 
     // device FINAL cross-cov (flattened)
     size_t covLines = Qcols, covCols = Pcols;
-    size_t cov_pitch = covCols * covLines * sizeof(double);
-    double *d_cov;
+    size_t cov_pitch = covCols * covLines * sizeof(float);
+    float *d_cov;
     cudaMalloc((void**)&d_cov, 1 * cov_pitch);
     cudaMemset(d_cov, 0, cov_pitch);
     cudaCheckError();
 
-    double ttlerror = 0;
+    float ttlerror = 0;
     auto COV = CPUMatrix(Qcols, Pcols);
     auto RefCOV = CPUMatrix(Qcols, Pcols);
 
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
         nblines = MIN(Plines - Pstartindex, DISTS_LINES);
 
         // DISTS
-        get_distances(d_P + Pstartindex * p_pitch / sizeof(double), d_Q, &d_dist, nblines, Pcols, p_pitch, Qlines, Qcols, q_pitch, nblines, dist_1, &dist_pitch, true);
+        get_distances(d_P + Pstartindex * p_pitch / sizeof(float), d_Q, &d_dist, nblines, Pcols, p_pitch, Qlines, Qcols, q_pitch, nblines, dist_1, &dist_pitch, true);
         std::cerr << "DISTS DONE" << std::endl;
 
         // CORRESPS
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 
 
         // CROSS-COVS
-        get_cross_cov(d_P + Pstartindex * p_pitch / sizeof(double), d_Q, &d_R, d_dist,
+        get_cross_cov(d_P + Pstartindex * p_pitch / sizeof(float), d_Q, &d_R, d_dist,
             nblines, Pcols, p_pitch,
             Qlines, Qcols, q_pitch,
             nblines, Rcols, &r_pitch,
@@ -159,23 +159,23 @@ int main(int argc, char **argv)
         std::cerr << "CROSS-COVS DONE" << std::endl;
 
         /** Testing cross-covs: **/
-        double *h_ref_cross_covs = get_cross_covs_cpu(P, nblines, Pcols, Q, Qlines, Qcols, d_dist, nblines, dist_1, dist_pitch, Pstartindex);
-        double *h_r = (double*)malloc(nblines * Rcols * sizeof(double));
-        cudaMemcpy2D(h_r, Rcols * sizeof(double), d_R, r_pitch, Rcols * sizeof(double), nblines, cudaMemcpyDeviceToHost);
+        float *h_ref_cross_covs = get_cross_covs_cpu(P, nblines, Pcols, Q, Qlines, Qcols, d_dist, nblines, dist_1, dist_pitch, Pstartindex);
+        float *h_r = (float*)malloc(nblines * Rcols * sizeof(float));
+        cudaMemcpy2D(h_r, Rcols * sizeof(float), d_R, r_pitch, Rcols * sizeof(float), nblines, cudaMemcpyDeviceToHost);
         cudaCheckError();
         //auto BatchRefCOV = CPUMatrix(h_ref_cross_covs, Qcols, Pcols);
         auto BatchRefCOV = CPUMatrix(Qcols, Pcols);
-        //assert(memcmp(h_ref_cross_covs, h_r, Rlines * Rcols * sizeof(double)) == 0);
+        //assert(memcmp(h_ref_cross_covs, h_r, Rlines * Rcols * sizeof(float)) == 0);
 	ttlerror = 0;
         for (size_t i = 0; i < nblines; i++)
         {
             for (size_t j = 0; j < Rcols; ++j)
             {
-                double error = std::fabs(h_r[i * (r_pitch / sizeof(double)) + j] - h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j]); // Weird not having to divide by sizeof double...
-                std::cerr << h_r[i * (r_pitch / sizeof(double)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j] << std::endl;
+                float error = std::fabs(h_r[i * (r_pitch / sizeof(float)) + j] - h_ref_cross_covs[i * (r_pitch / sizeof(float)) + j]); // Weird not having to divide by sizeof float...
+                std::cerr << h_r[i * (r_pitch / sizeof(float)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch / sizeof(float)) + j] << std::endl;
                 ttlerror += error;
             }
-	    auto LineRefCOV = CPUMatrix(h_ref_cross_covs + i * (r_pitch / sizeof(double)), Qcols, Pcols);
+	    auto LineRefCOV = CPUMatrix(h_ref_cross_covs + i * (r_pitch / sizeof(float)), Qcols, Pcols);
 	    BatchRefCOV += LineRefCOV;
 	    LineRefCOV.setArray(nullptr,1,1);
         }
@@ -187,12 +187,12 @@ int main(int argc, char **argv)
 
         // COVS SUM
 	//cudaMemset(d_R, 0, r_pitch * Rlines);
-        //reduce_0(MatrixReduceOP::SUM, d_dist, double **d_sum, Pcols * Qcols, Plines, dist_pitch, size_t *reducepitch, int threads);
+        //reduce_0(MatrixReduceOP::SUM, d_dist, float **d_sum, Pcols * Qcols, Plines, dist_pitch, size_t *reducepitch, int threads);
         reduce_0(MatrixReduceOP::SUM, d_R, &d_R, Rcols, nblines, r_pitch, &r_pitch, nblines);
 
         // COV += COVS SUM
         assert(covCols == 3 && covLines == 3);
-        matrix_op<double>(dim3(1, 1), dim3(covCols * covLines,1), d_cov, d_R, d_cov, MatrixOP::ADD,
+        matrix_op<float>(dim3(1, 1), dim3(covCols * covLines,1), d_cov, d_R, d_cov, MatrixOP::ADD,
              1, covCols * covLines, cov_pitch,
              1, Rcols, r_pitch,
              1, covCols * covLines, cov_pitch);
@@ -200,13 +200,13 @@ int main(int argc, char **argv)
         /** testing covs-sum **/
         /**for (size_t i = 0; i < Rlines; i++)
         {
-            auto c = CPUMatrix(h_ref_cross_covs + i * (r_pitch / sizeof(double)), Qcols, Pcols);
+            auto c = CPUMatrix(h_ref_cross_covs + i * (r_pitch / sizeof(float)), Qcols, Pcols);
         RefCOV += c;
         c.setArray(nullptr,1,1); // avoid freeing
         }**/
         // TODO: do this on GPU
-        double *h_cov = (double *)malloc(Rcols * sizeof(double));
-        cudaMemcpy(h_cov, d_R, Rcols * sizeof(double), cudaMemcpyDeviceToHost);
+        float *h_cov = (float *)malloc(Rcols * sizeof(float));
+        cudaMemcpy(h_cov, d_R, Rcols * sizeof(float), cudaMemcpyDeviceToHost);
         auto BatchCOV = CPUMatrix(h_cov, Qcols, Pcols);
         COV += BatchCOV;
 
@@ -215,9 +215,9 @@ int main(int argc, char **argv)
         {
             for (size_t j = 0; j < Pcols; ++j)
             {
-                double error = std::fabs(BatchCOV(i,j) - BatchRefCOV(i,j));
-				//h_cov[i * Pcols + j] - h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j]); // Weird not having to divide by sizeof double...
-                //std::cerr << h_r[i * (r_pitch / sizeof(double)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j] << std::endl;
+                float error = std::fabs(BatchCOV(i,j) - BatchRefCOV(i,j));
+				//h_cov[i * Pcols + j] - h_ref_cross_covs[i * (r_pitch / sizeof(float)) + j]); // Weird not having to divide by sizeof float...
+                //std::cerr << h_r[i * (r_pitch / sizeof(float)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch / sizeof(float)) + j] << std::endl;
                 ttlerror += error;
             }
         }
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
     {
         for (size_t j = 0; j < Pcols; ++j)
         {
-            double error = std::fabs(RefCOV(i,j) - COV(i,j));
+            float error = std::fabs(RefCOV(i,j) - COV(i,j));
             ttlerror += error;
         }
     }
@@ -254,8 +254,8 @@ int main(int argc, char **argv)
     std::cout << "CPUsummed GPUCOVs:" << std::endl;
     std::cout << COV << std::endl;
 
-    double *h_cov = (double *)malloc(covLines * covCols * sizeof(double));
-    cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(double), cudaMemcpyDeviceToHost);
+    float *h_cov = (float *)malloc(covLines * covCols * sizeof(float));
+    cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(float), cudaMemcpyDeviceToHost);
     auto FULLGPUCOV = CPUMatrix(h_cov, covLines, covCols);
     
     ttlerror = 0;
@@ -263,7 +263,7 @@ int main(int argc, char **argv)
     {
         for (size_t j = 0; j < Pcols; ++j)
         {
-            double error = std::fabs(RefCOV(i,j) - FULLGPUCOV(i,j));
+            float error = std::fabs(RefCOV(i,j) - FULLGPUCOV(i,j));
             ttlerror += error;
         }
     }

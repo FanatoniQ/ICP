@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     std::cout << std::setprecision(15); //DBL_MANT_DIG);
     size_t Pdim0, Pdim1;
     std::string h{};
-    double *array = readCSV(argv[1], h, Pdim0, Pdim1);
+    float *array = readCSV(argv[1], h, Pdim0, Pdim1);
 
     print_matrix(std::cerr, array, Pdim1, Pdim0);
     auto P = CPUMatrix{array, Pdim0, Pdim1};
@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     std::cerr << (Pcopy * CPUNumber(5)).mean(0) << std::endl;
 
     size_t Qdim0, Qdim1;
-    double *Qarray = readCSV(argv[2], h, Qdim0, Qdim1);
+    float *Qarray = readCSV(argv[2], h, Qdim0, Qdim1);
     auto Q = CPUMatrix{Qarray, Qdim0, Qdim1};
     Q = Q.transpose(); // TODO: kinda bad... allocates even if not necessary (operator=)
     std::cerr << "Q transposed :" << std::endl;

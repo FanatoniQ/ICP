@@ -26,17 +26,17 @@ int main(int argc, char **argv)
 {
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
-    double* Pt = readCSV(argv[1], f1Header, Plines, Pcols);
-    double* Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
-    double* d_P, * d_Q;
+    float* Pt = readCSV(argv[1], f1Header, Plines, Pcols);
+    float* Qt = readCSV(argv[2], f1Header, Qlines, Qcols);
+    float* d_P, * d_Q;
 
-    unsigned int p_pitch = Pcols * sizeof(double);
-    cudaMalloc(&d_P, sizeof(double) * Plines * Pcols);
-    unsigned int q_pitch = Qcols * sizeof(double);
-    cudaMalloc(&d_Q, sizeof(double) * Qlines * Qcols);
+    unsigned int p_pitch = Pcols * sizeof(float);
+    cudaMalloc(&d_P, sizeof(float) * Plines * Pcols);
+    unsigned int q_pitch = Qcols * sizeof(float);
+    cudaMalloc(&d_Q, sizeof(float) * Qlines * Qcols);
 
-    cudaMemcpy(d_P, Pt, sizeof(double) * Pcols * Plines, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_Q, Qt, sizeof(double) * Qcols * Qlines, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_P, Pt, sizeof(float) * Pcols * Plines, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_Q, Qt, sizeof(float) * Qcols * Qlines, cudaMemcpyHostToDevice);
 
     unsigned int* d_array_correspondances;
     cudaMalloc(&d_array_correspondances, sizeof(unsigned int) * Plines);
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
     get_array_correspondences(d_array_correspondances, d_P, d_Q, Plines, Pcols, Qlines, Qcols);
 
     unsigned int r_0 = Plines, r_1 = Pcols * Qcols;
-    double* d_R = nullptr;
+    float* d_R = nullptr;
     size_t r_pitch;
 
     get_array_cross_covs_flattened(d_P, d_Q, &d_R, d_array_correspondances,

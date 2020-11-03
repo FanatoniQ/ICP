@@ -20,9 +20,9 @@
 #include "error.cuh"
 #include "libgpuicp/corresp.cuh"
 
-double randomdouble(double low, double high)
+float randomfloat(float low, float high)
 {
-    return ((double)rand() * (high - low)) / (double)RAND_MAX + low;
+    return ((float)rand() * (high - low)) / (float)RAND_MAX + low;
 }
 
 int main(int argc, char **argv)
@@ -36,10 +36,10 @@ int main(int argc, char **argv)
     for (size_t i = 0; i < dim0; ++i)
     {
 	size_t minid;
-	double min = DBL_MAX;
+	float min = DBL_MAX;
         for (size_t j = 0; j < dim1; ++j)
         {
-            C[i * dim1 + j] = {randomdouble(0.0, 10.0), (unsigned int)j};
+            C[i * dim1 + j] = {randomfloat(0.0, 10.0), (unsigned int)j};
 	    if (C[i * dim1 + j].dist < min) {
                  min = C[i * dim1 + j].dist;
 		 minid = j;

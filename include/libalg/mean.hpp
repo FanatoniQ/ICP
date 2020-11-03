@@ -4,12 +4,12 @@
 
 #include "libalg/alg.hpp"
 
-void reduce_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis,
-                   double (*op)(double a), double (*rop)(double a, double b));
+void reduce_axises(float **r, float *m, size_t dim0, size_t dim1, size_t &dimr, int axis,
+                   float (*op)(float a), float (*rop)(float a, float b));
 
-void sum_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis = 0);
+void sum_axises(float **r, float *m, size_t dim0, size_t dim1, size_t &dimr, int axis = 0);
 
-void mean_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, int axis = 0);
+void mean_axises(float **r, float *m, size_t dim0, size_t dim1, size_t &dimr, int axis = 0);
 
 /**
  ** \brief mean_axises returns the mean for the first or second axis or entire array,
@@ -33,4 +33,4 @@ void mean_axises(double **r, double *m, size_t dim0, size_t dim1, size_t &dimr, 
  ** axis == 0: [1 1.5 0.75]
  ** axis == 1: [1 1 1 1.333]
  **/
-double *mean_axises(double *m, size_t dim0, size_t dim1, int axis = 0);
+float *mean_axises(float *m, size_t dim0, size_t dim1, int axis = 0);

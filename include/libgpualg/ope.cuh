@@ -158,7 +158,7 @@ __host__ void matrix_op(dim3 gridsize, dim3 blocksize,
 /**
  ** \depreacted use broadcast_op_kernel instead
  **/
-__global__ void broadcast_subtract_kernel(const double *d_A, double *d_B, double *d_R,
+__global__ void broadcast_subtract_kernel(const float *d_A, float *d_B, float *d_R,
     unsigned int a_0, unsigned int a_1, size_t d_apitch,
     unsigned int b_0, unsigned int b_1, size_t d_bpitch,
     unsigned int r_0, unsigned int r_1, size_t d_rpitch);

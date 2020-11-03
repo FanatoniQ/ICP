@@ -8,9 +8,9 @@
 class CPUNumber : public CPUMatrix
 {
 private:
-    double value;
+    float value;
 
 public:
-    CPUNumber(double value);
+    CPUNumber(float value);
     ~CPUNumber();
 };

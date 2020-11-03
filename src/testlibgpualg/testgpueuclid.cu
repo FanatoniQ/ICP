@@ -13,17 +13,17 @@
 #include "libgpualg/euclidist.cuh"
 #include "error.cuh"
 
-void test_euclidist(double *d_Pt, double *d_Qt, size_t pitch, size_t width, size_t height)
+void test_euclidist(float *d_Pt, float *d_Qt, size_t pitch, size_t width, size_t height)
 {
     int threads = 4;
-    double dist = sqrt(cuda_squared_norm_2(d_Pt, d_Qt, width, height, pitch, threads));
+    float dist = sqrt(cuda_squared_norm_2(d_Pt, d_Qt, width, height, pitch, threads));
     std::cerr << "GPU squared mean diff: " << dist << std::endl;
 }
 
-void test_euclidist_0(double *d_P, double *d_Q, size_t pitch, size_t width, size_t height)
+void test_euclidist_0(float *d_P, float *d_Q, size_t pitch, size_t width, size_t height)
 {
     int threads = 4;
-    double dist = sqrt(cuda_squared_norm_2_0(d_P, d_Q, width, height, pitch, threads));
+    float dist = sqrt(cuda_squared_norm_2_0(d_P, d_Q, width, height, pitch, threads));
     std::cerr << "GPU squared mean diff: " << dist << std::endl;
 }
 
@@ -31,10 +31,10 @@ int main_axis1(char **argv)
 {
     std::string h{};
     size_t Plines, Pcols, Qlines, Qcols;
-    double *h_P = readCSV(argv[1], h, Plines, Pcols);
-    double *h_Pt = transpose(h_P, Plines, Pcols);
-    double *h_Q = readCSV(argv[2], h, Qlines, Qcols);
-    double *h_Qt = transpose(h_Q, Qlines, Qcols);
+    float *h_P = readCSV(argv[1], h, Plines, Pcols);
+    float *h_Pt = transpose(h_P, Plines, Pcols);
+    float *h_Q = readCSV(argv[2], h, Qlines, Qcols);
+    float *h_Qt = transpose(h_Q, Qlines, Qcols);
     runtime_assert(Pcols == Qcols, "Not same dimension !");
 
     print_matrix(std::cerr, h_P, Pcols, Plines);
@@ -46,19 +46,19 @@ int main_axis1(char **argv)
     auto cpuEuclid = P.euclidianDistance(Q);
 
     // device memory
-    double *d_Pt;
+    float *d_Pt;
     size_t pitch;
     size_t width = Plines, height = Pcols;
-    cudaMallocPitch(&d_Pt, &pitch, width * sizeof(double), height * sizeof(double));
+    cudaMallocPitch(&d_Pt, &pitch, width * sizeof(float), height * sizeof(float));
     cudaCheckError();
-    cudaMemcpy2D(d_Pt, pitch, h_Pt, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_Pt, pitch, h_Pt, width * sizeof(float), width * sizeof(float), height, cudaMemcpyHostToDevice);
     cudaCheckError();
 
-    double *d_Qt;
+    float *d_Qt;
     width = Qlines, height = Qcols;
-    cudaMallocPitch(&d_Qt, &pitch, width * sizeof(double), height * sizeof(double));
+    cudaMallocPitch(&d_Qt, &pitch, width * sizeof(float), height * sizeof(float));
     cudaCheckError();
-    cudaMemcpy2D(d_Qt, pitch, h_Qt, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_Qt, pitch, h_Qt, width * sizeof(float), width * sizeof(float), height, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     test_euclidist(d_Pt, d_Qt, pitch, width, height);
@@ -74,8 +74,8 @@ int main_axis0(char **argv)
 {
     std::string h{};
     size_t Plines, Pcols, Qlines, Qcols;
-    double *h_P = readCSV(argv[1], h, Plines, Pcols);
-    double *h_Q = readCSV(argv[2], h, Qlines, Qcols);
+    float *h_P = readCSV(argv[1], h, Plines, Pcols);
+    float *h_Q = readCSV(argv[2], h, Qlines, Qcols);
     runtime_assert(Pcols == Qcols, "Not same dimension !");
 
     print_matrix(std::cerr, h_P, Pcols, Plines);
@@ -87,19 +87,19 @@ int main_axis0(char **argv)
     auto cpuEuclid = P.euclidianDistance(Q);
 
     // device memory
-    double *d_P;
+    float *d_P;
     size_t pitch;
     size_t width = Pcols, height = Plines;
-    cudaMallocPitch(&d_P, &pitch, width * sizeof(double), height * sizeof(double));
+    cudaMallocPitch(&d_P, &pitch, width * sizeof(float), height * sizeof(float));
     cudaCheckError();
-    cudaMemcpy2D(d_P, pitch, h_P, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_P, pitch, h_P, width * sizeof(float), width * sizeof(float), height, cudaMemcpyHostToDevice);
     cudaCheckError();
 
-    double *d_Q;
+    float *d_Q;
     width = Qcols, height = Qlines;
-    cudaMallocPitch(&d_Q, &pitch, width * sizeof(double), height * sizeof(double));
+    cudaMallocPitch(&d_Q, &pitch, width * sizeof(float), height * sizeof(float));
     cudaCheckError();
-    cudaMemcpy2D(d_Q, pitch, h_Q, width * sizeof(double), width * sizeof(double), height, cudaMemcpyHostToDevice);
+    cudaMemcpy2D(d_Q, pitch, h_Q, width * sizeof(float), width * sizeof(float), height, cudaMemcpyHostToDevice);
     cudaCheckError();
 
     test_euclidist_0(d_P, d_Q, pitch, width, height);

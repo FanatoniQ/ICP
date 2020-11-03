@@ -13,13 +13,13 @@
     }
 
 // basic operations
-double subtract(double a, double b);
+float subtract(float a, float b);
 
-double add(double a, double b);
+float add(float a, float b);
 
-double squared_norm_2(double a, double b);
+float squared_norm_2(float a, float b);
 
-double mult(double a, double b);
+float mult(float a, float b);
 
 // advanced array operations
 
@@ -32,7 +32,7 @@ double mult(double a, double b);
  **
  ** \return r: the transposed a array of shape a_1,a_0
  **/
-double *transpose(const double *a, size_t a_0, size_t a_1);
+float *transpose(const float *a, size_t a_0, size_t a_1);
 
 /**
  ** \brief element_wise_reduce apply the given operator element wise
@@ -43,11 +43,11 @@ double *transpose(const double *a, size_t a_0, size_t a_1);
  ** \param b_0: number of lines in array b
  ** \param b_1: number of columns in array b
  ** \param op: a function pointer for performing operations
- ** with two doubles
+ ** with two floats
  ** \param rop: a function pointer for performing operations
- ** with two doubles, used for reduction operation
+ ** with two floats, used for reduction operation
  ** \param lop: a function pointer for performing operations
- ** with two doubles, used for last operation
+ ** with two floats, used for last operation
  **
  ** \example calling with two arrays and
  ** - op being squared_norm_2
@@ -57,11 +57,11 @@ double *transpose(const double *a, size_t a_0, size_t a_1);
  **
  ** \quid is this a good idea ?
  **/
-double element_wise_reduce(double *a, double *b,
+float element_wise_reduce(float *a, float *b,
                            size_t a_0, size_t a_1, size_t b_0, size_t b_1,
-                           double (*op)(double a, double b),
-                           double (*rop)(double a, double b),
-                           double (*lop)(double a, double b));
+                           float (*op)(float a, float b),
+                           float (*rop)(float a, float b),
+                           float (*lop)(float a, float b));
 
 /**
  ** \brief element_wise_op apply the given operator element wise
@@ -78,12 +78,12 @@ double element_wise_reduce(double *a, double *b,
  ** \param r_0: number of lines in resulting array r
  ** \param r_1: number of columns in resulting array r
  ** \param op: a function pointer for performing operations
- ** with two doubles
+ ** with two floats
  **/
-void element_wise_op(double **r, double *a, double *b,
+void element_wise_op(float **r, float *a, float *b,
                      size_t a_0, size_t a_1, size_t b_0, size_t b_1,
                      size_t &r_0, size_t &r_1,
-                     double (*op)(double a, double b));
+                     float (*op)(float a, float b));
 
 /**
  ** \brief dot_product returns the dot product of the given
@@ -96,5 +96,5 @@ void element_wise_op(double **r, double *a, double *b,
  ** \param b_0: number of lines in array b
  ** \param b_1: number of columns in array b
  **/
-void dot_product(double **r, const double *a, const double *b,
+void dot_product(float **r, const float *a, const float *b,
                  size_t a_0, size_t a_1, size_t b_0, size_t b_1);

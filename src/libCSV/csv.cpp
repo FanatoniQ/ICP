@@ -10,7 +10,7 @@
 #include "libCSV/csv.hpp"
 
 /**
- ** \brief __readCSV vector method to return the non transposed double array parsed from
+ ** \brief __readCSV vector method to return the non transposed float array parsed from
  ** the given CSV file
  **
  ** \deprecated we should use strtod or std::from_chars instead of a stringstream
@@ -39,7 +39,7 @@ static inline std::vector<T> readCSVLine(std::istringstream &line)
 }
 
 /**
- ** \brief __readCSV vector method to return the non transposed double array parsed from
+ ** \brief __readCSV vector method to return the non transposed float array parsed from
  ** the given CSV file
  **
  ** \deprecated uses C++ std::vector, which is not consistent with our need for C-style
@@ -68,16 +68,16 @@ static std::vector<std::vector<T>> __readCSV(std::istream &f, std::string &h)
     return res;
 }
 
-double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoints)
+float *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoints)
 {
-    double *m;
+    float *m;
     size_t i, j = 0;
-    auto f1M = __readCSV<double>(f, h);
+    auto f1M = __readCSV<float>(f, h);
 
     std::cerr << h << std::endl;
     *nbaxis = f1M.at(0).size();
     *nbpoints = f1M.size();
-    m = (double *)calloc(*nbaxis * *nbpoints, sizeof(double));
+    m = (float *)calloc(*nbaxis * *nbpoints, sizeof(float));
     runtime_assert(m != nullptr, "Alloc error !");
     for (const auto &f1line : f1M)
     {
@@ -94,7 +94,7 @@ double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoin
     return m;
 }
 
-double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcols)
+float *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcols)
 {
     FILE *f = fopen(path, "r");
     runtime_assert(f != nullptr, "File could not be opened !");
@@ -105,7 +105,7 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
 
     size_t size = 10;
     size_t count = 0;
-    double *r = (double *)malloc(size * sizeof(double));
+    float *r = (float *)malloc(size * sizeof(float));
     runtime_assert(r != nullptr, "Alloc error !");
     nblines = 0;
     nbcols = 0;
@@ -124,20 +124,20 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
             if (count == size)
             {
                 size *= 2;
-                r = (double *)realloc(r, size * sizeof(double));
+                r = (float *)realloc(r, size * sizeof(float));
                 runtime_assert(r != nullptr, "Alloc error (realloc) !");
             }
-            double v;
+            float v;
             /**
              ** this does not compile, it should in c++17...
             auto [p, ec] = std::from_chars((const char *)token, (const char *)token + strlen(token), v);
             if (p == token || ec == std::errc())
-                errx(2, "Not a valid double !");
+                errx(2, "Not a valid float !");
             **/
             v = strtod(token, &end_tok);
             if (end_tok == token)
             {
-                runtime_assert(nblines == 0, "Not a valid double !");
+                runtime_assert(nblines == 0, "Not a valid float !");
                 // this is the header line
             }
             else
@@ -160,7 +160,7 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
     if (count < size) // removing extra memory
     {
         size = count;
-        r = (double *)realloc(r, size * sizeof(double));
+        r = (float *)realloc(r, size * sizeof(float));
         runtime_assert(r != nullptr, "Alloc error (realloc) !");
     }
     fclose(f);
