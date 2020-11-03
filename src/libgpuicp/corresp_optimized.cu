@@ -173,29 +173,29 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
 __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_correspondances, ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1)
 {
-    extern __shared__ ICPCorresp s_data[]; // s_data is of size blockDim.x
+    extern __shared__ ICPCorresp s_reducedata[]; // s_data is of size blockDim.x
     unsigned int threadid = threadIdx.x; // thread id in the block
     unsigned int lineid = blockIdx.y; // line
     unsigned int dataid = threadIdx.x; // only used in final reduce //blockIdx.x * blockDim.x + threadIdx.x; // column
     if (dataid >= dist_1 || lineid >= dist_0) {
-        s_data[threadid] = { DBL_MAX,dataid };
+        s_reducedata[threadid] = { DBL_MAX,dataid };
         return;
     }
     ICPCorresp *d_distline = (ICPCorresp *)((char *)d_dist + lineid * dist_pitch);
-    s_data[threadid] = d_distline[dataid];
+    s_reducedata[threadid] = d_distline[dataid];
     __syncthreads();
     for (size_t stride = blockDim.x / 2; stride > 0; stride = stride >> 1)
     {
         assert(is_power_of_2(stride)); // if not power of 2 ...
         if (threadid < stride) { // a lot of threads are idle...
-            if (s_data[threadid + stride].dist < s_data[threadid].dist) {
-                s_data[threadid] = s_data[threadid + stride];
+            if (s_reducedata[threadid + stride].dist < s_reducedata[threadid].dist) {
+                s_reducedata[threadid] = s_reducedata[threadid + stride];
             }
         }
         __syncthreads();
     }
     if (threadid == 0)
-        d_array_correspondances[lineid] = s_data[0].id;
+        d_array_correspondances[lineid] = s_reducedata[0].id;
 }
 
 __host__ void get_array_correspondences_optimized_one_iter(unsigned int *d_array_correspondances,
@@ -227,10 +227,10 @@ __host__ void get_array_correspondences_optimized_one_iter(unsigned int *d_array
     if (nbblocksPerLine > 1)
     {
         blocksize = dim3(get_next_power_of_2(nbblocksPerLine), 1);
-        gridsize = dim3(1, dist_0);
+        gridsize = dim3(1, P_row);
         
-        std::cerr << "nbthreads: " << threads << " nblines: " << gridsize.y << " nbblocksPerLine: " << gridsize.x << std::endl;
-        get_array_reduced_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_array_correspondances, d_dist, dist_pitch, dist_0, dist_1);
+        std::cerr << "nbthreads: " << blocksize.x << " nblines: " << gridsize.y << " nbblocksPerLine: " << gridsize.x << std::endl;
+        get_array_reduced_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_array_correspondances, *d_dist, sizeof(double) * nbblocksPerLine, P_row, nbblocksPerLine);
         cudaDeviceSynchronize();
         cudaCheckError();
     }

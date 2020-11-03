@@ -31,7 +31,7 @@ __global__ void get_array_correspondences_optimized_one_iter_kernel(ICPCorresp *
     const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col);
 
 __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_correspondances, ICPCorresp *d_dist,
-    size_t dist_pitch, size_t dist_0, size_t dist_1)
+    size_t dist_pitch, size_t dist_0, size_t dist_1);
 
 __host__ void get_array_correspondences_optimized_one_iter(unsigned int *d_array_correspondances,
     ICPCorresp **d_dist, unsigned int *dist_1, const double *d_P, const double *d_Q,
