@@ -126,8 +126,8 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
     double dist, tmp;
     const double *q_point;
     const double *p_point = d_P + pid * P_col;
-    /**
-    if (qid == 0)
+    ///**
+    if (threadIdx.x == 0)
     {
         // storing p_point x, y and z for all threads in block
         s_data[0] = p_point[0];
@@ -135,7 +135,7 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
         s_data[2] = p_point[2]; // \todo: check if usefull
     }
     __syncthreads(); // wait for x,y and z of p_point (should be done at first iter only)
-    **/
+    //**/
     if (qid >= Q_row) {
         s_corresp[threadIdx.x] = { DBL_MAX, 0 };
         return;
@@ -143,14 +143,14 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
     q_point = d_Q + qid * Q_col;
     // compute distance for qid
     dist = 0;
-    tmp =  p_point[0] - q_point[0];
-    //tmp = s_data[0] - q_point[0];
+    //tmp =  p_point[0] - q_point[0];
+    tmp = s_data[0] - q_point[0];
     dist += tmp * tmp;
-    tmp =  p_point[1] - q_point[1];
-    //tmp = s_data[1] - q_point[1];
+    //tmp =  p_point[1] - q_point[1];
+    tmp = s_data[1] - q_point[1];
     dist += tmp * tmp;
-    tmp =  p_point[2] - q_point[2];
-    //tmp = s_data[2] - q_point[2];
+    //tmp =  p_point[2] - q_point[2];
+    tmp = s_data[2] - q_point[2];
     dist += tmp * tmp;
     // store the distance
     s_corresp[threadIdx.x] = { dist, qid };
@@ -167,9 +167,9 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
         __syncthreads();
     }
     //if (threadIdx.x == 0)
-    //    printf("%u = [%u %u]  = [%u] \n", s_corresp[0].id, pid, blockIdx.x, pid + dist_1 * blockIdx.x); 
+    //    printf("%u = [%u %u]  = [%u] \n", s_corresp[0].id, pid, blockIdx.x, pid * dist_1 + blockIdx.x); 
     if (threadIdx.x == 0)
-        d_dists[pid + dist_1 * blockIdx.x] = s_corresp[0]; // partial reduce
+        d_dists[pid * dist_1 + blockIdx.x] = s_corresp[0]; // partial reduce
 }
 
 __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_correspondances, ICPCorresp *d_dist,
