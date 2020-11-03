@@ -1,9 +1,10 @@
 #pragma once
 
-typedef struct
+typedef struct // __align__(16)
 {
     double dist;
     unsigned int id;
+    //float padding;
 } ICPCorresp;
 
 /**
