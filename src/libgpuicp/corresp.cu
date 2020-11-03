@@ -101,7 +101,7 @@ __host__ void get_correspondences(ICPCorresp *d_dist,
 
 
 __global__ void get_array_correspondences_kernel(unsigned int *d_array_correspondances, double *d_P, double *d_Q,
-    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col size_t p_pitch, size_t q_pitch)
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col, size_t p_pitch, size_t q_pitch)
     // pitches not IN bytes
 {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -141,7 +141,7 @@ __global__ void get_array_correspondences_kernel(unsigned int *d_array_correspon
 }
 
 __host__ void get_array_correspondences(unsigned int* d_array_correspondances, double *d_P, double *d_Q,
-    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col)
+    unsigned int P_row, unsigned int P_col, unsigned int Q_row, unsigned int Q_col, size_t p_pitch, size_t q_pitch)
 {
     dim3 blocksize(1024, 1);
     dim3 gridsize(std::ceil((float)P_row / blocksize.x), 1);

@@ -59,7 +59,7 @@ int main(int argc, char **argv)
         Plines, Pcols, p_pitch,
         Qlines, Qcols, q_pitch,
         r_0, r_1, &r_pitch,
-        Pcols, true);
+        r_0, true);
 
     /**
     // Testing h_array_correspondances
