@@ -5,6 +5,7 @@ typedef struct
     double dist;
     unsigned int id;
 } ICPCorresp;
+// having padding such as: __align__(16) may help shared memory, but rather split array
 
 /**
  ** \brief get_correspondences_kernel is a destructive in-place min distance axis=1 reduction kernel
