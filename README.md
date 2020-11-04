@@ -71,20 +71,17 @@ cd build/
 cp ../tests/benchmark.sh .
 ```
 
-Default version:
+Without full metrics:
 ```bash
-./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS}
-```
-Default full metric version :
-```bash
-./benchmark metric ${FILE1} ${FILE2} ${NB_ITERS}
+./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS} method={loop|batch|shared|shared-loop}
 ```
 
-Batch version:
+With full metrics:
 ```bash
-./benchmark batch ${FILE1} ${FILE2} ${NB_ITERS}
+./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS} method={metric-loop|metric-batch|metric-shared|metric-shared-loop}
 ```
-Batch full metric version:
+
+Example:
 ```bash
-./benchmark metric-batch ${FILE1} ${FILE2} ${NB_ITERS}
+./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS} metric-shared-loop
 ```
