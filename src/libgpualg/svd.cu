@@ -47,7 +47,7 @@ void svd_gpu(double* d_A, size_t r_A, size_t c_A, double *d_U, double *d_S, doub
 
     // step 2: copy A and B to device
     cudaStat3 = cudaMalloc((void**)&devInfo, sizeof(int));
-    assert(cudaSuccess != cudaStat3);
+    assert(cudaSuccess == cudaStat3);
     if (cudaSuccess != cudaStat3) {
         printf("Couldn't create the cusolver: Out of memory");
     }
