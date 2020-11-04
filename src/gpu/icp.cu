@@ -562,6 +562,7 @@ cudaMalloc(corresps) dim(P
         // Compute correspondences indices
         // Call correspondence indices gpu with (P_centered, Q_centered)
         // Compute cross var GPU, call with (P_centered, Q_centered, corresps, default_kernel)
+        // TODO: have method option support
 	/**
         get_array_correspondences(dcorresps, dP_centered, dQ_centered, 
             P.getDim0(), P.getDim1(), 
@@ -639,7 +640,8 @@ cudaMalloc(corresps) dim(P
     cudaFree(dU);
     cudaFree(dV_T);
     cudaFree(dR);
-    cudaFree(d_dist);
+    if (d_dist != nullptr)
+        cudaFree(d_dist);
     cudaFree(dR_transpose);
     cudaFree(dt);
     cudaDeviceReset();

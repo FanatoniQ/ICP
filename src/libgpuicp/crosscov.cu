@@ -144,8 +144,6 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
     unsigned int idp = blockIdx.x * blockDim.x + threadIdx.x;
     if(idp >= r_0)
         return;
-    //if (threadIdx.x == 0)
-    //printf("idp: %u\n", idp);
     auto idq = d_array_correspondances[idp];
 
     // data accesses with idq are random... => bad strided access
