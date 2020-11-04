@@ -216,12 +216,6 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
         // cross_var is here 3*3 mat
         // U, S, V_T = svd
         auto [U, S, V_T] = std::get<0>(cross_var).svd();
-        std::cout << "U: \n"
-                  << U << std::endl;
-        std::cout << "S: \n"
-                  << S << std::endl;
-        std::cout << "V_T: \n"
-                  << V_T << std::endl;
         UNUSED(S); // unused
         // Rotation matrix
         auto R = U.dot(V_T);
@@ -233,23 +227,3 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
     correps_values.push_back(correps_values.back());
     return std::make_tuple(std::move(P_copy), norm_values, correps_values);
 }
-
-
-// \deprecated use CPUMatrix::euclidianDistance instead
-/**
-double three_dim_norm(CPUMatrix A)
-{
-    //if (A.getDim1() != 3)
-    //    throw std::invalid_argument("Matrix not of dim 3");
-    double r = 0;
-    for (size_t i = 0; i < A.getDim1(); ++i)
-        r += pow2(A(0, i));
-    if (A.getDim1() == 3)
-        runtime_assert((std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2)) == r, "FATAL");
-    auto norm = A.squared_norm(-1);
-    runtime_assert(norm.getDim0() == 1 && norm.getDim1() == 1, "INVALID NORM SIZE ! FATAL ERROR");
-    double res = norm(0, 0);
-    runtime_assert(r == res, "INVALID NORM ! FATAL ERROR");
-    //return std::pow(A(0, 0), 2) + std::pow(A(0, 1), 2) + std::pow(A(0, 2), 2);
-    return r;
-}**/

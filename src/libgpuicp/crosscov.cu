@@ -16,7 +16,6 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
     size_t dist_0, size_t dist_1, size_t dist_pitch)
 {
     assert(blockIdx.y == 0 && threadIdx.y == 0); // we are in 1d
-    //unsigned int colid = blockIdx.y * blockDim.y + threadIdx.y; // y index (unused)
     unsigned int lineid = blockIdx.x * blockDim.x + threadIdx.x; // P index
     if (lineid >= dist_0) {
         return;
@@ -24,26 +23,11 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
     ICPCorresp *d_distline = (ICPCorresp *)((char*)d_dist + lineid * dist_pitch);
     unsigned int idp = lineid; // p_point id
     unsigned int idq = d_distline[0].id; // q_point id
-    // if pitch not in bytes:
-    //unsigned int idq = d_dist[lineid * dist_pitch].id;//d_distline[0].id; // q_point id
 
     double *d_rline = (double *)((char *)d_R + idp * r_pitch);
     double *d_pline = (double *)((char *)d_P + idp * p_pitch);
     double *d_qline = (double *)((char *)d_Q + idq * q_pitch);
-    /**
-    // generic case:
-    //fake transpose dot between P and Q:
-    //d_rline stores P.dot(Q.T) flattened in the line
-    for (size_t q_i = 0; q_i < q_1 ; ++q_i)
-    {
-        for (size_t p_i = 0; p_i < p_1 ; ++p_i)
-        {
-            d_rline[p_i * q_1 + p_j] = d_qline[q_i] * d_pline[p_i];
-        }
-    }
-    **/
-    //printf("%u -> %u\n", idp, idq);
-    //printf("P{%u:} %lf %lf %lf, Q{%u:} %lf %lf %lf \n", idp, d_pline[0], d_pline[1], d_pline[2], idq, d_qline[0], d_qline[1], d_qline[2]);
+    
     // loop unrolled version for dim3:
     assert(p_1 == q_1 && p_1 == 3 && "Invalid: only dim3 is supported !");
     d_rline[0] = d_qline[0] * d_pline[0];
@@ -57,8 +41,6 @@ __global__ void get_cross_cov_kernel(const double *d_P, const double *d_Q, doubl
     d_rline[6] = d_qline[2] * d_pline[0];
     d_rline[7] = d_qline[2] * d_pline[1];
     d_rline[8] = d_qline[2] * d_pline[2];
-    //printf("%u %u: %lf %lf %lf | %lf %lf %lf | %lf %lf %lf\n", idp, idq, d_rline[0], d_rline[1], d_rline[2], d_rline[3], d_rline[4], d_rline[5], d_rline[6], d_rline[7], d_rline[8]);
-    //printf("P{%u:} %lf %lf %lf, Q{%u:} %lf %lf %lf \n", idp, d_pline[0], d_pline[1], d_pline[2], idq, d_qline[0], d_qline[1], d_qline[2]);
 }
 
 __host__ void get_cross_cov(const double *d_P, const double *d_Q, double **d_R, const ICPCorresp *d_dist,
@@ -130,18 +112,11 @@ __global__ void get_array_cross_cov_kernel(double * d_cov, unsigned int* d_array
     
     auto i = index;
     auto j = d_array_correspondances[index];
-    //printf("i vaut %d et j vaut %d\n", i, j);
+
     double *d_ppoint = d_P + i * P_col;
     double *d_qpoint = d_Q + j * Q_col;
 
-    //printf("%lf et %lf", *d_ppoint, *d_qpoint);
-    //for (int i = 0; i < 3; i++)
-    //   printf("%lf and %lf\n", d_ppoint[i], d_qpoint[i]);
-
     increment_cov(d_cov, d_ppoint, d_qpoint);
-
-    //for (int i = 0; i < 9; i++)
-    //    printf(" %lf \n", d_cov[i]);
 }
 
 __host__ void get_array_cross_cov(double* d_cov, unsigned int* d_array_correspondances, double *d_P, double *d_Q,
@@ -175,9 +150,6 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
     double *d_rcov = (double *)((char *)d_R + idp * r_pitch);
     double *d_ppoint =(double *)((char *)d_P + idp * p_pitch); // d_P + idp * P_col;
     double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch); // d_Q + idq * Q_col;
-    //double *d_rcov = (double *)((char *)d_R + idp * r_pitch);
-    //double *d_ppoint = (double *)((char *)d_P + idp * p_pitch);
-    //double *d_qpoint = (double *)((char *)d_Q + idq * q_pitch); 
 
     // optim : shared memory for d_ppoint[0,1,2] an d_qpoint[0,1,2]
     d_rcov[0] = d_qpoint[0] * d_ppoint[0];
@@ -191,15 +163,6 @@ __global__ void get_array_cross_covs_flattened_kernel(const unsigned int* d_arra
     d_rcov[6] = d_qpoint[2] * d_ppoint[0];
     d_rcov[7] = d_qpoint[2] * d_ppoint[1];
     d_rcov[8] = d_qpoint[2] * d_ppoint[2];
-    /**
-    printf("idp: %u / idq: %u\n", idp, idq);
-	    printf("P{%u}: %lf %lf %lf\n", idp, d_ppoint[0],d_ppoint[1],d_ppoint[2]);
-	    printf("Q{%u}: %lf %lf %lf\n", idq, d_qpoint[0],d_qpoint[1],d_qpoint[2]);
-    if (idp == 0)
-    {
-	    printf("%lf %lf %lf | %lf %lf %lf | %lf %lf %lf\n", d_rcov[0], d_rcov[1], d_rcov[2], d_rcov[3], d_rcov[4], d_rcov[5], d_rcov[6], d_rcov[7], d_rcov[8]);
-    }
-    **/
 }
 
 __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_Q, double **d_R, const unsigned int* d_array_correspondances,
@@ -213,8 +176,6 @@ __host__ void get_array_cross_covs_flattened(const double *d_P, const double *d_
     runtime_assert(r_1 == 9, "Flattened cross covs");
     if (*d_R == nullptr)
     {
-        //cudaMallocPitch(d_R, r_pitch, r1 * sizeof(double), r_0);
-        //cudaCheckError();
         *r_pitch = r_1 * sizeof(double);
         cudaMalloc(d_R, *r_pitch * r_0);
         cudaCheckError();

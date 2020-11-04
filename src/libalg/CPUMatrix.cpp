@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <cmath>
+#include <fstream>
 
 #include "error.hpp"
 #include "libalg/alg.hpp"
@@ -22,7 +23,6 @@ CPUMatrix::CPUMatrix(double *array, size_t dim0, size_t dim1) : array(array), di
 // no need to free for user
 CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
 {
-    //std::cerr << "Alloc !" << std::endl;
     this->array = (double *)calloc(dim0 * dim1, sizeof(double));
     if (this->array == nullptr)
         throw std::bad_alloc();
@@ -33,7 +33,6 @@ CPUMatrix::CPUMatrix(size_t dim0, size_t dim1)
 // move constructor
 CPUMatrix::CPUMatrix(CPUMatrix &&mat) noexcept : array(mat.array), dim0(mat.dim0), dim1(mat.dim1)
 {
-    //std::cerr << "Moved !" << std::endl;
     mat.array = nullptr;
 }
 
@@ -63,7 +62,6 @@ bool CPUMatrix::operator==(const CPUMatrix &rhs) const
 {
     if (dim0 != rhs.dim0 || dim1 != rhs.dim1)
         return false;
-    // TODO: memcmp ?
     for (unsigned i = 0; i < dim0; ++i)
     {
         for (unsigned j = 0; j < dim1; ++j)
@@ -84,7 +82,6 @@ std::ostream &operator<<(std::ostream &os, const CPUMatrix &matrix)
 {
     os << " dim0: " << matrix.dim0 << " dim1: " << matrix.dim1;
     os << " array: " << std::endl;
-    //**
     for (unsigned i = 0; i < matrix.dim0; ++i)
     {
         for (unsigned j = 0; j < matrix.dim1; ++j)
@@ -94,8 +91,6 @@ std::ostream &operator<<(std::ostream &os, const CPUMatrix &matrix)
         os << std::endl;
     }
     return os;
-    //print_matrix(os, matrix.array, matrix.dim1, matrix.dim0);
-    //return os;
 }
 
 double *CPUMatrix::getArray() const
@@ -122,38 +117,6 @@ size_t CPUMatrix::getDim1() const
     return dim1;
 }
 
-// TODO: this is bad kinda, why not weak ptr copy and not freeing ?
-/**CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
-{
-    if (&rhs == this)
-        return *this;
-
-    unsigned new_rows = rhs.getDim0();
-    unsigned new_cols = rhs.getDim1();
-
-    // Allocate before freeing in case of error
-    auto *new_array = (double *)malloc(new_rows * new_cols * sizeof(double));
-    if (new_array == nullptr)
-    {
-        throw std::bad_alloc();
-    }
-
-    // Free old pointer
-    free(array);
-    array = new_array;
-    dim0 = new_rows;
-    dim1 = new_cols;
-
-    for (unsigned i = 0; i < dim0; ++i)
-    {
-        for (unsigned j = 0; j < dim1; ++j)
-        {
-            (*this)(i, j) = rhs(i, j);
-        }
-    }
-    return *this;
-}**/
-
 CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
 {
     if (&rhs == this)
@@ -176,7 +139,6 @@ CPUMatrix &CPUMatrix::operator=(const CPUMatrix &rhs)
 
 CPUMatrix CPUMatrix::operator+(const CPUMatrix &rhs)
 {
-    //CPUMatrix result(dim0, dim1);
     // Add operation on both matrices
     size_t Rdim0, Rdim1;
     double *r = nullptr;
@@ -191,7 +153,6 @@ CPUMatrix &CPUMatrix::operator+=(const CPUMatrix &rhs)
     return *this;
 }
 
-// FIXME be able to set with the operator / Maybe it's actually already the case
 double &CPUMatrix::operator()(const unsigned int &row, const unsigned int &col)
 {
     return array[row * dim1 + col];
@@ -204,7 +165,6 @@ const double &CPUMatrix::operator()(const unsigned int &row, const unsigned int 
 
 CPUMatrix CPUMatrix::operator-(const CPUMatrix &rhs)
 {
-    //CPUMatrix result(dim0, dim1);
     // Subtract operation on both matrices
     size_t Rdim0, Rdim1;
     double *r = nullptr;
@@ -228,7 +188,6 @@ CPUMatrix CPUMatrix::dot(const CPUMatrix &rhs)
 
 CPUMatrix CPUMatrix::operator*(const CPUMatrix &rhs)
 {
-    //CPUMatrix result(dim0, dim1);
     // Multiply operation on both matrices
     size_t Rdim0, Rdim1;
     double *r = nullptr;
@@ -238,12 +197,6 @@ CPUMatrix CPUMatrix::operator*(const CPUMatrix &rhs)
 
 CPUMatrix &CPUMatrix::operator*=(const CPUMatrix &rhs)
 {
-    /**
-    CPUMatrix result = (*this) * rhs;
-    // TODO something cleaner?
-    (*this) = result;
-    return *this;
-    **/
     element_wise_op(&this->array, this->array, rhs.array, this->dim0, this->dim1, rhs.dim0, rhs.dim1, this->dim0, this->dim1, mult);
     return *this;
 }
@@ -306,11 +259,9 @@ CPUMatrix &CPUMatrix::operator/=(const double &rhs)
     return *this;
 }
 
-// TODO: FIX the low level transpose function
 CPUMatrix CPUMatrix::transpose()
 {
     double *r = ::transpose(array, dim0, dim1);
-    /** Which constructor is called here ? **/
     CPUMatrix result;
     result.setArray(r, dim1, dim0);
     return result;
@@ -350,17 +301,7 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
     double *u = nullptr, *sigma = nullptr, *vt = nullptr;
     int sizes;
     ::svd(array, &u, &sigma, &vt, m, n, &sizes);
-    /**
-    // ldu = m and we take m cols, ne need to linearize
-    if (sizes == n)
-    {
-        // Linearize U
-        // nbcols=m, nblines=sizes, ld=m
-        //double *U = ::linearize(u, sizes, nbaxis, nbaxis); // u = shape(m,m)
-        ///free(u);
-        //u = U;
-    }
-    else **/
+
     if (sizes == m)
     {
         // Linearize vt
@@ -371,10 +312,16 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
     }
     else if (sizes != n)
         runtime_failure("invalid sizes");
-    std::cerr << "shapes: " << n << "," << n << "  " << n << ",  " << n << "," << m << std::endl;
-    //print_matrix(std::cout, vt, sizes, n, n); // n,sizes not full matrices
-    //print_matrix(std::cout, sigma, sizes, 1, 1); // 1,sizes
-    //print_matrix(std::cout, u, m, sizes, m);     // m,m full matrices
+    // std::cerr << "shapes: " << n << "," << n << "  " << n << ",  " << n << "," << m << std::endl;
+    // VT : n,sizes not full matrices
+    // Sigma : 1,sizes
+    // U : m,m full matrices
 
     return std::make_tuple(CPUMatrix(vt, nbpoints, sizes), CPUMatrix(sigma, 1, sizes), CPUMatrix(u, sizes, nbaxis));
+}
+
+void CPUMatrix::write_in_file(const std::string& filename) {
+    std::ofstream FileWrite(filename);
+    FileWrite << *this;
+    FileWrite.close();
 }

@@ -24,8 +24,22 @@ make
 ## Usage
 
 ```bash
-./CPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt
-./GPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt
+./CPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt 5
+./GPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt 5
+```
+
+## Options
+CPU:
+```bash
+./CPUICP ${FILE1} ${FILE2} ${NB_ITERS}
+```
+GPU:
+```bash
+./GPUICP ${FILE1} ${FILE2} ${NB_ITERS}
+```
+Adding option "-batch" in the end runs the GPU batch implementation.
+```bash
+./GPUICP ${FILE1} ${FILE2} ${NB_ITERS} -batch
 ```
 
 ## Testing
@@ -38,4 +52,37 @@ Testing mean, dotproduct and svd: (from the build folder)
 
 ```bash
 python3 ../tests/test.py
+```
+
+### Extra tests
+
+Run every test{name} executables in the build folder to get usages and test out the features.
+
+Example:
+```bash
+./testgpusvd ../data/3ptsP.txt
+```
+
+## Benchmark
+```bash
+cd build/
+cp ../tests/benchmark.sh .
+```
+
+Default version:
+```bash
+./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS}
+```
+Default full metric version :
+```bash
+./benchmark metric ${FILE1} ${FILE2} ${NB_ITERS}
+```
+
+Batch version:
+```bash
+./benchmark batch ${FILE1} ${FILE2} ${NB_ITERS}
+```
+Batch full metric version:
+```bash
+./benchmark metric-batch ${FILE1} ${FILE2} ${NB_ITERS}
 ```

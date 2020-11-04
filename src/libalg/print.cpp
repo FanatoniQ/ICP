@@ -12,7 +12,7 @@ void print_matrix(std::ostream &s, double *a, int m, int n, int lda)
     {
         for (j = 0; j < m; j++)
         {
-            s << a[j + i * lda]; // printf "%6.15f",
+            s << a[j + i * lda];
             if (j != m - 1)
                 s << ",";
         }

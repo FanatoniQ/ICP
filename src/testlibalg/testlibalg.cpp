@@ -50,9 +50,9 @@ int test_svd(char *file)
     svd(a, &u, &sigma, &vt, m, n, &sizes);
 
     // Full matrices exemple:
-    //print_matrix(std::cout, vt, n, n, n);        // n,n full matrices
-    //print_matrix(std::cout, sigma, sizes, 1, 1); // 1,min(n,m)
-    //print_matrix(std::cout, u, m, m, m);         // m,m full matrices
+    //print_matrix(std::cerr, vt, n, n, n);        // n,n full matrices
+    //print_matrix(std::cerr, sigma, sizes, 1, 1); // 1,min(n,m)
+    //print_matrix(std::cerr, u, m, m, m);         // m,m full matrices
 
     // Not Full Matrices
     print_matrix(std::cout, vt, sizes, n, n);    // n,sizes not full matrices
@@ -147,23 +147,6 @@ int test_dotproduct(char *file1, char *file2)
     print_matrix(std::cout, R.getArray(), R.getDim1(), R.getDim0());
 
     return EXIT_SUCCESS;
-
-    /**
-    size_t nbaxis, nbpoints;
-    std::string f1Header{}, f2Header{};
-    std::ifstream file1(argv[1]);
-    std::ifstream file2(argv[2]);
-    double *m = readCSV(file1, f1Header, &nbaxis, &nbpoints);
-    double *m_T = transpose(m, nbaxis, nbpoints);
-    double *n = readCSV(file2, f2Header, &nbaxis, &nbpoints);
-    double *r = NULL;
-    dot_product(&r, m_T, n, nbpoints, nbaxis, nbaxis, nbpoints);
-    print_matrix(std::cout, r, nbpoints, nbpoints);
-    free(m);
-    free(r);
-    free(n);
-    free(m_T);
-    return EXIT_SUCCESS; **/
 }
 
 void usage(void)

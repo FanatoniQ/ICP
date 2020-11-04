@@ -25,8 +25,6 @@ int main(int argc, char *argv[])
     auto P = CPUMatrix{array, Pdim0, Pdim1};
     auto Q = CPUMatrix{Qarray, Qdim0, Qdim1};
 
-    //print_matrix(std::cerr, array, Pdim1, Pdim0);
-
     std::cerr << P << std::endl;
     std::cerr << P.mean(-1) << std::endl;
     std::cerr << P.mean(0) << std::endl;

@@ -15,12 +15,12 @@ int main(int argc, char *argv[])
 {
     if (argc != 3)
         return EXIT_FAILURE;
-    std::cout << std::setprecision(15); //DBL_MANT_DIG);
+    std::cout << std::setprecision(15);
     size_t Pdim0, Pdim1;
     std::string h{};
     double *array = readCSV(argv[1], h, Pdim0, Pdim1);
 
-    print_matrix(std::cerr, array, Pdim1, Pdim0);
+    print_matrix(std::cout, array, Pdim1, Pdim0);
     auto P = CPUMatrix{array, Pdim0, Pdim1};
     std::cerr << P << std::endl;
 

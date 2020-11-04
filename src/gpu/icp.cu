@@ -138,7 +138,6 @@ __host__ double *compute_cross_variance_cpu_call_gpu(double *P, double *Q, std::
         double *doted_points = nullptr;
         
         double *transposed_Q = calling_transpose_kernel(q_point, 1, Q_c);
-        //double *transposed_Q = transpose(q_point, 1, Q_c);
 
         dot_product(&doted_points, transposed_Q, p_point, Q_c, 1, 1, P_c); //dim of Q_r * P_r
         free (transposed_Q); 
@@ -163,8 +162,6 @@ __global__ void get_correspondence_indices_array_gpu(tuple **correspondances, do
         {
             double *q_point = Q + j * Q_c;
             double dist = std::sqrt(*p_point + *q_point);
-            //double dist = std::sqrt(element_wise_reduce(p_point, q_point, 1, P_c, 1, Q_c,
-            //                        squared_norm_2, add, add)); //norm 2 between 2 vectors
             if (dist < min_dist)
             {
                 min_dist = dist;
@@ -173,7 +170,6 @@ __global__ void get_correspondence_indices_array_gpu(tuple **correspondances, do
         }
         tuple *new_tup = nullptr;
         cudaMalloc(&new_tup, sizeof(tuple));
-        //tuple *new_tup = (tuple*)calloc(1, sizeof(tuple));
         new_tup->index = i;
         new_tup->value = chosen_idx;
         correspondances[push_index] = new_tup;
@@ -313,14 +309,12 @@ CPUMatrix icp_gpu(CPUMatrix& P, CPUMatrix& Q, unsigned iterations)
     size_t threads_num = 1024;
     size_t batchsize = 16;
 
-    std::cerr << "==== Init ====" << std::endl;
+    //==== Init ====
     dQ_center = nullptr; // reduce_0 function does the allocation if nullptr
-    //cudaMalloc(&dQ_center, Q.getDim1() * sizeof(double)); // FIXME: should be Q.getDim1() * nbblocksPerColumn * sizeof(double)
     cudaMalloc(&dQ_centered, Q.getDim0() * Q.getDim1() * sizeof(double));
     cudaMalloc(&dP_copy, P.getDim0() * P.getDim1() * sizeof(double));
     cudaMalloc(&dP_centered, P.getDim0() * P.getDim1() * sizeof(double));
     dP_center = nullptr; // reduce_0 function does the allocation if nullptr
-    //cudaMalloc(&dP_center, P.getDim1() * sizeof(double)); // FIXME: should be P.getDim1() * nbblocksPerColumn * sizeof(double)
     cudaMalloc(&dDot_temp, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dU, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dS, P.getDim1() * P.getDim1() * sizeof(double)); // FIXME shape?
@@ -335,11 +329,6 @@ CPUMatrix icp_gpu(CPUMatrix& P, CPUMatrix& Q, unsigned iterations)
     cudaCheckError();
     cudaMalloc((void**)&dcross_var, 1 * cov_pitch);
     cudaCheckError();
-
-    //----- MEMSET -----/
-    // Needs to be zero init (no need since reduce_0 will do when nullptr)
-    //cudaMemset(dQ_center, 0, Q.getDim1() * sizeof(double));
-    //cudaMemset(dP_center, 0, P.getDim1() * sizeof(double));
 
     //----- MEMCPY -----/
     cudaMemcpy(dQ_centered, Q.getArray(), Q.getDim0() * Q.getDim1() * sizeof(double), cudaMemcpyHostToDevice);
@@ -362,8 +351,6 @@ CPUMatrix icp_gpu(CPUMatrix& P, CPUMatrix& Q, unsigned iterations)
         1, Q.getDim1(), Q.getDim1() * sizeof(double), 
         Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double));
 
-    ////std::vector<std::tuple<size_t, int>> correps_values; // Might need device to host move in for loop
-    ////std::vector<double> norm_values; // Might need device to host move in for loop
     // cuda memcpy device to device to put equal P_centered and P_copy
     for (unsigned i = 0; i < iterations; ++i)
     {
@@ -514,17 +501,15 @@ cudaMalloc(corresps) dim(P
 
     size_t threads_num = 1024;
 
-    std::cerr << "==== Init ====" << std::endl;
+    //==== Init ====
     dQ_center = nullptr; // reduce_0 function does the allocation if nullptr
-    //cudaMalloc(&dQ_center, Q.getDim1() * sizeof(double)); // FIXME: should be Q.getDim1() * nbblocksPerColumn * sizeof(double)
     cudaMalloc(&dQ_centered, Q.getDim0() * Q.getDim1() * sizeof(double));
     cudaMalloc(&dP_copy, P.getDim0() * P.getDim1() * sizeof(double));
     cudaMalloc(&dP_centered, P.getDim0() * P.getDim1() * sizeof(double));
     dP_center = nullptr; // reduce_0 function does the allocation if nullptr
-    //cudaMalloc(&dP_center, P.getDim1() * sizeof(double)); // FIXME: should be P.getDim1() * nbblocksPerColumn * sizeof(double)
     cudaMalloc(&dDot_temp, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dU, P.getDim1() * P.getDim1() * sizeof(double));
-    cudaMalloc(&dS, P.getDim1() * P.getDim1() * sizeof(double)); // FIXME shape?
+    cudaMalloc(&dS, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dV_T, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dR, P.getDim1() * P.getDim1() * sizeof(double));
     cudaMalloc(&dR_transpose, P.getDim1() * P.getDim1() * sizeof(double));
@@ -532,13 +517,6 @@ cudaMalloc(corresps) dim(P
 
     cudaMalloc((void**)&dcorresps, P.getDim0() * sizeof(unsigned int));
     cudaCheckError();
-    //cudaMalloc((void**)&dcross_var, 1 * cov_pitch);
-    //cudaCheckError();
-
-    //----- MEMSET -----/
-    // Needs to be zero init (no need since reduce_0 will do when nullptr)
-    //cudaMemset(dQ_center, 0, Q.getDim1() * sizeof(double));
-    //cudaMemset(dP_center, 0, P.getDim1() * sizeof(double));
 
     //----- MEMCPY -----/
     cudaMemcpy(dQ_centered, Q.getArray(), Q.getDim0() * Q.getDim1() * sizeof(double), cudaMemcpyHostToDevice);
@@ -561,8 +539,6 @@ cudaMalloc(corresps) dim(P
         1, Q.getDim1(), Q.getDim1() * sizeof(double),
         Q.getDim0(), Q.getDim1(), Q.getDim1() * sizeof(double));
 
-    ////std::vector<std::tuple<size_t, int>> correps_values; // Might need device to host move in for loop
-    ////std::vector<double> norm_values; // Might need device to host move in for loop
     // cuda memcpy device to device to put equal P_centered and P_copy
     for (unsigned i = 0; i < iterations; ++i)
     {

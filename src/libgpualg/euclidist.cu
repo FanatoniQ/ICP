@@ -99,21 +99,21 @@ __global__ void squared_norm_2_kernel_0(const double *d_A, const double *d_B, do
     double *d_Bline = (double *)((char *)d_B + lineid * pitch);
     double tmp = d_Bline[dataid] - d_Aline[dataid];
     s_data[threadid] = tmp * tmp;
-    printf("%d,%d,%d: %lf - %lf = %lf; ^2 = %lf \n", lineid, dataid, threadid, d_Bline[dataid], d_Aline[dataid], tmp, s_data[threadid]);
+    //printf("%d,%d,%d: %lf - %lf = %lf; ^2 = %lf \n", lineid, dataid, threadid, d_Bline[dataid], d_Aline[dataid], tmp, s_data[threadid]);
     __syncthreads();
     // each thread will reduce with one other shared data element in the middle right part of s_data
     for (size_t stride = blockDim.x / 2; stride > 0; stride >>= 1)
     {
         assert(is_power_of_2(stride)); // if not power of 2 ...
         if (threadid < stride) {// a lot of threads are idle...
-             printf("%d,%d,%d: %lf + %lf = %lf\n", lineid, dataid, threadid, s_data[threadid], s_data[threadid + stride], s_data[threadid] + s_data[threadid + stride]);
+             //printf("%d,%d,%d: %lf + %lf = %lf\n", lineid, dataid, threadid, s_data[threadid], s_data[threadid + stride], s_data[threadid] + s_data[threadid + stride]);
              s_data[threadid] += s_data[threadid + stride];
 	}
         __syncthreads();
     }
     double *d_resline = (double *)((char *)d_res + blockIdx.y * reducepitch);
     if (threadid == 0) {
-        printf("%d,%d,%d = %lf\n", lineid, dataid, threadid, s_data[0]);
+        //printf("%d,%d,%d = %lf\n", lineid, dataid, threadid, s_data[0]);
         d_resline[blockIdx.x] = s_data[0];
     }
 }
@@ -150,7 +150,6 @@ __host__ double cuda_squared_norm_2_0(double *d_A, double *d_B, size_t width, si
     cudaCheckError();
 
     double norm = 0;
-    // double norm = h_resline[0];
     for (size_t i = 0; i < width; ++i)
     {
         double *h_resline = (double*)((char*)h_res + i * reducepitch);

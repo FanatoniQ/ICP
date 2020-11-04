@@ -20,7 +20,6 @@
 // GPU
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
-//#include "gpu/icp.cuh"
 #include "libgpuicp/dist.cuh"
 #include "libgpuicp/corresp.cuh"
 
@@ -48,7 +47,6 @@ int main(int argc, char **argv)
     // device P matrix
     size_t p_pitch = Pcols * sizeof(double);
     double *d_P;
-    //cudaMallocPitch((void **)&d_P, &p_pitch, Pcols * sizeof(double), Plines);
     cudaMalloc((void**)&d_P, Plines * p_pitch);
     cudaCheckError();
     cudaMemcpy2D(d_P, p_pitch, Pt, Pcols * sizeof(double), Pcols * sizeof(double), Plines, cudaMemcpyHostToDevice);
@@ -57,7 +55,6 @@ int main(int argc, char **argv)
     // device Q matrix
     size_t q_pitch = Qcols * sizeof(double);
     double *d_Q;
-    //cudaMallocPitch((void **)&d_Q, &q_pitch, Qcols * sizeof(double), Qlines);
     cudaMalloc((void**)&d_Q, Qlines * q_pitch);
     cudaCheckError();
     cudaMemcpy2D(d_Q, q_pitch, Qt, Qcols * sizeof(double), Qcols * sizeof(double), Qlines, cudaMemcpyHostToDevice);
@@ -84,7 +81,6 @@ int main(int argc, char **argv)
     {
          for (size_t j = 0; j < Qlines; ++j)
          {
-             //std::cerr << "dist: " << h_dist[i * Qlines + j].dist << " id: " <<  h_dist[i * Qlines + j].id << "\t";
 	     if (h_dist[i * Qlines + j].id != h_ref_dist[i * Qlines + j].id)
 	     {
 		     std::cerr << "FATAL ID ERROR !" << std::endl;
@@ -93,11 +89,6 @@ int main(int argc, char **argv)
 	     double err = std::fabs(h_dist[i * Qlines + j].dist - h_ref_dist[i * Qlines + j].dist);
 	     ttlerror += err;
              std::cerr << err << "\t";
-             //if (memcmp(&h_dist[i * Qlines + j], &h_ref_dist[i * Qlines + j], sizeof(ICPCorresp)) != 0)
-             //{
-                 //std::cerr << "h_ref_dist: " << h_ref_dist[i * Qlines + j].dist << " id: " << h_ref_dist[i * Qlines + j].id << std::endl;
-		 //return EXIT_FAILURE;
-             //}
          }
 	 std::cerr << std::endl;
     }

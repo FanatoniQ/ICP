@@ -139,16 +139,14 @@ int main(int argc, char **argv)
         ICPCorresp *h_corresp = (ICPCorresp *)malloc(nblines * 1 * sizeof(ICPCorresp));
         cudaMemcpy2D(h_corresp, 1 * sizeof(ICPCorresp), d_dist, dist_pitch, 1 * sizeof(ICPCorresp), nblines, cudaMemcpyDeviceToHost);
         cudaCheckError();
-	//if (Pstartindex >= Plines - 100)
-	if (Pstartindex < 100)
-{	for (size_t i = 0; i < nblines; ++i)
-	{
-	//if (i + Pstartindex >= Plines - 100)
-            std::cout << i + Pstartindex << " -> " << h_corresp[i].id << " , " << h_corresp[i].dist << std::endl;
-	}
-}
-	free(h_corresp);
-
+	    if (Pstartindex < 100)
+        {	
+            for (size_t i = 0; i < nblines; ++i)
+	        {
+                std::cerr << i + Pstartindex << " -> " << h_corresp[i].id << " , " << h_corresp[i].dist << std::endl;
+	        }
+        }
+	    free(h_corresp);
 
         // CROSS-COVS
         get_cross_cov(d_P + Pstartindex * p_pitch / sizeof(double), d_Q, &d_R, d_dist,
@@ -166,7 +164,7 @@ int main(int argc, char **argv)
         //auto BatchRefCOV = CPUMatrix(h_ref_cross_covs, Qcols, Pcols);
         auto BatchRefCOV = CPUMatrix(Qcols, Pcols);
         //assert(memcmp(h_ref_cross_covs, h_r, Rlines * Rcols * sizeof(double)) == 0);
-	ttlerror = 0;
+	    ttlerror = 0;
         for (size_t i = 0; i < nblines; i++)
         {
             for (size_t j = 0; j < Rcols; ++j)
@@ -175,18 +173,16 @@ int main(int argc, char **argv)
                 std::cerr << h_r[i * (r_pitch / sizeof(double)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j] << std::endl;
                 ttlerror += error;
             }
-	    auto LineRefCOV = CPUMatrix(h_ref_cross_covs + i * (r_pitch / sizeof(double)), Qcols, Pcols);
-	    BatchRefCOV += LineRefCOV;
-	    LineRefCOV.setArray(nullptr,1,1);
+	        auto LineRefCOV = CPUMatrix(h_ref_cross_covs + i * (r_pitch / sizeof(double)), Qcols, Pcols);
+	        BatchRefCOV += LineRefCOV;
+	        LineRefCOV.setArray(nullptr,1,1);
         }
         std::cerr << "Error (batch cross-covs): " << ttlerror << std::endl;
         std::cerr << "Mean Error (batch cross-covs): " << ttlerror / nblines * Rcols << std::endl;
-	//assert(Qcols * Pcols == nblines * Rcols); // should break
         RefCOV += BatchRefCOV;
         free(h_r);
 
         // COVS SUM
-	//cudaMemset(d_R, 0, r_pitch * Rlines);
         //reduce_0(MatrixReduceOP::SUM, d_dist, double **d_sum, Pcols * Qcols, Plines, dist_pitch, size_t *reducepitch, int threads);
         reduce_0(MatrixReduceOP::SUM, d_R, &d_R, Rcols, nblines, r_pitch, &r_pitch, nblines);
 
@@ -198,12 +194,6 @@ int main(int argc, char **argv)
              1, covCols * covLines, cov_pitch);
 
         /** testing covs-sum **/
-        /**for (size_t i = 0; i < Rlines; i++)
-        {
-            auto c = CPUMatrix(h_ref_cross_covs + i * (r_pitch / sizeof(double)), Qcols, Pcols);
-        RefCOV += c;
-        c.setArray(nullptr,1,1); // avoid freeing
-        }**/
         // TODO: do this on GPU
         double *h_cov = (double *)malloc(Rcols * sizeof(double));
         cudaMemcpy(h_cov, d_R, Rcols * sizeof(double), cudaMemcpyDeviceToHost);
@@ -216,13 +206,11 @@ int main(int argc, char **argv)
             for (size_t j = 0; j < Pcols; ++j)
             {
                 double error = std::fabs(BatchCOV(i,j) - BatchRefCOV(i,j));
-				//h_cov[i * Pcols + j] - h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j]); // Weird not having to divide by sizeof double...
-                //std::cerr << h_r[i * (r_pitch / sizeof(double)) + j] << " \t " <<  h_ref_cross_covs[i * (r_pitch / sizeof(double)) + j] << std::endl;
                 ttlerror += error;
             }
         }
-	std::cout << "Error (batch-reduced cross-cov): " << ttlerror << std::endl;
-        std::cout << "Mean Error (batch-reduced cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+	std::cerr << "Error (batch-reduced cross-cov): " << ttlerror << std::endl;
+        std::cerr << "Mean Error (batch-reduced cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
         std::cerr << "BatchRefCOV:" << std::endl;
         std::cerr << BatchRefCOV << std::endl;
@@ -230,12 +218,10 @@ int main(int argc, char **argv)
         std::cerr << "BatchCOV:" << std::endl;
         std::cerr << BatchCOV << std::endl;
 
-	//assert(BatchRefCOV.getArray() == BatchCOV.getArray());
-	std::cout << "index: " << Pstartindex << "/" << Plines << std::endl;
+	    std::cerr << "index: " << Pstartindex << "/" << Plines << std::endl;
 
         Pstartindex += nblines;
     }
-    //auto COV = CPUMatrix(h_cov, Qcols, Pcols);
     ttlerror = 0;
     for (size_t i = 0; i < Qcols; ++i)
     {
@@ -245,14 +231,14 @@ int main(int argc, char **argv)
             ttlerror += error;
         }
     }
-    std::cout << "Error (FINAL CPU summed cross-cov): " << ttlerror << std::endl;
-    std::cout << "Mean Error (FINAL CPU summed cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+    std::cerr << "Error (FINAL CPU summed cross-cov): " << ttlerror << std::endl;
+    std::cerr << "Mean Error (FINAL CPU summed cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
-    std::cout << "CPURefCOV:" << std::endl;
-    std::cout << RefCOV << std::endl;
+    std::cerr << "CPURefCOV:" << std::endl;
+    std::cerr << RefCOV << std::endl;
 
-    std::cout << "CPUsummed GPUCOVs:" << std::endl;
-    std::cout << COV << std::endl;
+    std::cerr << "CPUsummed GPUCOVs:" << std::endl;
+    std::cerr << COV << std::endl;
 
     double *h_cov = (double *)malloc(covLines * covCols * sizeof(double));
     cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(double), cudaMemcpyDeviceToHost);
@@ -267,11 +253,11 @@ int main(int argc, char **argv)
             ttlerror += error;
         }
     }
-    std::cout << "Error (FINAL FULLGPU cross-cov): " << ttlerror << std::endl;
-    std::cout << "Mean Error (FINAL FULLGPU cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+    std::cerr << "Error (FINAL FULLGPU cross-cov): " << ttlerror << std::endl;
+    std::cerr << "Mean Error (FINAL FULLGPU cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
-    std::cout << "FULL GPUCOV:" << std::endl;
-    std::cout << FULLGPUCOV << std::endl;
+    std::cerr << "FULL GPUCOV:" << std::endl;
+    std::cerr << FULLGPUCOV << std::endl;
     
     cudaFree(d_cov);
     cudaCheckError();
