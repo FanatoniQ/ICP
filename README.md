@@ -21,25 +21,27 @@ cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 make
 ```
 
-## Usage
+## Example Usage
 
 ```bash
 ./CPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt 5
-./GPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt 5
+./GPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt 5 -shared-loop
 ```
 
 ## Options
-CPU:
+### CPU
 ```bash
 ./CPUICP ${FILE1} ${FILE2} ${NB_ITERS}
 ```
-GPU:
+### GPU
+Four different implementations at your disposition:
+- "-loop"
+- "-shared"
+- "-shared-loop"
+- "-batch"
+Example:
 ```bash
-./GPUICP ${FILE1} ${FILE2} ${NB_ITERS}
-```
-Adding option "-batch" in the end runs the GPU batch implementation.
-```bash
-./GPUICP ${FILE1} ${FILE2} ${NB_ITERS} -batch
+./GPUICP ${FILE1} ${FILE2} ${NB_ITERS} -shared-loop
 ```
 
 ## Testing
