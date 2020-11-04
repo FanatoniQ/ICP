@@ -18,8 +18,6 @@ int main(int argc, char *argv[])
     std::cerr << "nbaxis: " << nbaxis << " nbpoints: " << nbpoints << std::endl;
     print_matrix(std::cout, m, nbaxis, nbpoints);
 
-    //runtime_assert(nbaxis > nbpoints, "fail checking");
-
     free(m);
     return 0;
 }

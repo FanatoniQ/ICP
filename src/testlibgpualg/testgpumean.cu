@@ -185,13 +185,8 @@ void test_tree_reduce_sum(const CPUMatrix &cpuSum, double *d_pT, size_t pitch, s
 	ttlerror += std::fabs(cpulinesum - gpulinesum);
 	// we have some error apparently, which is weird
 	//runtime_assert(cpulinesum == gpulinesum, "Not same mean");
-	/**
 	// NOTE: floating points operations are not commutative...
 	// we could use bigger type than double for shared memory... can be heavy
-        if (std::fabs(cpulinesum - gpulinesum) > 1e-10f) {
-             std::cerr << "Difference betweeen CPU and GPU sum: " << gpulinesum - cpulinesum << std::endl;
-             exit(4);
-        }**/
     }
     std::cerr << std::endl << "Axis1:" << std::endl << "Total error: " << ttlerror << std::endl;
     std::cerr << "Mean error: " << ttlerror / width << std::endl << std::endl;
@@ -273,13 +268,8 @@ void test_tree_reduce_sum_0(const CPUMatrix &cpuSum, double *d_p, size_t pitch, 
 	ttlerror += std::fabs(cpulinesum - gpulinesum);
 	// we have some error apparently, which is weird
 	//runtime_assert(cpulinesum == gpulinesum, "Not same mean");
-	/**
 	// NOTE: floating points operations are not commutative...
 	// we could use bigger type than double for shared memory... can be heavy
-        if (std::fabs(cpulinesum - gpulinesum) > 1e-10f) {
-             std::cerr << "Difference betweeen CPU and GPU sum: " << gpulinesum - cpulinesum << std::endl;
-             exit(4);
-        }**/
     }
     std::cerr << std::endl << "Axis0:" << std::endl << "Total error: " << ttlerror << std::endl;
     std::cerr << "Mean error: " << ttlerror / height << std::endl << std::endl;

@@ -51,25 +51,6 @@ __global__ void get_correspondences_kernel(ICPCorresp *d_dist,
     }
 }
 
-/**
-// deprecated
-__host__ void get_correspondences(ICPCorresp *d_dist,
-    size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync)
-{
-    //dim3 gridsize(1, dist_0);
-    //dim3 blocksize(get_next_power_of_2(dist_1), 1);
-    //size_t nb = get_next_power_of_2(dist_1);
-    dim3 blocksize(1024, 1);
-    dim3 gridsize(std::ceil((float)dist_1 / blocksize.x), dist_0);
-    std::cerr << std::endl << "gridsize.y: " << gridsize.y << std::endl;
-    std::cerr << "blocksize.x: " << blocksize.x << std::endl;
-    get_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_dist, dist_pitch, dist_0, dist_1);
-    if (sync) {
-        cudaDeviceSynchronize();
-        cudaCheckError();
-    }
-}**/
-
 __host__ void get_correspondences(ICPCorresp *d_dist,
     size_t dist_pitch, size_t dist_0, size_t dist_1, bool sync, size_t threads)
 {

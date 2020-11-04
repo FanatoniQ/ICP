@@ -16,7 +16,6 @@ __global__ void get_distances_kernel(const double *d_P, const double *d_Q, ICPCo
     size_t q_0, size_t q_1, size_t q_pitch,
     size_t dist_0, size_t dist_1, size_t dist_pitch)
 {
-    //unsigned int threadid = threadIdx.x; // thread id in the block
     unsigned int colid = blockIdx.x * blockDim.x + threadIdx.x; // Q index
     unsigned int lineid = blockIdx.y * blockDim.y + threadIdx.y; // P index
     if (colid >= dist_1 || lineid >= dist_0) {
@@ -28,13 +27,6 @@ __global__ void get_distances_kernel(const double *d_P, const double *d_Q, ICPCo
     double tmp;
     // TODO: for higher dimensions than 3, we can improve this by making each thread compute just one subtract^2
     // then reduce sum
-    /**
-    for (size_t i = 0; i < p_1; ++i)
-    {
-        tmp = d_Qline[i] - d_Pline[i];
-        dist += tmp * tmp;
-    }
-    **/
     // loop unrolling for dim3:
     assert(p_1 == 3);
     tmp = d_Qline[0] - d_Pline[0];
@@ -45,7 +37,7 @@ __global__ void get_distances_kernel(const double *d_P, const double *d_Q, ICPCo
     dist += tmp * tmp;
     // TODO: remove sqrt for quicker
     ICPCorresp *d_distLine = (ICPCorresp *)((char*)d_dist + lineid * dist_pitch);
-    d_distLine[colid] = { dist, colid }; //{ sqrt(dist), colid };
+    d_distLine[colid] = { dist, colid };
 }
 
 __host__ void get_distances(const double *d_P, const double *d_Q, ICPCorresp **d_dist,

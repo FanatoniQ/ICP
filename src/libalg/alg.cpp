@@ -24,7 +24,6 @@ double element_wise_reduce(double *a, double *b,
         tmp = 0;
         for (j = 0; j < r_1; ++j)
         {
-            //std::cerr << a[(i % a_0) * a_1 + (j % a_1)] << "\t";
             tmp = rop(tmp, op(a[(i % a_0) * a_1 + (j % a_1)], b[(i % b_0) * b_1 + (j % b_1)]));
         }
         r = lop(r, tmp);

@@ -13,7 +13,6 @@ size_t get_id_reduce_first_axis(size_t i, size_t j, size_t dim0, size_t dim1)
     UNUSED(dim0);
     UNUSED(dim1);
     return j;
-    //return (size_t)(idx % dim1); // return j
 }
 
 size_t get_id_reduce_second_axis(size_t i, size_t j, size_t dim0, size_t dim1)
@@ -22,7 +21,6 @@ size_t get_id_reduce_second_axis(size_t i, size_t j, size_t dim0, size_t dim1)
     UNUSED(dim1);
     UNUSED(dim0);
     return i;
-    //return (size_t)floor(idx / dim1); // return i
 }
 
 size_t get_id_reduce_flattened(size_t i, size_t j, size_t dim0, size_t dim1)

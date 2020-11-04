@@ -20,7 +20,6 @@
 // GPU
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
-//#include "gpu/icp.cuh"
 #include "libgpuicp/corresp.cuh"
 #include "libgpuicp/dist.cuh"
 #include "libgpuicp/corresp.cuh"
@@ -71,7 +70,7 @@ int main(int argc, char **argv)
     // device P matrix
     size_t p_pitch = Pcols * sizeof(double);
     double *d_P;
-    //cudaMallodist_pitch((void **)&d_P, &p_pitch, Pcols * sizeof(double), Plines);
+
     cudaMalloc((void**)&d_P, Plines * p_pitch);
     cudaCheckError();
     cudaMemcpy2D(d_P, p_pitch, Pt, Pcols * sizeof(double), Pcols * sizeof(double), Plines, cudaMemcpyHostToDevice);
@@ -80,7 +79,7 @@ int main(int argc, char **argv)
     // device Q matrix
     size_t q_pitch = Qcols * sizeof(double);
     double *d_Q;
-    //cudaMallodist_pitch((void **)&d_Q, &q_pitch, Qcols * sizeof(double), Qlines);
+
     cudaMalloc((void**)&d_Q, Qlines * q_pitch);
     cudaCheckError();
     cudaMemcpy2D(d_Q, q_pitch, Qt, Qcols * sizeof(double), Qcols * sizeof(double), Qlines, cudaMemcpyHostToDevice);
@@ -92,8 +91,6 @@ int main(int argc, char **argv)
     ICPCorresp *d_dist;
     cudaMallocPitch((void **)&d_dist, &dist_pitch, dist_1 * sizeof(ICPCorresp), dist_0);
     cudaCheckError();
-    //cudaMemcpy2D(d_dist, dist_pitch, C, Qlines * sizeof(ICPCorresp), Qlines * sizeof(ICPCorresp), Plines, cudaMemcpyHostToDevice);
-    //cudaCheckError();
 
     // device cross-covs flattened
     size_t Rlines = Plines, Rcols = Pcols * Qcols;
@@ -125,12 +122,10 @@ int main(int argc, char **argv)
     std::cerr << "CROSS-COVS DONE" << std::endl;
 
     /** Testing cross-covs: **/
-    // h_ref_cross_covs is BUGGED !
     double *h_ref_cross_covs = get_cross_covs_cpu(P, Plines, Pcols, Q, Qlines, Qcols, d_dist, dist_0, dist_1, dist_pitch);
     double *h_r = (double*)malloc(Rlines * Rcols * sizeof(double));
     cudaMemcpy2D(h_r, Rcols * sizeof(double), d_R, r_pitch, Rcols * sizeof(double), Rlines, cudaMemcpyDeviceToHost);
     cudaCheckError();
-    //assert(memcmp(h_ref_cross_covs, h_r, Rlines * Rcols * sizeof(double)) == 0);
     double ttlerror = 0;
     for (size_t i = 0; i < Rlines; i++)
     {

@@ -99,9 +99,7 @@ int main(int argc, char** argv)
             break;
         }
     }
-    //print_Mat(h_C_row, h_C_col, h_C);
     cudaDeviceSynchronize();
-    //print_Mat(h_C_row, h_C_col, cpu_C);
     std::cout << "Error: " << err << std::endl;
 
     cudaFree(d_A);

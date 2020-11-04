@@ -150,7 +150,6 @@ __host__ double cuda_squared_norm_2_0(double *d_A, double *d_B, size_t width, si
     cudaCheckError();
 
     double norm = 0;
-    // double norm = h_resline[0];
     for (size_t i = 0; i < width; ++i)
     {
         double *h_resline = (double*)((char*)h_res + i * reducepitch);

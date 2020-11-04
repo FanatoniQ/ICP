@@ -4,7 +4,6 @@
 
 #include <string>
 #include <vector>
-//#include <charconv>
 
 #include "error.hpp"
 #include "libCSV/csv.hpp"
@@ -85,10 +84,8 @@ double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoin
         for (const auto &f1V : f1line)
         {
             m[i * (*nbpoints) + j] = f1V; // non linear access
-            //std::cerr << f1V << "\t";
             ++i;
         }
-        //std::cerr << std::endl;
         ++j; // j is line index
     }
     return m;
@@ -114,7 +111,6 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
     {
         if (h.empty())
             h = std::string{line};
-        //std::cerr << "Line " << nblines << " read: " << line << std::endl;
         cols_num = 0;
         token = strtok(line, ",");
         while (token != NULL)
@@ -128,12 +124,6 @@ double *readCSV(const char *path, std::string &h, size_t &nblines, size_t &nbcol
                 runtime_assert(r != nullptr, "Alloc error (realloc) !");
             }
             double v;
-            /**
-             ** this does not compile, it should in c++17...
-            auto [p, ec] = std::from_chars((const char *)token, (const char *)token + strlen(token), v);
-            if (p == token || ec == std::errc())
-                errx(2, "Not a valid double !");
-            **/
             v = strtod(token, &end_tok);
             if (end_tok == token)
             {

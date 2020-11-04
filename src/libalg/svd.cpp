@@ -33,7 +33,6 @@ double *linearize(const double *a, int n, int m, int lda)
     return r;
 }
 
-//void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int &ldvt, int &ldu);
 void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int *size_s)
 {
     char jobu[] = {"All"}, jobvt[] = {"All"};

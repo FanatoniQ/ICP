@@ -53,15 +53,6 @@ int main(int argc, char **argv)
         r_0, r_1, &r_pitch,
         Pcols, true);
 
-    /**
-    // Testing h_array_correspondances
-    unsigned int* h_array_correspondances = (unsigned int *)malloc(Plines * sizeof(unsigned int));
-    cudaMemcpy(h_array_correspondances, d_array_correspondances, Plines * sizeof(unsigned int), cudaMemcpyDeviceToHost);
-    for (int i = 0; i < Plines; i++)
-        std::cout << i << " ->" << h_array_correspondances[i] << std::endl;
-    free(h_array_correspondances);
-    **/
-
     cudaFree(d_R);
     cudaFree(d_P);
     cudaFree(d_Q);

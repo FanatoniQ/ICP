@@ -40,7 +40,6 @@ int main(int argc, char **argv)
     // device P matrix
     size_t p_pitch = Pcols * sizeof(double);
     double *d_P;
-    //cudaMallodist_pitch((void **)&d_P, &p_pitch, Pcols * sizeof(double), Plines);
     cudaMalloc((void**)&d_P, Plines * p_pitch);
     cudaCheckError();
     cudaMemcpy2D(d_P, p_pitch, Pt, Pcols * sizeof(double), Pcols * sizeof(double), Plines, cudaMemcpyHostToDevice);
@@ -61,8 +60,6 @@ int main(int argc, char **argv)
     ICPCorresp *d_dist;
     cudaMallocPitch((void **)&d_dist, &dist_pitch, dist_1 * sizeof(ICPCorresp), dist_0);
     cudaCheckError();
-    //cudaMemcpy2D(d_dist, dist_pitch, C, Qlines * sizeof(ICPCorresp), Qlines * sizeof(ICPCorresp), Plines, cudaMemcpyHostToDevice);
-    //cudaCheckError();
 
     // device cross-covs flattened
     size_t Rlines = batchsize, Rcols = Pcols * Qcols;

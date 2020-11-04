@@ -24,9 +24,19 @@ make
 ## Usage
 
 ```bash
-./CPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt
-./GPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt
+./CPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt 5
+./GPUICP ../data/30points_notebook_P.txt ../data/30points_notebook_Q.txt 5
 ```
+
+## Options
+```bash
+./CPUICP ${FILE1} ${FILE2} ${NB_ITERS}
+```
+
+```bash
+./GPUICP ${FILE1} ${FILE2} ${NB_ITERS} (-bash)
+```
+Option "-bash": Runs the GPU bash implementation
 
 ## Testing
 
@@ -38,4 +48,11 @@ Testing mean, dotproduct and svd: (from the build folder)
 
 ```bash
 python3 ../tests/test.py
+```
+
+## Benchmark
+```bash
+cd build/
+cp ../tests/benchmark.sh .
+./benchmark icp
 ```

@@ -99,7 +99,6 @@ __global__ void dumb_sum_kernel_0(const double *d_A, double *d_sumA, int pitch, 
     int idx = threadIdx.x;
     if (idx >= width)
         return;
-    //printf("%d - %d\n", blockIdx.x, idx);
     d_sumA[idx] = get_column_sum(d_A, idx, height, pitch);
 }
 
@@ -108,8 +107,6 @@ __global__ void dumb_mean_kernel_0(const double *d_A, double *d_sumA, int pitch,
     int idx = threadIdx.x;
     if (idx >= width)
         return;
-    //printf("%d - %d | %d - %d\n",  blockIdx.y, blockIdx.x, idx, threadIdx.y);
-    //assert(idx >= height);
     d_sumA[idx] = get_column_mean(d_A, idx, height, pitch);
 }
 
@@ -137,12 +134,10 @@ __global__ void tree_reduce_sum_kernel(const double *d_A, double *d_sumA, int pi
              s_data[threadid] += s_data[threadid + stride];
         __syncthreads();
     }
-    //printf("Reduce Index: %d\n", blockIdx.x + reducepitch * lineid);
+
     double *d_sumAline = (double *)((char *)d_sumA + lineid * reducepitch);
     if (threadid == 0)
         d_sumAline[blockIdx.x] = s_data[0];
-    //d_sumA[blockIdx.x + reducepitch * lineid] = s_data[0]; // we store at pos x,y the partial mean
-    //d_sumA[blockIdx.x + (height / blockDim.x) * lineid] = s_data[0]; // we store at pos x,y the partial mean
 }
 
 __global__ void tree_reduce_mean_kernel(const double *d_A, double *d_sumA, int pitch, int width, int height, int reducepitch)
@@ -185,7 +180,7 @@ __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int 
     // each thread copies to shared memory
     double *d_Aline = (double *)((char *)d_A + lineid * pitch);
     s_data[threadid] = d_Aline[dataid];
-    //printf("line: %d ,column: %d ,value: %lf\n", lineid, dataid, s_data[threadid]);
+
     __syncthreads();
     // each thread will reduce with one other shared data element in the middle right part of s_data
     for (size_t stride = blockDim.x / 2; stride > 0; stride = stride >> 1)
@@ -195,12 +190,9 @@ __global__ void tree_reduce_sum_kernel_0(const double *d_A, double *d_sumA, int 
              s_data[threadid] += s_data[threadid + stride];
         __syncthreads();
     }
-    //printf("Reduce Index: %d\n", blockIdx.x + reducepitch * lineid);
     double *d_sumAline = (double *)((char *)d_sumA + blockIdx.y * reducepitch);
     if (threadid == 0)
         d_sumAline[blockIdx.x] = s_data[0];
-    //d_sumA[blockIdx.x + reducepitch * lineid] = s_data[0]; // we store at pos x,y the partial mean
-    //d_sumA[blockIdx.x + (height / blockDim.x) * lineid] = s_data[0]; // we store at pos x,y the partial mean
 }
 
 
@@ -241,17 +233,10 @@ __host__ void reduce_0(enum MatrixReduceOP op, double *d_A, double **d_sum, size
     if (*d_sum == nullptr)
     {
         // ALLOCATING DEVICE MEMORY
-        // TODO: This is too much memory we should use cudaMalloc when we have a high number of lines
-        /**
-        cudaMallocPitch(d_sum, reducepitch, width * sizeof(double), nbblocksPerColumn);
-        cudaCheckError();
-        cudaMemset2D(*d_sum, *reducepitch, 0, width * sizeof(double), nbblocksPerColumn);
-        cudaCheckError();
-	**/
         *reducepitch = width * sizeof(double);
         cudaMalloc(d_sum, *reducepitch * nbblocksPerColumn);
         cudaCheckError();
-	cudaMemset(*d_sum, 0, *reducepitch * nbblocksPerColumn);
+	    cudaMemset(*d_sum, 0, *reducepitch * nbblocksPerColumn);
         cudaCheckError();
     }
 
