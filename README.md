@@ -29,14 +29,18 @@ make
 ```
 
 ## Options
+CPU:
 ```bash
 ./CPUICP ${FILE1} ${FILE2} ${NB_ITERS}
 ```
-
+GPU:
 ```bash
-./GPUICP ${FILE1} ${FILE2} ${NB_ITERS} (-bash)
+./GPUICP ${FILE1} ${FILE2} ${NB_ITERS}
 ```
-Option "-bash": Runs the GPU bash implementation
+Adding option "-batch" in the end runs the GPU batch implementation.
+```bash
+./GPUICP ${FILE1} ${FILE2} ${NB_ITERS} -batch
+```
 
 ## Testing
 

@@ -143,7 +143,7 @@ int main(int argc, char **argv)
         {	
             for (size_t i = 0; i < nblines; ++i)
 	        {
-                std::cout << i + Pstartindex << " -> " << h_corresp[i].id << " , " << h_corresp[i].dist << std::endl;
+                std::cerr << i + Pstartindex << " -> " << h_corresp[i].id << " , " << h_corresp[i].dist << std::endl;
 	        }
         }
 	    free(h_corresp);
@@ -209,8 +209,8 @@ int main(int argc, char **argv)
                 ttlerror += error;
             }
         }
-	std::cout << "Error (batch-reduced cross-cov): " << ttlerror << std::endl;
-        std::cout << "Mean Error (batch-reduced cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+	std::cerr << "Error (batch-reduced cross-cov): " << ttlerror << std::endl;
+        std::cerr << "Mean Error (batch-reduced cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
         std::cerr << "BatchRefCOV:" << std::endl;
         std::cerr << BatchRefCOV << std::endl;
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
         std::cerr << "BatchCOV:" << std::endl;
         std::cerr << BatchCOV << std::endl;
 
-	    std::cout << "index: " << Pstartindex << "/" << Plines << std::endl;
+	    std::cerr << "index: " << Pstartindex << "/" << Plines << std::endl;
 
         Pstartindex += nblines;
     }
@@ -231,14 +231,14 @@ int main(int argc, char **argv)
             ttlerror += error;
         }
     }
-    std::cout << "Error (FINAL CPU summed cross-cov): " << ttlerror << std::endl;
-    std::cout << "Mean Error (FINAL CPU summed cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+    std::cerr << "Error (FINAL CPU summed cross-cov): " << ttlerror << std::endl;
+    std::cerr << "Mean Error (FINAL CPU summed cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
-    std::cout << "CPURefCOV:" << std::endl;
-    std::cout << RefCOV << std::endl;
+    std::cerr << "CPURefCOV:" << std::endl;
+    std::cerr << RefCOV << std::endl;
 
-    std::cout << "CPUsummed GPUCOVs:" << std::endl;
-    std::cout << COV << std::endl;
+    std::cerr << "CPUsummed GPUCOVs:" << std::endl;
+    std::cerr << COV << std::endl;
 
     double *h_cov = (double *)malloc(covLines * covCols * sizeof(double));
     cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(double), cudaMemcpyDeviceToHost);
@@ -253,11 +253,11 @@ int main(int argc, char **argv)
             ttlerror += error;
         }
     }
-    std::cout << "Error (FINAL FULLGPU cross-cov): " << ttlerror << std::endl;
-    std::cout << "Mean Error (FINAL FULLGPU cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
+    std::cerr << "Error (FINAL FULLGPU cross-cov): " << ttlerror << std::endl;
+    std::cerr << "Mean Error (FINAL FULLGPU cross-cov): " << ttlerror / (Pcols * Qcols) << std::endl;
 
-    std::cout << "FULL GPUCOV:" << std::endl;
-    std::cout << FULLGPUCOV << std::endl;
+    std::cerr << "FULL GPUCOV:" << std::endl;
+    std::cerr << FULLGPUCOV << std::endl;
     
     cudaFree(d_cov);
     cudaCheckError();

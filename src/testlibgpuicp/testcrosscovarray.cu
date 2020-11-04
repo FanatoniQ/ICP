@@ -55,9 +55,9 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < Pcols * Qcols; i++)
     {
-        std::cout << h_cov[i] << " ";
+        std::cerr << h_cov[i] << " ";
         if (i % 3)
-            std::cout << std::endl;
+            std::cerr << std::endl;
     }
 
     cudaFree(d_P);

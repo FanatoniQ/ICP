@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     double *h_cov = (double *)malloc(covLines * covCols * sizeof(double));
     cudaMemcpy(h_cov, d_cov, covLines * covCols * sizeof(double), cudaMemcpyDeviceToHost);
     auto FULLGPUCOV = CPUMatrix(h_cov, covLines, covCols);
-    std::cout << FULLGPUCOV << std::endl;
+    std::cerr << FULLGPUCOV << std::endl;
 
     cudaFree(d_cov);
     cudaCheckError();

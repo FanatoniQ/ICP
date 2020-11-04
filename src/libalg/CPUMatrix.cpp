@@ -312,7 +312,7 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
     }
     else if (sizes != n)
         runtime_failure("invalid sizes");
-    // std::cerr << "shapes: " << n << "," << n << "  " << n << ",  " << n << "," << m << std::endl;
+    std::cerr << "shapes: " << n << "," << n << "  " << n << ",  " << n << "," << m << std::endl;
     // VT : n,sizes not full matrices
     // Sigma : 1,sizes
     // U : m,m full matrices

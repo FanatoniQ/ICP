@@ -100,7 +100,7 @@ int main(int argc, char** argv)
         }
     }
     cudaDeviceSynchronize();
-    std::cout << "Error: " << err << std::endl;
+    std::cerr << "Error: " << err << std::endl;
 
     cudaFree(d_A);
     cudaFree(d_B);

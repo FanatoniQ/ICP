@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 {
     if (argc != 3)
         return EXIT_FAILURE;
-    std::cout << std::setprecision(15);
+    std::cerr << std::setprecision(15);
     size_t Pdim0, Pdim1;
     std::string h{};
     double *array = readCSV(argv[1], h, Pdim0, Pdim1);

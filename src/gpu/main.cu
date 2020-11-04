@@ -16,7 +16,6 @@
 #include "libgpualg/mean.cuh"
 #include "error.cuh"
 #include "gpu/icp.cuh"
-#include "gpu/gputimer.cuh"
 
 double default_kernel(CPUMatrix a)
 {
