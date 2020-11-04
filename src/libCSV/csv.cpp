@@ -73,7 +73,7 @@ double *readCSVT(std::istream &f, std::string &h, size_t *nbaxis, size_t *nbpoin
     size_t i, j = 0;
     auto f1M = __readCSV<double>(f, h);
 
-    std::cerr << h << std::endl;
+    // std::cerr << h << std::endl;
     *nbaxis = f1M.at(0).size();
     *nbpoints = f1M.size();
     m = (double *)calloc(*nbaxis * *nbpoints, sizeof(double));

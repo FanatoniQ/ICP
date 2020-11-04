@@ -23,7 +23,7 @@ int checkMatrix(double *A, double *B, size_t dim0, size_t dim1)
 
 int main(int argc, char** argv) 
 {
-	runtime_assert(argc == 2, "Usage: ./testgpusum file1");
+	runtime_assert(argc == 2, "Usage: ./testgpusvd file1");
 
 	size_t Pdim0, Pdim1;
 	std::string h{};

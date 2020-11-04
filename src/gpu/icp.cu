@@ -309,7 +309,7 @@ CPUMatrix icp_gpu(CPUMatrix& P, CPUMatrix& Q, unsigned iterations)
     size_t threads_num = 1024;
     size_t batchsize = 16;
 
-    std::cerr << "==== Init ====" << std::endl;
+    //==== Init ====
     dQ_center = nullptr; // reduce_0 function does the allocation if nullptr
     cudaMalloc(&dQ_centered, Q.getDim0() * Q.getDim1() * sizeof(double));
     cudaMalloc(&dP_copy, P.getDim0() * P.getDim1() * sizeof(double));
@@ -501,7 +501,7 @@ cudaMalloc(corresps) dim(P
 
     size_t threads_num = 1024;
 
-    std::cerr << "==== Init ====" << std::endl;
+    //==== Init ====
     dQ_center = nullptr; // reduce_0 function does the allocation if nullptr
     cudaMalloc(&dQ_centered, Q.getDim0() * Q.getDim1() * sizeof(double));
     cudaMalloc(&dP_copy, P.getDim0() * P.getDim1() * sizeof(double));

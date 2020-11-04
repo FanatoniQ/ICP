@@ -216,12 +216,6 @@ std::tuple<CPUMatrix, std::vector<double>, std::vector<std::tuple<size_t, int>>>
         // cross_var is here 3*3 mat
         // U, S, V_T = svd
         auto [U, S, V_T] = std::get<0>(cross_var).svd();
-        std::cout << "U: \n"
-                  << U << std::endl;
-        std::cout << "S: \n"
-                  << S << std::endl;
-        std::cout << "V_T: \n"
-                  << V_T << std::endl;
         UNUSED(S); // unused
         // Rotation matrix
         auto R = U.dot(V_T);

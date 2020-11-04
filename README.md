@@ -50,9 +50,35 @@ Testing mean, dotproduct and svd: (from the build folder)
 python3 ../tests/test.py
 ```
 
+### Extra tests
+
+Run every test{name} executables in the build folder to get usages and test out the features.
+
+Example:
+```bash
+./testgpusvd ../data/3ptsP.txt
+```
+
 ## Benchmark
 ```bash
 cd build/
 cp ../tests/benchmark.sh .
-./benchmark icp
+```
+
+Default version:
+```bash
+./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS}
+```
+Default full metric version :
+```bash
+./benchmark metric ${FILE1} ${FILE2} ${NB_ITERS}
+```
+
+Batch version:
+```bash
+./benchmark batch ${FILE1} ${FILE2} ${NB_ITERS}
+```
+Batch full metric version:
+```bash
+./benchmark metric-batch ${FILE1} ${FILE2} ${NB_ITERS}
 ```

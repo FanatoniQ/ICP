@@ -62,12 +62,12 @@ void svd(double *a, double **u, double **sigma, double **vt, int m, int n, int *
         runtime_assert(*vt != nullptr, "Alloc Error (u) !");
     }
     lapack::dgesvd(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, &wkopt, &lwork, &info);
-    std::cerr << "Query DONE !" << std::endl;
+    // std::cerr << "Query DONE !" << std::endl;
     lwork = (int)wkopt;
     work = (double *)malloc(lwork * sizeof(double));
     runtime_assert(work != nullptr, "Alloc Error (work) !");
     lapack::dgesvd(jobu, jobvt, &m, &n, a, &lda, *sigma, *u, &ldu, *vt, &ldvt, work, &lwork, &info);
     free(work);
     runtime_assert(info >= 0, "Conversion error !");
-    std::cerr << "lds: " << lda << "," << ldu << "," << ldvt << std::endl;
+    // std::cerr << "lds: " << lda << "," << ldu << "," << ldvt << std::endl;
 }
