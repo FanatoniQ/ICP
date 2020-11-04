@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 {
     if (argc != 3)
         return EXIT_FAILURE;
-    std::cerr << std::setprecision(15); //DBL_MANT_DIG);
+    std::cout << std::setprecision(15); //DBL_MANT_DIG);
 
     size_t Pdim0, Pdim1;
     size_t Qdim0, Qdim1;

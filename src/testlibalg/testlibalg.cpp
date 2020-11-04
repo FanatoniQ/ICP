@@ -26,7 +26,7 @@ int test_norm(char *file1, char *file2)
     double *Parray = readCSV(file1, h, Pdim0, Pdim1);
     double *Qarray = readCSV(file2, h, Qdim0, Qdim1);
     double dist = element_wise_reduce(Parray, Qarray, Pdim0, Pdim1, Qdim0, Qdim1, squared_norm_2, add, add);
-    std::cerr << sqrt(dist) << std::endl;
+    std::cout << sqrt(dist) << std::endl;
     free(Parray);
     free(Qarray);
     return EXIT_SUCCESS;
@@ -167,7 +167,7 @@ void usage(void)
 
 int main(int argc, char *argv[])
 {
-    std::cerr << std::setprecision(15); //DBL_MANT_DIG);
+    std::cout << std::setprecision(15); //DBL_MANT_DIG);
     if (argc == 3)
     {
         if (strcmp(argv[1], "svd") == 0)

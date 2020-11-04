@@ -14,7 +14,7 @@
 int main(int argc, char *argv[])
 {
     runtime_assert(argc == 2, "Usage: ./testview file1");
-    std::cerr << std::setprecision(15);
+    std::cout << std::setprecision(15);
     size_t nbaxis, nbpoints;
     std::string f1Header{};
     double *m = readCSV(argv[1], f1Header, nbpoints, nbaxis);
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
     auto recovered = (std::get<0>(R) * std::get<1>(R)).dot(std::get<2>(R));
 
-    std::cerr << recovered << std::endl;
+    std::cout << recovered << std::endl;
 
     return 0;
 }
