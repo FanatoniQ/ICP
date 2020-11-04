@@ -103,7 +103,7 @@ std::tuple<CPUMatrix, std::vector<double>> compute_cross_variance(CPUMatrix &P, 
 
 int main(int argc, char **argv)
 {
-    runtime_assert(argc >= 4, "Usage: ./GPUICP file1 file2 nbiters");
+    runtime_assert(argc == 5, "Usage: ./GPUICP file1 file2 nbiters method={-loop|-batch|-shared|-shared-loop}");
     std::string f1Header{};
     size_t Qlines, Qcols, Plines, Pcols;
     //size_t Plines, Pcols;
@@ -118,10 +118,12 @@ int main(int argc, char **argv)
     CPUMatrix P_res;
 
     // FIXME iterations number
-    if (argc == 5 && strcmp(argv[4], "-batch") == 0)
+    auto method = std::string{argv[4]};
+    runtime_assert(method == "-batch" || method == "-loop" || method == "-shared" || method == "-shared-loop", "Invalid method !");
+    if (method == "-batch")
          P_res = icp_gpu(P, Q, nbiters);
     else
-         P_res = icp_gpu_optimized(P, Q, nbiters);
+         P_res = icp_gpu_optimized(P, Q, nbiters, method);
     std::cout << "Squared actual mean diff: " << Q.euclidianDistance(P_res) << std::endl;
     //std::cout << "P resultat matrix: " << P_res;
     //std::cout << "Q ref matrix: " << Q;
