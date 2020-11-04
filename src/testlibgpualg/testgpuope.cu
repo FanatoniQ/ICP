@@ -28,7 +28,7 @@ int main(int argc, char **argv)
     double *h_A = readCSV(argv[1], h, nblines, nbcols);
     std::cerr << nblines << nbcols << std::endl;
     auto A = CPUMatrix(h_A, nblines, nbcols);
-    std::cerr << A << std::endl;
+    //std::cerr << A << std::endl;
     int axis = std::stoi(argv[2]); 
     auto cpuMean = A.mean(axis);
     // transpose if axis is 1 
@@ -116,15 +116,15 @@ int main(int argc, char **argv)
     cudaCheckError();
 
     // checking result
-    std::cerr << cpuMean << std::endl;
-    std::cerr << A << std::endl;
+    //std::cerr << cpuMean << std::endl;
+    //std::cerr << A << std::endl;
     double *h_Rcpu = A.getArray();
     runtime_assert(r_0 == A.getDim0() && r_1 == A.getDim1(), "Invalid shapes !");
     for (size_t i = 0; i < r_0; ++i)
     {
         for (size_t j = 0; j < r_1; ++j)
         {
-	    std::cerr << h_r[i * (d_rpitch / sizeof(double)) + j] << " ";
+//	    std::cerr << h_r[i * (d_rpitch / sizeof(double)) + j] << " ";
             if (h_r[j + i * (d_rpitch / sizeof(double))] != h_Rcpu[j + i * r_1])
             {
                 std::cerr << i << "," << j << " : Difference : "
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
                 return EXIT_FAILURE; // Free...
             }
         }
-	std::cerr << std::endl;
+//	std::cerr << std::endl;
     }
 
     std::cerr << "SUCCESS !" << std::endl;

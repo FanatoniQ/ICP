@@ -108,15 +108,15 @@ __global__ void broadcast_op_line_vector_kernel(const T *d_A, T *d_B, T *d_R, fu
 {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x; // column
     unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; // line
-    extern __shared__ T s_vector[]; // double to store vector of size (blockDim.x)
+//    extern __shared__ T s_vector[]; // double to store vector of size (blockDim.x)
     assert((b_0 == 1) && "d_B should be a line vector !");
     assert((a_0 == r_0 && a_1 == r_1) && "Invalid shape for line vector op resulting matrix");
     if (idy >= r_0 || idx >= r_1)
         return;
-    if (threadIdx.y == 0) // first line of block loads vector
-        s_vector[threadIdx.x] = d_B[idx]; // b_0 == 1
-    __syncthreads(); // wait for vector to be avalaible for all threads in block
-    d_R[idx + d_rpitch * idy] = (*op)(d_A[idx + d_apitch * idy], s_vector[threadIdx.x]);
+//    if (threadIdx.y == 0) // first line of block loads vector
+//        s_vector[threadIdx.x] = d_B[idx]; // b_0 == 1
+//    __syncthreads(); // wait for vector to be avalaible for all threads in block
+    d_R[idx + d_rpitch * idy] = (*op)(d_A[idx + d_apitch * idy], d_B[idx]);
 }
 
 template <typename T>
@@ -127,15 +127,15 @@ __global__ void broadcast_op_column_vector_kernel(const T *d_A, T *d_B, T *d_R, 
 {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x; // column
     unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; // line
-    extern __shared__ T s_vector[]; // double to store vector of size (blockDim.y)
+//    extern __shared__ T s_vector[]; // double to store vector of size (blockDim.y)
     assert((b_1 == 1) && "d_B should be a column vector !");
     assert((a_0 == r_0 && a_1 == r_1) && "Invalid shape for line vector op resulting matrix");
     if (idy >= r_0 || idx >= r_1)
         return;
-    if (threadIdx.x == 0) // first column of block loads vector
-        s_vector[threadIdx.y] = d_B[idy * d_bpitch];
-    __syncthreads(); // wait for vector to be avalaible for all threads in block
-    d_R[idx + d_rpitch * idy] = (*op)(d_A[idx + d_apitch * idy], s_vector[threadIdx.y]);
+//    if (threadIdx.x == 0) // first column of block loads vector
+//        s_vector[threadIdx.y] = d_B[idy * d_bpitch];
+//    __syncthreads(); // wait for vector to be avalaible for all threads in block
+    d_R[idx + d_rpitch * idy] = (*op)(d_A[idx + d_apitch * idy], d_B[idy * d_bpitch]);
 }
 
 
@@ -146,14 +146,14 @@ __global__ void broadcast_op_scalar_kernel(const T *d_A, T *d_B, T *d_R, func2_t
 {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x; // column
     unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; // line
-    __shared__ T s_scalar[1]; // double to store scalar
+//    __shared__ T s_scalar[1]; // double to store scalar
     assert((a_0 == r_0 && a_1 == r_1) && "Invalid shape for scalar op resulting matrix");
     if (idy >= r_0 || idx >= r_1)
         return;
-    if (threadIdx.x == 0 && threadIdx.y == 0)
-        s_scalar[0] = d_B[0];
-    __syncthreads(); // wait for scalar to be avalaible for all threads in block
-    d_R[idx + d_rpitch * idy] = (*op)(d_A[idx + d_apitch * idy], s_scalar[0]);
+//    if (threadIdx.x == 0 && threadIdx.y == 0)
+//        s_scalar[0] = d_B[0];
+//    __syncthreads(); // wait for scalar to be avalaible for all threads in block
+    d_R[idx + d_rpitch * idy] = (*op)(d_A[idx + d_apitch * idy], d_B[0]);
 }
 
 template <typename T>
@@ -183,12 +183,12 @@ __host__ void matrix_op(dim3 gridsize, dim3 blocksize,
             a_0, a_1, d_apitch / sizeof(T),
             r_0, r_1, d_rpitch / sizeof(T));
     } else if (b_0 == 1) {
-        broadcast_op_line_vector_kernel<T><<<gridsize, blocksize, blocksize.x * sizeof(T)>>>(d_A, d_B, d_R, h_op,
+        broadcast_op_line_vector_kernel<T><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
             a_0, a_1, d_apitch / sizeof(T),
             b_0, b_1, d_bpitch / sizeof(T),
             r_0, r_1, d_rpitch / sizeof(T));
     } else if (b_1 == 1) {
-        broadcast_op_column_vector_kernel<T><<<gridsize, blocksize, blocksize.y * sizeof(T)>>>(d_A, d_B, d_R, h_op,
+        broadcast_op_column_vector_kernel<T><<<gridsize, blocksize>>>(d_A, d_B, d_R, h_op,
             a_0, a_1, d_apitch / sizeof(T),
             b_0, b_1, d_bpitch / sizeof(T),
             r_0, r_1, d_rpitch / sizeof(T));
