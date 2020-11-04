@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     std::string h{};
     double *array = readCSV(argv[1], h, Pdim0, Pdim1);
 
-    print_matrix(std::cerr, array, Pdim1, Pdim0);
+    print_matrix(std::cout, array, Pdim1, Pdim0);
     auto P = CPUMatrix{array, Pdim0, Pdim1};
     std::cerr << P << std::endl;
 

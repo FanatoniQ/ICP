@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     double *m = readCSV(argv[1], f1Header, nbpoints, nbaxis);
 
     std::cerr << "nbaxis: " << nbaxis << " nbpoints: " << nbpoints << std::endl;
-    print_matrix(std::cerr, m, nbaxis, nbpoints);
+    print_matrix(std::cout, m, nbaxis, nbpoints);
 
     free(m);
     return 0;

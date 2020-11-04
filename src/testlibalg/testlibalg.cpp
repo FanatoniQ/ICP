@@ -55,9 +55,9 @@ int test_svd(char *file)
     //print_matrix(std::cerr, u, m, m, m);         // m,m full matrices
 
     // Not Full Matrices
-    print_matrix(std::cerr, vt, sizes, n, n);    // n,sizes not full matrices
-    print_matrix(std::cerr, sigma, sizes, 1, 1); // 1,sizes
-    print_matrix(std::cerr, u, m, sizes, m);     // m,m full matrices
+    print_matrix(std::cout, vt, sizes, n, n);    // n,sizes not full matrices
+    print_matrix(std::cout, sigma, sizes, 1, 1); // 1,sizes
+    print_matrix(std::cout, u, m, sizes, m);     // m,m full matrices
 
     free(u);
     free(sigma);
@@ -77,7 +77,7 @@ int test_sum(char *file, int axis)
     sum_axises(&mean, m, dim0, dim1, dimr, axis);
     std::cerr << "nbaxis: " << dim1 << " nbpoints: " << dim0 << std::endl;
     std::cerr << "Mean:" << std::endl;
-    print_matrix(std::cerr, mean, dimr, 1);
+    print_matrix(std::cout, mean, dimr, 1);
     free(m);
     free(mean);
     return EXIT_SUCCESS;
@@ -94,7 +94,7 @@ int test_mean(char *file, int axis)
     mean_axises(&mean, m, dim0, dim1, dimr, axis);
     std::cerr << "nbaxis: " << dim1 << " nbpoints: " << dim0 << std::endl;
     std::cerr << "Mean:" << std::endl;
-    print_matrix(std::cerr, mean, dimr, 1);
+    print_matrix(std::cout, mean, dimr, 1);
     free(m);
     free(mean);
     return EXIT_SUCCESS;
@@ -111,7 +111,7 @@ int test_op(char *file1, char *file2, double (*op)(double a, double b))
 
     double *r = nullptr;
     element_wise_op(&r, Parray, Qarray, Pdim0, Pdim1, Qdim0, Qdim1, Rdim0, Rdim1, op);
-    print_matrix(std::cerr, r, Rdim1, Rdim0);
+    print_matrix(std::cout, r, Rdim1, Rdim0);
 
     free(Parray);
     free(Qarray);
@@ -125,7 +125,7 @@ int test_transpose(char *file1)
     std::string h{};
     double *Parray = readCSV(file1, h, Pdim0, Pdim1);
     double *P_Tarray = transpose(Parray, Pdim0, Pdim1);
-    print_matrix(std::cerr, P_Tarray, Pdim0, Pdim1);
+    print_matrix(std::cout, P_Tarray, Pdim0, Pdim1);
     free(Parray);
     free(P_Tarray);
     return EXIT_SUCCESS;
@@ -144,7 +144,7 @@ int test_dotproduct(char *file1, char *file2)
     Q = Q.transpose();
 
     auto R = P.dot(Q);
-    print_matrix(std::cerr, R.getArray(), R.getDim1(), R.getDim0());
+    print_matrix(std::cout, R.getArray(), R.getDim1(), R.getDim0());
 
     return EXIT_SUCCESS;
 }
