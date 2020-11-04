@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 
     // FIXME iterations number
     auto method = std::string{argv[4]};
-    runtime_assert(method == "-batch" || method == "-loop" || method == "-shared" || method == "-shared-loop", "Invalid method !");
+    runtime_assert(method == "-batch" || method == "-loop" || method == "-shared" || method == "-shared-loop", "Invalid method, must be: -shared|-loop|-shared-loop|-batch");
     if (method == "-batch")
          P_res = icp_gpu(P, Q, nbiters);
     else
