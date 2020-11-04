@@ -18,54 +18,6 @@
 #include "gpu/icp.cuh"
 #include "gpu/gputimer.cuh"
 
-<<<<<<< HEAD
-
-__global__ void print_kernel()
-{
-    printf("Hello from block %d, thread %d\n", blockIdx.y * 10 + blockIdx.x, threadIdx.x);
-}
-
-// TODO: REMOVE ME since useless
-__global__ void print_matrix_kernel(char *d_A, int pitch, int nbvals)
-{
-    int j;
-    int idx = threadIdx.x;
-    double *line = (double*)(d_A + idx * pitch);
-    printf("Line %d:\n", idx);
-    for (j = 0; j < nbvals; ++j) {
-        //printf("%6.2f\t", (double)(d_A[idx * pitch + j * sizeof(double)]));
-        printf("%6.2f\t", line[j]);
-        __syncthreads();
-    }
-    printf("\n");
-}
-
-// NEED TO DELETE THIS
-std::vector<std::tuple<size_t, int>> get_correspondence_indices(CPUMatrix &P, CPUMatrix &Q)
-{
-    std::vector<std::tuple<size_t, int>> correspondances = {};
-    for (size_t i = 0; i < P.getDim0(); i++)
-    {
-        auto p_point = P.getLine(i);
-        double min_dist = std::numeric_limits<double>::max();
-        int chosen_idx = -1;
-        for (size_t j = 0; j < Q.getDim0(); j++)
-        {
-            auto q_point = Q.getLine(j);
-            double dist = std::sqrt(p_point.euclidianDistance(q_point));
-            if (dist < min_dist)
-            {
-                min_dist = dist;
-                chosen_idx = j;
-            }
-        }
-        correspondances.push_back(std::make_tuple(i, chosen_idx));
-    }
-    return correspondances;
-}
-
-=======
->>>>>>> Delete deadcode, cleanup and update readme
 double default_kernel(CPUMatrix a)
 {
     UNUSED(a);
