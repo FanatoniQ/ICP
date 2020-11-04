@@ -77,4 +77,5 @@ int main(int argc, char **argv)
          P_res = icp_gpu_optimized(P, Q, nbiters);
 
     std::cout << "Squared actual mean diff: " << Q.euclidianDistance(P_res) << std::endl;
+    P_res.write_in_file("point_cloud_result");
 }

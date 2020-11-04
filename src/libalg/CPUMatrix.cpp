@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <cmath>
+#include <fstream>
 
 #include "error.hpp"
 #include "libalg/alg.hpp"
@@ -317,4 +318,10 @@ std::tuple<CPUMatrix, CPUMatrix, CPUMatrix> CPUMatrix::svd()
     // U : m,m full matrices
 
     return std::make_tuple(CPUMatrix(vt, nbpoints, sizes), CPUMatrix(sigma, 1, sizes), CPUMatrix(u, sizes, nbaxis));
+}
+
+void CPUMatrix::write_in_file(const std::string& filename) {
+    std::ofstream FileWrite(filename);
+    FileWrite << *this;
+    FileWrite.close();
 }

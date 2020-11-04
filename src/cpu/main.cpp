@@ -32,6 +32,9 @@ int main(int argc, char *argv[])
     refQ = Q;
 
     auto results = icp(P, Q, nbiters);
-    std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(std::get<0>(results));
+    CPUMatrix Pres = std::move(std::get<0>(results));
+    std::cout << "Squared actual mean diff: " << refQ.euclidianDistance(Pres);
+    Pres.write_in_file("point_cloud_result");
+
     return EXIT_SUCCESS;
 }

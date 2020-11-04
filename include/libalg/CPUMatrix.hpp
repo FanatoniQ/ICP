@@ -44,6 +44,7 @@ public:
 
     // Output
     friend std::ostream &operator<<(std::ostream &os, const CPUMatrix &matrix);
+    void write_in_file(const std::string& filename);
 
     // Operations
     bool operator==(const CPUMatrix &rhs) const;
