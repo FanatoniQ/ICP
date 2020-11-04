@@ -28,8 +28,7 @@ __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array
     unsigned int nbiters)
 {
     assert(P_col == Q_col && P_col == 3);
-    //extern __shared__ double s_data[]; // first 3 * sizeof(double) bytes are used to store p_point[0,1,2], then we have 1025 ICPCorresps
-    extern __shared__ double s_corresp[];
+    extern __shared__ double s_corresp[]; // improvement: no bank conflict when splitting ICPCorresp
     
     double *s_dists = s_corresp;
     unsigned int *s_ids = (unsigned int *)(s_dists + blockDim.x);
@@ -44,15 +43,12 @@ __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array
     unsigned int iter = 0;
     if (qid == 0)
     {
-        //s_min_point[0] = { DBL_MAX, 0 };
 	s_min_dist[0] = DBL_MAX;
-	//s_min_id[0] = 0;
     }
     __syncthreads(); // wait for x,y and z of p_point (should be done at first iter only)
     do {
         if (qid >= Q_row) {
 	    s_dists[threadIdx.x] = DBL_MAX;
-            //s_corresp[threadIdx.x] = { DBL_MAX, 0 };
             return;
         }
         q_point = d_Q + qid * Q_col;
@@ -65,7 +61,6 @@ __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array
         tmp = p_point[2] - q_point[2];
         dist += tmp * tmp;
         // store the distance
-        //s_corresp[threadIdx.x] = { dist, qid };
 	s_dists[threadIdx.x] = dist;
 	s_ids[threadIdx.x] = qid;
         __syncthreads();
@@ -75,10 +70,6 @@ __global__ void get_array_correspondences_optimized_kernel(unsigned int *d_array
         for(unsigned int stride = blockDim.x / 2; stride > 0; stride >>= 1)
         {
             if (threadIdx.x < stride) {
-		    /**
-                if (s_corresp[threadIdx.x].dist > s_corresp[threadIdx.x + stride].dist)
-                    s_corresp[threadIdx.x] = s_corresp[threadIdx.x + stride];
-		    **/
 		if (s_dists[threadIdx.x] > s_dists[threadIdx.x + stride])
 		{
 s_dists[threadIdx.x] = s_dists[threadIdx.x + stride];
@@ -90,10 +81,6 @@ s_ids[threadIdx.x] = s_ids[threadIdx.x + stride];
         // total min dist
         if (threadIdx.x == 0)
         {
-		/**
-            if (s_min_point[0].dist > s_corresp[0].dist)
-                s_min_point[0] = s_corresp[0];
-		**/
 	    if (s_min_dist[0] > s_dists[0]) {
 		s_min_dist[0] = s_dists[0];
 		s_min_id[0] = s_ids[0];
@@ -146,7 +133,6 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
     const double *q_point;
     const double *p_point = d_P + pid * P_col;
     if (qid >= Q_row) {
-        //s_corresp[threadIdx.x] = { DBL_MAX, 0 };
 	s_dists[threadIdx.x] = DBL_MAX;
 	s_ids[threadIdx.x] = 0;
         return;
@@ -155,13 +141,10 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
     // compute distance for qid
     dist = 0;
     tmp =  p_point[0] - q_point[0];
-    //tmp = s_data[0] - q_point[0];
     dist += tmp * tmp;
     tmp =  p_point[1] - q_point[1];
-    //tmp = s_data[1] - q_point[1];
     dist += tmp * tmp;
     tmp =  p_point[2] - q_point[2];
-    //tmp = s_data[2] - q_point[2];
     dist += tmp * tmp;
     // store the distance
     s_dists[threadIdx.x] = dist;
@@ -177,17 +160,9 @@ const double *d_P, const double *d_Q, unsigned int P_row, unsigned int P_col, un
                  s_dists[threadIdx.x] = s_dists[threadIdx.x + stride];
                  s_ids[threadIdx.x] = s_ids[threadIdx.x + stride];
             }
-            //ICPCorresp tmp_dist_id = s_corresp[threadIdx.x + stride];
-            //if (s_corresp[threadIdx.x].dist > s_corresp[threadIdx.x + stride].dist)
-            //    s_corresp[threadIdx.x] = { s_corresp[threadIdx.x + stride].dist, s_corresp[threadIdx.x + stride].id };
-	    //if (s_corresp[threadIdx.x].dist > tmp_dist_id.dist)
-                //s_corresp[threadIdx.x] = tmp_dist_id;//s_corresp[threadIdx.x + stride];
-                //s_corresp[threadIdx.x] = s_corresp[threadIdx.x + stride];
         }
         __syncthreads();
     }
-    //if (threadIdx.x == 0)
-    //    printf("%u = [%u %u]  = [%u] \n", s_corresp[0].id, pid, blockIdx.x, pid * dist_1 + blockIdx.x); 
     if (threadIdx.x == 0)
         d_dists[pid * dist_1 + blockIdx.x] = { s_dists[0], s_ids[0] }; // partial reduce
 }
@@ -201,7 +176,6 @@ __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_c
     unsigned int lineid = blockIdx.y; // line
     unsigned int dataid = threadIdx.x; // only used in final reduce //blockIdx.x * blockDim.x + threadIdx.x; // column
     if (dataid >= dist_1 || lineid >= dist_0) {
-        //s_reducedata[threadid] = { DBL_MAX,dataid };
 	s_reducedists[threadid] = DBL_MAX;
         return;
     }
@@ -217,15 +191,9 @@ __global__ void get_array_reduced_correspondences_kernel(unsigned int *d_array_c
 		    s_reducedists[threadid] = s_reducedists[threadid + stride];
 		    s_reduceids[threadid] = s_reduceids[threadid + stride];
 	    }
-		/**
-            if (s_reducedata[threadid + stride].dist < s_reducedata[threadid].dist) {
-                s_reducedata[threadid] = s_reducedata[threadid + stride];
-            }**/
         }
         __syncthreads();
     }
-    //if (threadid == 0)
-    //      printf("lineid: %u: %d\n", lineid, s_reducedata[0].id);
     if (threadid == 0)
         d_array_correspondances[lineid] = s_reduceids[0];
 }
@@ -256,15 +224,11 @@ __host__ void get_array_correspondences_optimized_one_iter(unsigned int *d_array
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    //if (nbblocksPerLine > 1)
-    //{
-        //blocksize = dim3(get_next_power_of_2(nbblocksPerLine), 1);
-        blocksize = dim3(1024, 1);
-        gridsize = dim3(1, P_row);
-        
-        std::cerr << "nbthreads: " << blocksize.x << " nblines: " << gridsize.y << " nbblocksPerLine: " << gridsize.x << std::endl;
-        get_array_reduced_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_array_correspondances, *d_dist, sizeof(ICPCorresp) * nbblocksPerLine, P_row, nbblocksPerLine);
-        cudaDeviceSynchronize();
-        cudaCheckError();
-    //}
+    blocksize = dim3(1024, 1);
+    gridsize = dim3(1, P_row);
+    
+    std::cerr << "nbthreads: " << blocksize.x << " nblines: " << gridsize.y << " nbblocksPerLine: " << gridsize.x << std::endl;
+    get_array_reduced_correspondences_kernel<<<gridsize, blocksize, blocksize.x * sizeof(ICPCorresp)>>>(d_array_correspondances, *d_dist, sizeof(ICPCorresp) * nbblocksPerLine, P_row, nbblocksPerLine);
+    cudaDeviceSynchronize();
+    cudaCheckError();
 }
