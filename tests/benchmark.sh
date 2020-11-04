@@ -34,20 +34,20 @@ fi
 # Metrics
 if [ "$1" = "metric-loop" ]; then
     #nvprof --events all --metrics all ./testgpumean ../data/30points_notebook_P.txt trees 0
-    nvprof --metrics all ./GPUICP $FILE1 $FILE2 $NB_ITERS -loop
+    nvprof --metrics all -o metric.nvvp ./GPUICP $FILE1 $FILE2 $NB_ITERS -loop
 fi
 
 if [ "$1" = "metric-batch" ]; then
     #nvprof --events all --metrics all ./testgpumean ../data/30points_notebook_P.txt trees 0
-    nvprof --metrics all ./GPUICP $FILE1 $FILE2 $NB_ITERS -batch
+    nvprof --metrics all -o metric.nvvp ./GPUICP $FILE1 $FILE2 $NB_ITERS -batch
 fi
 
 if [ "$1" = "metric-shared" ]; then
     #nvprof --events all --metrics all ./testgpumean ../data/30points_notebook_P.txt trees 0
-    nvprof --metrics all ./GPUICP $FILE1 $FILE2 $NB_ITERS -shared
+    nvprof --metrics all -o metric.nvvp ./GPUICP $FILE1 $FILE2 $NB_ITERS -shared
 fi
 
 if [ "$1" = "metric-shared-loop" ]; then
     #nvprof --events all --metrics all ./testgpumean ../data/30points_notebook_P.txt trees 0
-    nvprof --metrics all ./GPUICP $FILE1 $FILE2 $NB_ITERS -shared-loop
+    nvprof --metrics all -o metric.nvvp ./GPUICP $FILE1 $FILE2 $NB_ITERS -shared-loop
 fi

@@ -73,15 +73,16 @@ cp ../tests/benchmark.sh .
 
 Without full metrics:
 ```bash
-./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS} method={loop|batch|shared|shared-loop}
+./benchmark method={loop|batch|shared|shared-loop} ${FILE1} ${FILE2} ${NB_ITERS}
 ```
 
 With full metrics:
 ```bash
-./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS} method={metric-loop|metric-batch|metric-shared|metric-shared-loop}
+./benchmark method={metric-loop|metric-batch|metric-shared|metric-shared-loop} ${FILE1} ${FILE2} ${NB_ITERS}
 ```
+Creates a file "metric.nvvp" in current folder 
 
 Example:
 ```bash
-./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS} metric-shared-loop
+./benchmark metric-shared-loop ${FILE1} ${FILE2} ${NB_ITERS}
 ```
