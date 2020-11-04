@@ -71,20 +71,18 @@ cd build/
 cp ../tests/benchmark.sh .
 ```
 
-Default version:
+Without full metrics:
 ```bash
-./benchmark icp ${FILE1} ${FILE2} ${NB_ITERS}
-```
-Default full metric version :
-```bash
-./benchmark metric ${FILE1} ${FILE2} ${NB_ITERS}
+./benchmark method={loop|batch|shared|shared-loop} ${FILE1} ${FILE2} ${NB_ITERS}
 ```
 
-Batch version:
+With full metrics:
 ```bash
-./benchmark batch ${FILE1} ${FILE2} ${NB_ITERS}
+./benchmark method={metric-loop|metric-batch|metric-shared|metric-shared-loop} ${FILE1} ${FILE2} ${NB_ITERS}
 ```
-Batch full metric version:
+Creates a file "metric.nvvp" in current folder 
+
+Example:
 ```bash
-./benchmark metric-batch ${FILE1} ${FILE2} ${NB_ITERS}
+./benchmark metric-shared-loop ${FILE1} ${FILE2} ${NB_ITERS}
 ```
